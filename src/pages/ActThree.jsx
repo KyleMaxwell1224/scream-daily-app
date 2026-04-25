@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import Logo from '../components/Logo'
+import Header from '../components/Header'
 import ProgressBar from '../components/ProgressBar'
 import BottomNav from '../components/BottomNav'
 import useGameStore from '../store/useGameStore'
@@ -43,7 +43,7 @@ export default function ActThree() {
   if (loading || !q) {
     return (
       <div className="sd-wrap">
-        <Logo />
+        <Header activePage="ritual" />
         <div style={{ fontFamily: "'Special Elite', serif", fontSize: 12, color: 'var(--sd-muted)', textAlign: 'center', marginTop: 80 }}>
           Loading…
         </div>
@@ -63,8 +63,9 @@ export default function ActThree() {
 
   return (
     <div className="sd-wrap">
-      <Logo />
+      <Header activePage="ritual" />
       <ProgressBar currentAct={3} />
+      <div className="sd-game-content">
 
       <div className="sd-act-header">
         <span className="sd-act-badge">ACT III</span>
@@ -142,6 +143,7 @@ export default function ActThree() {
         Skip — 0 xp
       </button>
 
+      </div>
       <BottomNav activePage="ritual" />
     </div>
   )

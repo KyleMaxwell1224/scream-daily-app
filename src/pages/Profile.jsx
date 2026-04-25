@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import Logo from '../components/Logo'
+import Header from '../components/Header'
 import BottomNav from '../components/BottomNav'
 import useGameStore from '../store/useGameStore'
 import { supabase } from '../supabaseClient'
@@ -55,7 +55,7 @@ export default function Profile() {
   if (!session) {
     return (
       <div className="sd-wrap">
-        <Logo />
+        <Header activePage="profile" />
 
         <div style={{ padding: '24px var(--sd-px) 0' }}>
           <div style={{

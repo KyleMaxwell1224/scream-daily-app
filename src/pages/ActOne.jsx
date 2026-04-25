@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import Logo from '../components/Logo'
+import Header from '../components/Header'
 import ProgressBar from '../components/ProgressBar'
 import BottomNav from '../components/BottomNav'
 import useGameStore from '../store/useGameStore'
@@ -75,8 +75,9 @@ export default function ActOne() {
 
   return (
     <div className="sd-wrap">
-      <Logo />
+      <Header activePage="ritual" />
       <ProgressBar currentAct={1} />
+      <div className="sd-game-content">
 
       <div className="sd-act-header">
         <span className="sd-act-badge">ACT I</span>
@@ -173,6 +174,7 @@ export default function ActOne() {
         Skip — 0 xp
       </button>
 
+      </div>
       <BottomNav activePage="ritual" />
     </div>
   )

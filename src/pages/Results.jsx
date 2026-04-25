@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import Logo from '../components/Logo'
+import Header from '../components/Header'
 import BottomNav from '../components/BottomNav'
 import useGameStore from '../store/useGameStore'
 import { getRankForXP, getNextRank } from '../utils/ranks'
@@ -47,7 +47,7 @@ export default function Results() {
 
   return (
     <div className="sd-wrap">
-      <Logo />
+      <Header activePage="ritual" />
 
       {/* All segments green */}
       <div className="sd-progress">
@@ -176,3 +176,4 @@ export default function Results() {
     </div>
   )
 }
+

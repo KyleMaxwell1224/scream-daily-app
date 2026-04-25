@@ -426,6 +426,224 @@ body {
   border-color: var(--sd-red);
 }
 
+/* ─── Desktop layout ≥900px ──────────────────────────────────────── */
+
+.sd-header {
+  border-bottom: 0.5px solid var(--sd-border);
+}
+
+.sd-header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 44px var(--sd-px) 16px;
+}
+
+/* Desktop nav — hidden on mobile, shown on desktop */
+.sd-desktop-nav {
+  display: none;
+}
+
+.sd-desktop-tab {
+  font-family: 'Special Elite', serif;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px 14px;
+  border-radius: 8px;
+  color: var(--sd-muted);
+  position: relative;
+  transition: color 0.15s;
+}
+
+.sd-desktop-tab.active {
+  color: var(--sd-cream);
+  background: var(--sd-card);
+}
+
+.sd-desktop-tab.disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.sd-desktop-tab-soon {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 7px;
+  color: var(--sd-muted);
+  letter-spacing: 0.05em;
+}
+
+/* Home page two-column grid */
+.sd-home-content {
+  display: block;
+}
+
+.sd-home-left,
+.sd-home-right {
+  width: 100%;
+}
+
+/* Game content centering for act pages on desktop */
+.sd-game-content {
+  width: 100%;
+}
+
+/* Visibility helpers */
+.sd-desktop-only {
+  display: none !important;
+}
+
+.sd-mobile-only {
+  display: block;
+}
+
+@media (min-width: 900px) {
+  :root {
+    --sd-px: 32px;
+  }
+
+  body {
+    background-image:
+      radial-gradient(ellipse 60% 50% at 50% 0%, rgba(192, 21, 42, 0.09) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 30% at 50% 100%, rgba(140, 10, 20, 0.06) 0%, transparent 70%);
+  }
+
+  .sd-wrap {
+    max-width: 960px;
+    box-shadow: 0 0 0 0.5px rgba(192, 21, 42, 0.2), 0 16px 80px rgba(0, 0, 0, 0.7);
+    padding-bottom: 0;
+  }
+
+  /* Header */
+  .sd-header-inner {
+    padding: 28px 32px 18px;
+  }
+
+  .sd-logo {
+    font-size: 40px;
+    letter-spacing: 8px;
+  }
+
+  .sd-desktop-nav {
+    display: flex;
+    gap: 4px;
+  }
+
+  /* Hide mobile bottom nav on desktop */
+  .sd-bottom-nav {
+    display: none;
+  }
+
+  /* Home two-column grid */
+  .sd-home-content {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 24px;
+    padding: 0 32px 40px;
+    align-items: start;
+  }
+
+  .sd-home-left {
+    padding: 0;
+  }
+
+  .sd-home-right {
+    padding-top: 8px;
+  }
+
+  /* Center game content on act pages */
+  .sd-game-content {
+    max-width: 620px;
+    margin: 0 auto;
+    padding-bottom: 40px;
+  }
+
+  /* Visibility helpers */
+  .sd-desktop-only {
+    display: flex !important;
+  }
+
+  .sd-mobile-only {
+    display: none !important;
+  }
+
+  /* Scale up act headers */
+  .sd-act-header {
+    padding: 20px 0 10px;
+  }
+
+  .sd-act-title {
+    font-size: 24px;
+  }
+
+  .sd-act-badge {
+    font-size: 15px;
+  }
+
+  /* Progress bar flush */
+  .sd-progress-seg {
+    height: 4px;
+  }
+
+  /* Options scale */
+  .sd-options {
+    padding: 0;
+    gap: 10px;
+  }
+
+  .sd-option {
+    padding: 15px 18px;
+    border-radius: 12px;
+  }
+
+  .sd-option-letter {
+    font-size: 20px;
+    width: 26px;
+  }
+
+  .sd-option-text {
+    font-size: 18px;
+  }
+
+  /* Feedback */
+  .sd-feedback {
+    margin: 12px 0;
+    font-size: 12px;
+    padding: 14px 18px;
+  }
+
+  /* Input */
+  .sd-input {
+    width: 100%;
+    margin: 0;
+    font-size: 20px;
+    padding: 16px 18px;
+    border-radius: 14px;
+  }
+
+  /* CTA button */
+  .sd-cta-btn {
+    width: 100%;
+    margin: 0;
+    font-size: 24px;
+    padding: 16px;
+    border-radius: 14px;
+  }
+
+  /* Section label */
+  .sd-section-label {
+    padding: 0;
+  }
+}
+
+/* ─── Animations ─────────────────────────────────────────────────── */
+
 /* Pulsing border animation for Act IV */
 @keyframes pulse-border {
   0%, 100% { border-color: var(--sd-border); }
