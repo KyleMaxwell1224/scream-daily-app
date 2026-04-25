@@ -543,9 +543,9 @@ body {
   /* Home two-column grid */
   .sd-home-content {
     display: grid;
-    grid-template-columns: 1fr 300px;
-    gap: 24px;
-    padding: 0 32px 40px;
+    grid-template-columns: 1fr 320px;
+    gap: 28px;
+    padding: 0 32px 48px;
     align-items: start;
   }
 
@@ -554,7 +554,17 @@ body {
   }
 
   .sd-home-right {
-    padding-top: 8px;
+    padding-top: 0;
+  }
+
+  /* Act row hover on desktop */
+  .sd-act-row {
+    transition: border-color 0.15s, background 0.15s;
+  }
+
+  .sd-act-row:not([style*='cursor: default']):hover {
+    border-color: rgba(192, 21, 42, 0.5) !important;
+    background: rgba(192, 21, 42, 0.05) !important;
   }
 
   /* Center game content on act pages */
