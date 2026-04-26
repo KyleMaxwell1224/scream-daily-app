@@ -15,6 +15,8 @@ export async function pushStats(session) {
     streak: state.streak,
     days_played: state.daysPlayed,
     last_completed_date: state.lastCompletedDate || null,
+    username: state.username || null,
+    favorite_slasher: state.favoriteSlasher || null,
     updated_at: new Date().toISOString(),
   })
 }
@@ -29,16 +31,20 @@ export async function pullStats(session) {
     .single()
 
   if (error || !data) {
-    // No remote record yet — push local state up
     await pushStats(session)
     return
   }
+
+  // Always sync profile fields down if they exist remotely
+  const profileUpdate = {}
+  if (data.username) profileUpdate.username = data.username
+  if (data.favorite_slasher) profileUpdate.favoriteSlasher = data.favorite_slasher
+  if (Object.keys(profileUpdate).length) useGameStore.setState(profileUpdate)
 
   const state = useGameStore.getState()
   const localTotal = totalXP(state)
 
   if (data.user_xp > localTotal) {
-    // Remote is ahead (played on another device) — sync down
     useGameStore.setState({
       userXP: data.user_xp,
       xpEarned: { act1: 0, act2: 0, act3: 0, act4: 0 },
@@ -47,7 +53,6 @@ export async function pullStats(session) {
       lastCompletedDate: data.last_completed_date,
     })
   } else {
-    // Local is ahead or equal — push up to keep remote current
     await pushStats(session)
   }
 }

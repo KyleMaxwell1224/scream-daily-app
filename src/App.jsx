@@ -7,6 +7,7 @@ import ActThree from './pages/ActThree'
 import ActFour from './pages/ActFour'
 import Results from './pages/Results'
 import Profile from './pages/Profile'
+import Leaderboard from './pages/Leaderboard'
 import useGameStore from './store/useGameStore'
 import { pushStats } from './utils/syncStats'
 
@@ -36,6 +37,7 @@ export default function App() {
         <Route path="/act/4" element={<ActFour />} />
         <Route path="/results" element={<Results />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/leaderboard" element={<Leaderboard />} />
       </Routes>
     </BrowserRouter>
   )

@@ -4,7 +4,22 @@ import BottomNav from '../components/BottomNav'
 import useGameStore from '../store/useGameStore'
 import { supabase } from '../supabaseClient'
 import { RANKS, getRankForXP, getNextRank } from '../utils/ranks'
-import { pullStats } from '../utils/syncStats'
+import { pullStats, pushStats } from '../utils/syncStats'
+
+const SLASHERS = [
+  'Michael Myers',
+  'Jason Voorhees',
+  'Freddy Krueger',
+  'Ghostface',
+  'Leatherface',
+  'Pinhead',
+  'Chucky',
+  'Pennywise',
+  'Candyman',
+  'Art the Clown',
+  'The Babadook',
+  'Norman Bates',
+]
 
 const inputStyle = {
   background: 'var(--sd-card2)', border: '1px solid var(--sd-border)',
@@ -13,14 +28,31 @@ const inputStyle = {
   color: 'var(--sd-cream)', outline: 'none', width: '100%',
 }
 
+const selectStyle = {
+  ...inputStyle,
+  appearance: 'none',
+  cursor: 'pointer',
+}
+
 export default function Profile() {
-  const { session, setSession, userXP, xpEarned, streak, daysPlayed } = useGameStore()
+  const {
+    session, setSession, userXP, xpEarned, streak, daysPlayed,
+    username, favoriteSlasher, setUsername, setFavoriteSlasher,
+  } = useGameStore()
 
   const [mode, setMode] = useState('login') // 'login' | 'signup' | 'check-email'
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [signupUsername, setSignupUsername] = useState('')
   const [authError, setAuthError] = useState('')
   const [loading, setLoading] = useState(false)
+
+  // Profile editing
+  const [editing, setEditing] = useState(false)
+  const [editUsername, setEditUsername] = useState('')
+  const [editSlasher, setEditSlasher] = useState('')
+  const [saveError, setSaveError] = useState('')
+  const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -33,6 +65,43 @@ export default function Profile() {
     return () => subscription.unsubscribe()
   }, [])
 
+  function openEdit() {
+    setEditUsername(username)
+    setEditSlasher(favoriteSlasher)
+    setSaveError('')
+    setEditing(true)
+  }
+
+  async function handleSaveProfile() {
+    const trimmed = editUsername.trim()
+    if (!trimmed) { setSaveError('Username is required.'); return }
+    if (trimmed.length > 20) { setSaveError('Max 20 characters.'); return }
+    if (!/^[a-zA-Z0-9_]+$/.test(trimmed)) { setSaveError('Letters, numbers, and _ only.'); return }
+
+    setSaving(true)
+    setSaveError('')
+
+    // Check uniqueness (only if username changed)
+    if (trimmed !== username) {
+      const { data: existing } = await supabase
+        .from('user_stats')
+        .select('user_id')
+        .eq('username', trimmed)
+        .maybeSingle()
+      if (existing) {
+        setSaveError('That username is taken.')
+        setSaving(false)
+        return
+      }
+    }
+
+    setUsername(trimmed)
+    setFavoriteSlasher(editSlasher)
+    if (session) await pushStats(session)
+    setSaving(false)
+    setEditing(false)
+  }
+
   async function handleSubmit(e) {
     e.preventDefault()
     setLoading(true)
@@ -42,10 +111,24 @@ export default function Profile() {
       const { error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) setAuthError(error.message)
     } else {
+      const trimmed = signupUsername.trim()
+      if (!trimmed) { setAuthError('Choose a username.'); setLoading(false); return }
+      if (trimmed.length > 20) { setAuthError('Username max 20 characters.'); setLoading(false); return }
+      if (!/^[a-zA-Z0-9_]+$/.test(trimmed)) { setAuthError('Letters, numbers, and _ only.'); setLoading(false); return }
+
+      // Check uniqueness before creating account
+      const { data: existing } = await supabase
+        .from('user_stats')
+        .select('user_id')
+        .eq('username', trimmed)
+        .maybeSingle()
+      if (existing) { setAuthError('That username is already taken.'); setLoading(false); return }
+
       const { error } = await supabase.auth.signUp({ email, password })
       if (error) {
         setAuthError(error.message)
       } else {
+        setUsername(trimmed)
         setMode('check-email')
       }
     }
@@ -61,10 +144,8 @@ export default function Profile() {
     setSession(null)
   }
 
-  // displayXP includes today's unbanked earnings
   const todayXP = Object.values(xpEarned).reduce((s, v) => s + v, 0)
   const displayXP = userXP + todayXP
-
   const rank = getRankForXP(displayXP)
   const nextRank = getNextRank(displayXP)
   const xpBarFill = nextRank
@@ -129,6 +210,17 @@ export default function Profile() {
             </div>
 
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {isSignup && (
+                <input
+                  type="text"
+                  placeholder="Username (letters, numbers, _)"
+                  value={signupUsername}
+                  onChange={e => setSignupUsername(e.target.value)}
+                  maxLength={20}
+                  required
+                  style={inputStyle}
+                />
+              )}
               <input
                 type="email"
                 placeholder="Email"
@@ -174,7 +266,6 @@ export default function Profile() {
                   <span style={{ fontFamily: "'Special Elite', serif", fontSize: 10, color: 'var(--sd-muted)' }}>or continue with</span>
                   <div style={{ flex: 1, height: 1, background: 'var(--sd-border)' }} />
                 </div>
-
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
                   <button onClick={handleGoogleLogin} style={{
                     background: 'var(--sd-card2)', border: '1px solid var(--sd-border)',
@@ -216,7 +307,8 @@ export default function Profile() {
   // ── Logged-in view ────────────────────────────────────────────────
 
   const user = session?.user
-  const initials = user?.email?.slice(0, 2).toUpperCase() || '??'
+  const displayName = username || user?.email?.split('@')[0] || '??'
+  const initials = displayName.slice(0, 2).toUpperCase()
   const memberSince = user?.created_at
     ? new Date(user.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
     : ''
@@ -227,24 +319,109 @@ export default function Profile() {
 
       {/* Avatar + info */}
       <div style={{ textAlign: 'center', padding: '24px var(--sd-px) 16px' }}>
-        <div style={{ position: 'relative', display: 'inline-block' }}>
+        <div style={{
+          width: 72, height: 72, borderRadius: '50%',
+          background: 'var(--sd-card2)', border: '2px solid var(--sd-border)',
+          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <span style={{ fontFamily: "'Creepster', cursive", fontSize: 26, color: 'var(--sd-red)' }}>{initials}</span>
+        </div>
+        <div style={{ fontFamily: "'Creepster', cursive", fontSize: 24, color: 'var(--sd-cream)', marginTop: 10 }}>
+          {displayName}
+        </div>
+        {favoriteSlasher && (
           <div style={{
-            width: 72, height: 72, borderRadius: '50%',
-            background: 'var(--sd-card2)', border: '2px solid var(--sd-border)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            display: 'inline-block', marginTop: 6,
+            fontFamily: "'Special Elite', serif", fontSize: 10,
+            color: 'var(--sd-red)', border: '0.5px solid var(--sd-border)',
+            borderRadius: 20, padding: '2px 10px',
           }}>
-            <span style={{ fontFamily: "'Creepster', cursive", fontSize: 26, color: 'var(--sd-red)' }}>{initials}</span>
+            {favoriteSlasher}
           </div>
-        </div>
-        <div style={{ fontFamily: "'Teko', sans-serif", fontSize: 20, color: 'var(--sd-cream)', marginTop: 10 }}>
-          {user?.email}
-        </div>
+        )}
         {memberSince && (
-          <div style={{ fontFamily: "'Special Elite', serif", fontSize: 10, color: 'var(--sd-muted)', marginTop: 2 }}>
+          <div style={{ fontFamily: "'Special Elite', serif", fontSize: 10, color: 'var(--sd-muted)', marginTop: 6 }}>
             Member since {memberSince}
           </div>
         )}
+        <button
+          onClick={openEdit}
+          style={{
+            display: 'block', margin: '10px auto 0',
+            background: 'none', border: '1px solid var(--sd-border)',
+            borderRadius: 8, padding: '5px 16px', cursor: 'pointer',
+            fontFamily: "'Special Elite', serif", fontSize: 10, color: 'var(--sd-muted)',
+          }}
+        >
+          Edit profile
+        </button>
       </div>
+
+      {/* Inline edit form */}
+      {editing && (
+        <div style={{ padding: '0 var(--sd-px) 16px' }}>
+          <div style={{
+            background: 'var(--sd-card)', border: '1px solid var(--sd-border)',
+            borderRadius: 14, padding: '18px',
+          }}>
+            <div style={{ fontFamily: "'Creepster', cursive", fontSize: 18, color: 'var(--sd-cream)', marginBottom: 14 }}>
+              Edit profile
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <input
+                type="text"
+                placeholder="Username"
+                value={editUsername}
+                onChange={e => setEditUsername(e.target.value)}
+                maxLength={20}
+                style={inputStyle}
+              />
+              <div style={{ position: 'relative' }}>
+                <select
+                  value={editSlasher}
+                  onChange={e => setEditSlasher(e.target.value)}
+                  style={{ ...selectStyle, paddingRight: 36 }}
+                >
+                  <option value="">Favorite slasher…</option>
+                  {SLASHERS.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+                <span style={{
+                  position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
+                  color: 'var(--sd-muted)', pointerEvents: 'none', fontSize: 12,
+                }}>▾</span>
+              </div>
+              {saveError && (
+                <div style={{ fontFamily: "'Special Elite', serif", fontSize: 10, color: '#e24b4a' }}>
+                  {saveError}
+                </div>
+              )}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 2 }}>
+                <button
+                  onClick={() => setEditing(false)}
+                  style={{
+                    background: 'none', border: '1px solid var(--sd-border)',
+                    borderRadius: 10, padding: '10px', cursor: 'pointer',
+                    fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-muted)',
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSaveProfile}
+                  disabled={saving}
+                  style={{
+                    background: 'var(--sd-red)', border: 'none',
+                    borderRadius: 10, padding: '10px', cursor: 'pointer',
+                    fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-cream)',
+                  }}
+                >
+                  {saving ? 'Saving…' : 'Save'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Rank card */}
       <div style={{ padding: '0 var(--sd-px) 16px' }}>
@@ -268,9 +445,9 @@ export default function Profile() {
       {/* Stats grid */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, padding: '0 var(--sd-px) 16px' }}>
         {[
-          { label: 'Day streak',  value: streak },
-          { label: 'Days played', value: daysPlayed },
-          { label: 'Total XP',    value: displayXP },
+          { label: 'Day streak',   value: streak },
+          { label: 'Days played',  value: daysPlayed },
+          { label: 'Total XP',     value: displayXP },
           { label: 'Correct rate', value: '—' },
         ].map(({ label, value }) => (
           <div key={label} style={{

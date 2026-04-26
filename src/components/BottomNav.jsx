@@ -10,11 +10,13 @@ function HomeIcon() {
   )
 }
 
-function FilmIcon() {
+function SkullIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
-      <rect x="2" y="4" width="20" height="16" rx="2" />
-      <path d="M7 4v16M17 4v16M2 9h5M2 15h5M17 9h5M17 15h5" strokeLinecap="round" />
+      <path d="M12 4a6 6 0 0 0-6 6c0 2.2 1.1 4.1 2.8 5.3V17a1 1 0 0 0 1 1h4.4a1 1 0 0 0 1-1v-1.7A6 6 0 0 0 18 10a6 6 0 0 0-6-6z" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M9.5 17.5v1M14.5 17.5v1" strokeLinecap="round" />
+      <circle cx="10" cy="10" r="1.1" />
+      <circle cx="14" cy="10" r="1.1" />
     </svg>
   )
 }
@@ -41,10 +43,10 @@ export default function BottomNav({ activePage }) {
   const navigate = useNavigate()
 
   const tabs = [
-    { id: 'ritual',   label: 'Ritual',   Icon: HomeIcon,   path: '/',        disabled: false },
-    { id: 'scenes',   label: 'Scenes',   Icon: FilmIcon,   path: null,       disabled: true  },
-    { id: 'discover', label: 'Discover', Icon: ClockIcon,  path: null,       disabled: true  },
-    { id: 'profile',  label: 'Profile',  Icon: PersonIcon, path: '/profile', disabled: false },
+    { id: 'ritual',      label: 'Ritual',      Icon: HomeIcon,  path: '/',            disabled: false },
+    { id: 'leaderboard', label: 'Ranks',        Icon: SkullIcon, path: '/leaderboard', disabled: false },
+    { id: 'discover',    label: 'Discover',     Icon: ClockIcon, path: null,           disabled: true  },
+    { id: 'profile',     label: 'Profile',      Icon: PersonIcon, path: '/profile',    disabled: false },
   ]
 
   return (

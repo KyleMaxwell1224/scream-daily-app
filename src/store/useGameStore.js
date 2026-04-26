@@ -48,12 +48,18 @@ const useGameStore = create(
       lastPlayedDate: null,    // ISO date of last app visit
       lastCompletedDate: null, // ISO date of last fully completed ritual
 
+      // ── Profile ───────────────────────────────────────────────────
+      username: '',
+      favoriteSlasher: '',
+
       // ── Auth (not persisted) ──────────────────────────────────────
       session: null,
 
       // ── Actions ───────────────────────────────────────────────────
 
       setTodayQuestions: (questions) => set({ todayQuestions: questions }),
+      setUsername: (username) => set({ username }),
+      setFavoriteSlasher: (favoriteSlasher) => set({ favoriteSlasher }),
 
       setActResult: (actNum, result) => set((state) => ({
         actResults: { ...state.actResults, [`act${actNum}`]: result },
