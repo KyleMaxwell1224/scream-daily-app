@@ -23,7 +23,7 @@ const SLASHERS = [
 ]
 
 const inputStyle = {
-  background: 'var(--sd-card2)', border: '1px solid var(--sd-border)',
+  background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.12)',
   borderRadius: 10, padding: '12px 14px',
   fontFamily: "'Teko', sans-serif", fontSize: 16,
   color: 'var(--sd-cream)', outline: 'none', width: '100%',
@@ -89,7 +89,6 @@ export default function Profile() {
     setSaving(true)
     setSaveError('')
 
-    // Check uniqueness (only if username changed)
     if (trimmed !== username) {
       const { data: existing } = await supabase
         .from('user_stats')
@@ -128,7 +127,6 @@ export default function Profile() {
         languages: ['english']
       })
       if (profanity_check.containsProfanity) { setAuthError('Reconsider your username.'); setLoading(false); return }
-      // Check uniqueness before creating account
       const { data: existing } = await supabase
         .from('user_stats')
         .select('user_id')
@@ -280,14 +278,14 @@ export default function Profile() {
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
                   <button onClick={handleGoogleLogin} style={{
-                    background: 'var(--sd-card2)', border: '1px solid var(--sd-border)',
+                    background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)',
                     borderRadius: 10, padding: '10px', cursor: 'pointer',
                     fontFamily: "'Special Elite', serif", fontSize: 10, color: 'var(--sd-cream-dim)',
                   }}>
                     Google
                   </button>
                   <button disabled style={{
-                    background: 'var(--sd-card2)', border: '1px solid var(--sd-border)',
+                    background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)',
                     borderRadius: 10, padding: '10px', cursor: 'not-allowed', opacity: 0.4,
                     fontFamily: "'Special Elite', serif", fontSize: 10, color: 'var(--sd-cream-dim)',
                   }}>
@@ -379,54 +377,66 @@ export default function Profile() {
     <div className="sd-wrap">
       <Header activePage="profile" />
 
-      {/* Avatar + info */}
-      <div style={{ textAlign: 'center', padding: '24px var(--sd-px) 16px' }}>
+      {/* ── Hero ──────────────────────────────────────────── */}
+      <div style={{
+        background: 'linear-gradient(180deg, rgba(192,21,42,0.13) 0%, transparent 100%)',
+        padding: '28px var(--sd-px) 22px',
+        textAlign: 'center',
+        borderBottom: '0.5px solid var(--sd-border)',
+      }}>
         <div style={{
-          width: 72, height: 72, borderRadius: '50%',
-          background: 'var(--sd-card2)', border: '2px solid var(--sd-border)',
+          width: 88, height: 88, borderRadius: '50%',
+          background: 'rgba(192,21,42,0.1)',
+          border: '2px solid rgba(192,21,42,0.5)',
+          boxShadow: '0 0 0 6px rgba(192,21,42,0.07), 0 8px 32px rgba(0,0,0,0.5)',
           display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+          marginBottom: 14,
         }}>
-          <span style={{ fontFamily: "'Creepster', cursive", fontSize: 26, color: 'var(--sd-red)' }}>{initials}</span>
+          <span style={{ fontFamily: "'Creepster', cursive", fontSize: 34, color: 'var(--sd-red)' }}>{initials}</span>
         </div>
-        <div style={{ fontFamily: "'Creepster', cursive", fontSize: 24, color: 'var(--sd-cream)', marginTop: 10 }}>
+
+        <div style={{ fontFamily: "'Creepster', cursive", fontSize: 32, color: 'var(--sd-cream)', letterSpacing: 0.5, lineHeight: 1.1 }}>
           {displayName}
         </div>
+
         {favoriteSlasher && (
           <div style={{
-            display: 'inline-block', marginTop: 6,
+            display: 'inline-flex', alignItems: 'center', marginTop: 8,
             fontFamily: "'Special Elite', serif", fontSize: 10,
-            color: 'var(--sd-red)', border: '0.5px solid var(--sd-border)',
-            borderRadius: 20, padding: '2px 10px',
+            color: 'var(--sd-red)', border: '0.5px solid rgba(192,21,42,0.35)',
+            borderRadius: 20, padding: '3px 14px', background: 'rgba(192,21,42,0.07)',
           }}>
             {favoriteSlasher}
           </div>
         )}
-        {memberSince && (
-          <div style={{ fontFamily: "'Special Elite', serif", fontSize: 10, color: 'var(--sd-muted)', marginTop: 6 }}>
-            Member since {memberSince}
-          </div>
-        )}
-        <button
-          onClick={openEdit}
-          style={{
-            display: 'block', margin: '10px auto 0',
-            background: 'none', border: '1px solid var(--sd-border)',
-            borderRadius: 8, padding: '5px 16px', cursor: 'pointer',
-            fontFamily: "'Special Elite', serif", fontSize: 10, color: 'var(--sd-muted)',
-          }}
-        >
-          Edit profile
-        </button>
+
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, marginTop: 10 }}>
+          {memberSince && (
+            <span style={{ fontFamily: "'Special Elite', serif", fontSize: 9, color: 'var(--sd-muted)' }}>
+              Since {memberSince}
+            </span>
+          )}
+          <button
+            onClick={openEdit}
+            style={{
+              background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.14)',
+              borderRadius: 6, padding: '5px 14px', cursor: 'pointer',
+              fontFamily: "'Special Elite', serif", fontSize: 9, color: 'var(--sd-cream-dim)',
+            }}
+          >
+            Edit profile
+          </button>
+        </div>
       </div>
 
-      {/* Inline edit form */}
+      {/* ── Inline edit form ──────────────────────────────── */}
       {editing && (
-        <div style={{ padding: '0 var(--sd-px) 16px' }}>
+        <div style={{ padding: '14px var(--sd-px) 0' }}>
           <div style={{
-            background: 'var(--sd-card)', border: '1px solid var(--sd-border)',
+            background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)',
             borderRadius: 14, padding: '18px',
           }}>
-            <div style={{ fontFamily: "'Creepster', cursive", fontSize: 18, color: 'var(--sd-cream)', marginBottom: 14 }}>
+            <div style={{ fontFamily: "'Creepster', cursive", fontSize: 20, color: 'var(--sd-cream)', marginBottom: 14 }}>
               Edit profile
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -461,7 +471,7 @@ export default function Profile() {
                 <button
                   onClick={() => setEditing(false)}
                   style={{
-                    background: 'none', border: '1px solid var(--sd-border)',
+                    background: 'none', border: '1px solid rgba(255,255,255,0.1)',
                     borderRadius: 10, padding: '10px', cursor: 'pointer',
                     fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-muted)',
                   }}
@@ -485,55 +495,109 @@ export default function Profile() {
         </div>
       )}
 
-      {/* Rank card */}
-      <div style={{ padding: '0 var(--sd-px) 16px' }}>
+      {/* ── Rank card ─────────────────────────────────────── */}
+      <div style={{ padding: '18px var(--sd-px) 0' }}>
         <div style={{
-          background: 'var(--sd-card)', border: '1px solid var(--sd-border)',
-          borderRadius: 14, padding: '16px',
+          borderRadius: 14, padding: '18px',
+          background: `linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(192,21,42,0.05) 100%)`,
+          border: `1px solid ${rank.color}44`,
         }}>
-          <div style={{ fontFamily: "'Creepster', cursive", fontSize: 22, color: rank.color, marginBottom: 2 }}>{rank.name}</div>
-          <div style={{ fontFamily: "'Special Elite', serif", fontSize: 10, color: 'var(--sd-muted)', fontStyle: 'italic', marginBottom: 10 }}>
-            {rank.flavor}
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12 }}>
+            <div>
+              <div style={{ fontFamily: "'Creepster', cursive", fontSize: 28, color: rank.color, lineHeight: 1 }}>
+                {rank.name}
+              </div>
+              <div style={{ fontFamily: "'Special Elite', serif", fontSize: 10, color: 'var(--sd-muted)', fontStyle: 'italic', marginTop: 3 }}>
+                {rank.flavor}
+              </div>
+            </div>
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ fontFamily: "'Teko', sans-serif", fontSize: 30, color: 'var(--sd-cream)', lineHeight: 1 }}>{displayXP}</div>
+              <div style={{ fontFamily: "'Special Elite', serif", fontSize: 8, color: 'var(--sd-muted)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>total xp</div>
+            </div>
           </div>
-          <div style={{ height: 5, background: 'rgba(255,255,255,0.06)', borderRadius: 3, overflow: 'hidden', marginBottom: 6 }}>
-            <div style={{ width: `${xpBarFill}%`, height: '100%', background: rank.color, borderRadius: 3 }} />
+          <div style={{ height: 6, background: 'rgba(255,255,255,0.07)', borderRadius: 3, overflow: 'hidden' }}>
+            <div style={{
+              width: `${xpBarFill}%`, height: '100%',
+              background: rank.color, borderRadius: 3,
+            }} />
           </div>
-          <div style={{ fontFamily: "'Special Elite', serif", fontSize: 9, color: 'var(--sd-muted)' }}>
-            {displayXP} XP{nextRank ? ` · ${nextRank.minXP - displayXP} to ${nextRank.name}` : ' · Max rank'}
+          <div style={{ fontFamily: "'Special Elite', serif", fontSize: 9, color: 'var(--sd-muted)', marginTop: 7 }}>
+            {nextRank ? `${nextRank.minXP - displayXP} XP until ${nextRank.name}` : 'Max rank achieved'}
           </div>
         </div>
       </div>
 
-      {/* Stats grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, padding: '0 var(--sd-px) 16px' }}>
+      {/* ── Stats grid ────────────────────────────────────── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, padding: '12px var(--sd-px) 0' }}>
         {[
           { label: 'Day streak',   value: streak },
           { label: 'Days played',  value: daysPlayed },
           { label: 'Total XP',     value: displayXP },
-          { label: 'Correct rate', value: totalAnswered > 0 ? `${Math.round((totalCorrect / totalAnswered) * 100)}%` : '—' },
+          { label: 'Accuracy',     value: totalAnswered > 0 ? `${Math.round((totalCorrect / totalAnswered) * 100)}%` : '—' },
         ].map(({ label, value }) => (
           <div key={label} style={{
-            background: 'var(--sd-card)', border: '1px solid var(--sd-border)',
-            borderRadius: 12, padding: '14px', textAlign: 'center',
+            background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)',
+            borderRadius: 12, padding: '16px 14px', textAlign: 'center',
           }}>
-            <div style={{ fontFamily: "'Creepster', cursive", fontSize: 28, color: 'var(--sd-red)' }}>{value}</div>
-            <div style={{ fontFamily: "'Special Elite', serif", fontSize: 9, color: 'var(--sd-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{label}</div>
+            <div style={{ fontFamily: "'Teko', sans-serif", fontSize: 36, color: 'var(--sd-cream)', lineHeight: 1 }}>{value}</div>
+            <div style={{
+              fontFamily: "'Special Elite', serif", fontSize: 9, color: 'var(--sd-muted)',
+              textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: 5,
+            }}>{label}</div>
           </div>
         ))}
       </div>
 
-      {/* Rank ladder */}
-      <div style={{ paddingBottom: 16 }}>
-        <div className="sd-section-label">Rank ladder</div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, padding: '0 var(--sd-px)' }}>
+      {/* ── Settings ──────────────────────────────────────── */}
+      <div style={{ padding: '20px var(--sd-px) 0' }}>
+        <div style={{
+          fontFamily: "'Special Elite', serif", fontSize: 9, color: 'var(--sd-muted)',
+          textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10,
+        }}>
+          Settings
+        </div>
+        <div style={{
+          background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)',
+          borderRadius: 14, overflow: 'hidden',
+        }}>
+          {[
+            { label: 'Daily reminder' },
+            { label: 'Streak freeze' },
+            { label: 'Horror sub-genres' },
+            { label: 'About' },
+          ].map(({ label }, i, arr) => (
+            <div key={label} style={{
+              padding: '15px 18px',
+              borderBottom: i < arr.length - 1 ? '0.5px solid rgba(255,255,255,0.06)' : 'none',
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              cursor: 'pointer',
+            }}>
+              <span style={{ fontFamily: "'Special Elite', serif", fontSize: 13, color: 'var(--sd-cream)' }}>{label}</span>
+              <span style={{ color: 'var(--sd-muted)', fontSize: 16, lineHeight: 1 }}>›</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Rank ladder ───────────────────────────────────── */}
+      <div style={{ padding: '20px var(--sd-px) 0' }}>
+        <div style={{
+          fontFamily: "'Special Elite', serif", fontSize: 9, color: 'var(--sd-muted)',
+          textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10,
+        }}>
+          Rank ladder
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           {RANKS.map((r) => {
             const isCurrent = getRankForXP(displayXP).name === r.name
             const isUnlocked = displayXP >= r.minXP
             return (
               <div key={r.name} style={{
-                background: 'var(--sd-card)', borderRadius: 10,
-                border: isCurrent ? `1px solid ${r.color}66` : '1px solid var(--sd-border)',
-                padding: '10px 14px', opacity: isUnlocked ? 1 : 0.35,
+                borderRadius: 10,
+                background: isCurrent ? `rgba(${r.color === '#c0152a' ? '192,21,42' : '255,255,255'},0.04)` : 'rgba(255,255,255,0.02)',
+                border: isCurrent ? `1px solid ${r.color}55` : '1px solid rgba(255,255,255,0.07)',
+                padding: '10px 14px', opacity: isUnlocked ? 1 : 0.3,
                 display: 'flex', alignItems: 'center', gap: 10,
               }}>
                 <div style={{ width: 8, height: 8, borderRadius: '50%', background: r.color, flexShrink: 0 }} />
@@ -544,7 +608,7 @@ export default function Profile() {
                 {isCurrent && (
                   <span style={{
                     fontFamily: "'Special Elite', serif", fontSize: 8,
-                    color: r.color, border: `0.5px solid ${r.color}66`,
+                    color: r.color, border: `0.5px solid ${r.color}55`,
                     borderRadius: 20, padding: '2px 8px', textTransform: 'uppercase',
                   }}>you</span>
                 )}
@@ -554,29 +618,11 @@ export default function Profile() {
         </div>
       </div>
 
-      {/* Settings */}
-      <div style={{ paddingBottom: 16 }}>
-        <div className="sd-section-label">Settings</div>
-        <div style={{ display: 'flex', flexDirection: 'column', padding: '0 var(--sd-px)', gap: 1 }}>
-          {['Daily reminder', 'Streak freeze', 'Horror sub-genres', 'About'].map(item => (
-            <div key={item} style={{
-              padding: '14px 0', borderBottom: '0.5px solid var(--sd-border)',
-              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-              fontFamily: "'Teko', sans-serif", fontSize: 16, color: 'var(--sd-cream)',
-              cursor: 'pointer',
-            }}>
-              {item}
-              <span style={{ color: 'var(--sd-muted)', fontSize: 14 }}>›</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Sign out */}
-      <div style={{ padding: '0 var(--sd-px) 20px' }}>
+      {/* ── Sign out ──────────────────────────────────────── */}
+      <div style={{ padding: '20px var(--sd-px) 28px' }}>
         <button onClick={handleSignOut} style={{
           width: '100%', background: 'none',
-          border: '1px solid var(--sd-red)', borderRadius: 12,
+          border: '1px solid rgba(192,21,42,0.3)', borderRadius: 12,
           padding: '13px', cursor: 'pointer',
           fontFamily: "'Special Elite', serif", fontSize: 12,
           color: 'var(--sd-red)', letterSpacing: '0.05em',
