@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Header from '../components/Header'
 import ProgressBar from '../components/ProgressBar'
@@ -20,27 +20,6 @@ export default function ActTwo() {
   const questions = todayQuestions.act2
   const qIndex = act2CurrentQuestion
   const q = questions[qIndex]
-  const options = q?.options || []
-
-  const keyRef = useRef(null)
-  useEffect(() => {
-    keyRef.current = (e) => {
-      const letterIdx = { a: 0, b: 1, c: 2, d: 3 }[e.key.toLowerCase()]
-      if (letterIdx !== undefined && !revealed && options[letterIdx] !== undefined) {
-        setSelected(options[letterIdx])
-        return
-      }
-      if ((e.key === 'Enter' || e.key === ' ') && (selected || revealed)) {
-        e.preventDefault()
-        handleConfirm()
-      }
-    }
-  })
-  useEffect(() => {
-    function onKey(e) { keyRef.current?.(e) }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [])
 
   // Derive persisted state for the current question
   const persistedSelection = act2Selections[qIndex] ?? null
@@ -91,6 +70,25 @@ export default function ActTwo() {
       }
     }
   }
+
+  const options = q?.options || []
+
+  useEffect(() => {
+    function onKey(e) {
+      const letterIdx = { a: 0, b: 1, c: 2, d: 3 }[e.key.toLowerCase()]
+      if (letterIdx !== undefined && !revealed && options[letterIdx] !== undefined) {
+        setSelected(options[letterIdx])
+        return
+      }
+      if ((e.key === 'Enter' || e.key === ' ') && (selected || revealed)) {
+        e.preventDefault()
+        handleConfirm()
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [revealed, selected, options])
 
   if (loading || !q) {
     return (

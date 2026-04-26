@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Header from '../components/Header'
 import ProgressBar from '../components/ProgressBar'
@@ -17,21 +17,18 @@ export default function ActFour() {
 
   const q = todayQuestions.act4
 
-  const keyRef = useRef(null)
   useEffect(() => {
-    keyRef.current = (e) => {
+    if (!result) return
+    function onKey(e) {
       if (e.target.tagName === 'INPUT') return
-      if (result && (e.key === 'Enter' || e.key === ' ')) {
+      if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault()
         navigate('/results')
       }
     }
-  })
-  useEffect(() => {
-    function onKey(e) { keyRef.current?.(e) }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [])
+  }, [result, navigate])
 
   useEffect(() => {
     if (!q) {
@@ -147,6 +144,7 @@ export default function ActFour() {
         onKeyDown={e => { if (e.key === 'Enter' && !result && answer.trim()) handleSubmit() }}
         placeholder="Type your answer..."
         disabled={!!result}
+        autoFocus={!result}
         style={{ opacity: result ? 0.6 : 1 }}
       />
 

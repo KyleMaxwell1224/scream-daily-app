@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Header from '../components/Header'
 import ProgressBar from '../components/ProgressBar'
@@ -20,26 +20,6 @@ export default function ActThree() {
   const q = todayQuestions.act3
   const options = q?.options || []
 
-  const keyRef = useRef(null)
-  useEffect(() => {
-    keyRef.current = (e) => {
-      const letterIdx = { a: 0, b: 1, c: 2, d: 3 }[e.key.toLowerCase()]
-      if (letterIdx !== undefined && !revealed && options[letterIdx] !== undefined) {
-        setSelected(options[letterIdx])
-        return
-      }
-      if ((e.key === 'Enter' || e.key === ' ') && (selected || revealed)) {
-        e.preventDefault()
-        handleConfirm()
-      }
-    }
-  })
-  useEffect(() => {
-    function onKey(e) { keyRef.current?.(e) }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [])
-
   useEffect(() => {
     if (!q) {
       getTodaysQuestions().then(qs => {
@@ -60,6 +40,23 @@ export default function ActThree() {
       navigate('/act/4')
     }
   }
+
+  useEffect(() => {
+    function onKey(e) {
+      const letterIdx = { a: 0, b: 1, c: 2, d: 3 }[e.key.toLowerCase()]
+      if (letterIdx !== undefined && !revealed && options[letterIdx] !== undefined) {
+        setSelected(options[letterIdx])
+        return
+      }
+      if ((e.key === 'Enter' || e.key === ' ') && (selected || revealed)) {
+        e.preventDefault()
+        handleConfirm()
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [revealed, selected, options])
 
   if (loading || !q) {
     return (
