@@ -17,6 +17,8 @@ export async function pushStats(session) {
     last_completed_date: state.lastCompletedDate || null,
     username: state.username || null,
     favorite_slasher: state.favoriteSlasher || null,
+    total_correct: state.totalCorrect,
+    total_answered: state.totalAnswered,
     updated_at: new Date().toISOString(),
   })
 }
@@ -51,6 +53,8 @@ export async function pullStats(session) {
       streak: data.streak,
       daysPlayed: data.days_played,
       lastCompletedDate: data.last_completed_date,
+      totalCorrect: data.total_correct ?? 0,
+      totalAnswered: data.total_answered ?? 0,
     })
   } else {
     await pushStats(session)

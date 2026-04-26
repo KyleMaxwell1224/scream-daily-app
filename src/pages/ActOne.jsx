@@ -6,8 +6,6 @@ import BottomNav from '../components/BottomNav'
 import useGameStore from '../store/useGameStore'
 import { getDayNumber, gradeAnswer } from '../utils/questions'
 
-const SUGGESTIONS = ['Halloween', 'The Shining', 'A Nightmare on Elm Street', 'Scream']
-
 const CLUES = [
   { key: 'year',     label: 'Year',     penalty: 5  },
   { key: 'director', label: 'Director', penalty: 8  },
@@ -165,24 +163,6 @@ export default function ActOne() {
         style={{ opacity: result ? 0.6 : 1 }}
       />
 
-      {/* Suggestion chips */}
-      {!result && (
-        <div style={{ display: 'flex', gap: 6, padding: '10px var(--sd-px)', flexWrap: 'wrap' }}>
-          {SUGGESTIONS.map(s => (
-            <button
-              key={s}
-              onClick={() => setAnswer(s)}
-              style={{
-                background: 'var(--sd-card)', border: '1px solid var(--sd-border)',
-                borderRadius: 20, padding: '5px 12px', cursor: 'pointer',
-                fontFamily: "'Special Elite', serif", fontSize: 10, color: 'var(--sd-cream-dim)',
-              }}
-            >
-              {s}
-            </button>
-          ))}
-        </div>
-      )}
 
       {/* Result */}
       {result && (

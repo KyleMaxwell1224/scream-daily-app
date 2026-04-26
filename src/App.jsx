@@ -14,6 +14,7 @@ import { pushStats } from './utils/syncStats'
 export default function App() {
   const checkNewDay = useGameStore((s) => s.checkNewDay)
   const ritualBanked = useGameStore((s) => s.ritualBanked)
+  const completedActs = useGameStore((s) => s.completedActs)
   const session = useGameStore((s) => s.session)
 
   // Roll over to a new day on mount; push updated totals if logged in
@@ -22,7 +23,12 @@ export default function App() {
     if (session) pushStats(session)
   }, [])
 
-  // Push stats whenever the ritual is completed
+  // Push XP to leaderboard after each act so rankings stay current
+  useEffect(() => {
+    if (completedActs.length > 0 && session) pushStats(session)
+  }, [completedActs])
+
+  // Push stats whenever the full ritual is banked (streak/daysPlayed update)
   useEffect(() => {
     if (ritualBanked && session) pushStats(session)
   }, [ritualBanked])

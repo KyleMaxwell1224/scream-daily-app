@@ -52,6 +52,10 @@ const useGameStore = create(
       username: '',
       favoriteSlasher: '',
 
+      // ── Accuracy ─────────────────────────────────────────────────
+      totalCorrect: 0,
+      totalAnswered: 0,
+
       // ── Auth (not persisted) ──────────────────────────────────────
       session: null,
 
@@ -83,6 +87,15 @@ const useGameStore = create(
           else if (state.lastCompletedDate === today)      newStreak = state.streak
           else                                             newStreak = 1
 
+          // Tally accuracy for today's ritual
+          const act1Correct  = state.actResults.act1?.correct ? 1 : 0
+          const act2Correct  = state.act2Answers.filter(Boolean).length
+          const act3Correct  = (state.actResults.act3?.selected != null &&
+                                state.actResults.act3.selected === state.todayQuestions.act3?.correct_answer) ? 1 : 0
+          const act4Correct  = state.actResults.act4?.grade !== 'wrong' && state.actResults.act4?.grade != null ? 1 : 0
+          const todayCorrect  = act1Correct + act2Correct + act3Correct + act4Correct
+          const todayAnswered = 8 // 1 + 5 + 1 + 1
+
           return {
             completedActs: newCompletedActs,
             xpEarned: newXpEarned,
@@ -91,6 +104,8 @@ const useGameStore = create(
             lastCompletedDate: today,
             lastPlayedDate: today,
             ritualBanked: true,
+            totalCorrect: state.totalCorrect + todayCorrect,
+            totalAnswered: state.totalAnswered + todayAnswered,
           }
         }
 

@@ -38,6 +38,7 @@ export default function Profile() {
   const {
     session, setSession, userXP, xpEarned, streak, daysPlayed,
     username, favoriteSlasher, setUsername, setFavoriteSlasher,
+    totalCorrect, totalAnswered,
   } = useGameStore()
 
   const [mode, setMode] = useState('login') // 'login' | 'signup' | 'check-email'
@@ -313,6 +314,56 @@ export default function Profile() {
     ? new Date(user.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
     : ''
 
+  // Google OAuth users skip signup — prompt for username if not set
+  if (!username) {
+    return (
+      <div className="sd-wrap">
+        <Header activePage="profile" />
+        <div style={{ padding: '40px var(--sd-px) 0' }}>
+          <div style={{
+            background: 'var(--sd-card)', border: '1px solid var(--sd-border)',
+            borderRadius: 14, padding: '28px var(--sd-px)',
+          }}>
+            <div style={{ fontFamily: "'Creepster', cursive", fontSize: 26, color: 'var(--sd-cream)', marginBottom: 6 }}>
+              Choose your name.
+            </div>
+            <div style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-muted)', lineHeight: 1.6, marginBottom: 20 }}>
+              You need a username to appear on the leaderboard.
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <input
+                type="text"
+                placeholder="Username (letters, numbers, _)"
+                value={editUsername}
+                onChange={e => setEditUsername(e.target.value)}
+                maxLength={20}
+                style={inputStyle}
+              />
+              {saveError && (
+                <div style={{ fontFamily: "'Special Elite', serif", fontSize: 10, color: '#e24b4a' }}>
+                  {saveError}
+                </div>
+              )}
+              <button
+                onClick={handleSaveProfile}
+                disabled={saving}
+                style={{
+                  background: 'var(--sd-red)', border: 'none', borderRadius: 10,
+                  padding: '13px', cursor: 'pointer',
+                  fontFamily: "'Creepster', cursive", fontSize: 20, color: 'var(--sd-cream)',
+                  letterSpacing: 1,
+                }}
+              >
+                {saving ? 'Saving…' : 'Claim your name'}
+              </button>
+            </div>
+          </div>
+        </div>
+        <BottomNav activePage="profile" />
+      </div>
+    )
+  }
+
   return (
     <div className="sd-wrap">
       <Header activePage="profile" />
@@ -448,7 +499,7 @@ export default function Profile() {
           { label: 'Day streak',   value: streak },
           { label: 'Days played',  value: daysPlayed },
           { label: 'Total XP',     value: displayXP },
-          { label: 'Correct rate', value: '—' },
+          { label: 'Correct rate', value: totalAnswered > 0 ? `${Math.round((totalCorrect / totalAnswered) * 100)}%` : '—' },
         ].map(({ label, value }) => (
           <div key={label} style={{
             background: 'var(--sd-card)', border: '1px solid var(--sd-border)',
