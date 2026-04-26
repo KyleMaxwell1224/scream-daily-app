@@ -4,10 +4,19 @@ import BottomNav from '../components/BottomNav'
 import useGameStore from '../store/useGameStore'
 import { supabase } from '../supabaseClient'
 import { RANKS, getRankForXP, getNextRank } from '../utils/ranks'
+import { pullStats } from '../utils/syncStats'
+
+const inputStyle = {
+  background: 'var(--sd-card2)', border: '1px solid var(--sd-border)',
+  borderRadius: 10, padding: '12px 14px',
+  fontFamily: "'Teko', sans-serif", fontSize: 16,
+  color: 'var(--sd-cream)', outline: 'none', width: '100%',
+}
 
 export default function Profile() {
-  const { session, setSession, userXP, streak, daysPlayed } = useGameStore()
+  const { session, setSession, userXP, xpEarned, streak, daysPlayed } = useGameStore()
 
+  const [mode, setMode] = useState('login') // 'login' | 'signup' | 'check-email'
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [authError, setAuthError] = useState('')
@@ -19,16 +28,27 @@ export default function Profile() {
     })
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => {
       setSession(s)
+      if (s) pullStats(s)
     })
     return () => subscription.unsubscribe()
   }, [])
 
-  async function handleLogin(e) {
+  async function handleSubmit(e) {
     e.preventDefault()
     setLoading(true)
     setAuthError('')
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
-    if (error) setAuthError(error.message)
+
+    if (mode === 'login') {
+      const { error } = await supabase.auth.signInWithPassword({ email, password })
+      if (error) setAuthError(error.message)
+    } else {
+      const { error } = await supabase.auth.signUp({ email, password })
+      if (error) {
+        setAuthError(error.message)
+      } else {
+        setMode('check-email')
+      }
+    }
     setLoading(false)
   }
 
@@ -41,18 +61,55 @@ export default function Profile() {
     setSession(null)
   }
 
-  const rank = getRankForXP(userXP)
-  const nextRank = getNextRank(userXP)
-  const user = session?.user
-  const initials = user?.email?.slice(0, 2).toUpperCase() || '??'
-  const memberSince = user?.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : ''
-  const correctRate = '—'
+  // displayXP includes today's unbanked earnings
+  const todayXP = Object.values(xpEarned).reduce((s, v) => s + v, 0)
+  const displayXP = userXP + todayXP
 
+  const rank = getRankForXP(displayXP)
+  const nextRank = getNextRank(displayXP)
   const xpBarFill = nextRank
-    ? ((userXP - rank.minXP) / (nextRank.minXP - rank.minXP)) * 100
+    ? ((displayXP - rank.minXP) / (nextRank.minXP - rank.minXP)) * 100
     : 100
 
+  // ── Logged-out views ──────────────────────────────────────────────
+
   if (!session) {
+    if (mode === 'check-email') {
+      return (
+        <div className="sd-wrap">
+          <Header activePage="profile" />
+          <div style={{ padding: '40px var(--sd-px)' }}>
+            <div style={{
+              background: 'var(--sd-card)', border: '1px solid var(--sd-border)',
+              borderRadius: 14, padding: '32px var(--sd-px)', textAlign: 'center',
+            }}>
+              <div style={{ fontSize: 36, marginBottom: 14 }}>📬</div>
+              <div style={{ fontFamily: "'Creepster', cursive", fontSize: 26, color: 'var(--sd-cream)', marginBottom: 8 }}>
+                Check your email.
+              </div>
+              <div style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-muted)', lineHeight: 1.7, marginBottom: 24 }}>
+                We sent a confirmation link to <span style={{ color: 'var(--sd-cream-dim)' }}>{email}</span>.
+                Click it to activate your account, then come back to sign in.
+              </div>
+              <button
+                onClick={() => { setMode('login'); setAuthError('') }}
+                style={{
+                  background: 'none', border: '1px solid var(--sd-border)',
+                  borderRadius: 10, padding: '10px 24px', cursor: 'pointer',
+                  fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-cream-dim)',
+                }}
+              >
+                Back to sign in
+              </button>
+            </div>
+          </div>
+          <BottomNav activePage="profile" />
+        </div>
+      )
+    }
+
+    const isSignup = mode === 'signup'
+
     return (
       <div className="sd-wrap">
         <Header activePage="profile" />
@@ -63,39 +120,36 @@ export default function Profile() {
             borderRadius: 14, padding: '24px var(--sd-px)',
           }}>
             <div style={{ fontFamily: "'Creepster', cursive", fontSize: 28, color: 'var(--sd-cream)', marginBottom: 6 }}>
-              Welcome back.
+              {isSignup ? 'Join the horror.' : 'Welcome back.'}
             </div>
             <div style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-muted)', lineHeight: 1.6, marginBottom: 20 }}>
-              Sign in to track your rank, streaks, and XP across devices.
+              {isSignup
+                ? 'Create an account to track your rank, streaks, and XP across devices.'
+                : 'Sign in to track your rank, streaks, and XP across devices.'}
             </div>
 
-            <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               <input
                 type="email"
                 placeholder="Email"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
-                style={{
-                  background: 'var(--sd-card2)', border: '1px solid var(--sd-border)',
-                  borderRadius: 10, padding: '12px 14px',
-                  fontFamily: "'Teko', sans-serif", fontSize: 16,
-                  color: 'var(--sd-cream)', outline: 'none',
-                }}
+                required
+                style={inputStyle}
               />
               <input
                 type="password"
-                placeholder="Password"
+                placeholder={isSignup ? 'Choose a password' : 'Password'}
                 value={password}
                 onChange={e => setPassword(e.target.value)}
-                style={{
-                  background: 'var(--sd-card2)', border: '1px solid var(--sd-border)',
-                  borderRadius: 10, padding: '12px 14px',
-                  fontFamily: "'Teko', sans-serif", fontSize: 16,
-                  color: 'var(--sd-cream)', outline: 'none',
-                }}
+                required
+                minLength={isSignup ? 6 : undefined}
+                style={inputStyle}
               />
               {authError && (
-                <div style={{ fontFamily: "'Special Elite', serif", fontSize: 10, color: '#e24b4a' }}>{authError}</div>
+                <div style={{ fontFamily: "'Special Elite', serif", fontSize: 10, color: '#e24b4a' }}>
+                  {authError}
+                </div>
               )}
               <button
                 type="submit"
@@ -107,37 +161,48 @@ export default function Profile() {
                   letterSpacing: 1,
                 }}
               >
-                {loading ? 'Entering…' : 'Enter if you dare'}
+                {loading
+                  ? (isSignup ? 'Creating account…' : 'Entering…')
+                  : (isSignup ? 'Begin your descent' : 'Enter if you dare')}
               </button>
             </form>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '16px 0' }}>
-              <div style={{ flex: 1, height: 1, background: 'var(--sd-border)' }} />
-              <span style={{ fontFamily: "'Special Elite', serif", fontSize: 10, color: 'var(--sd-muted)' }}>or continue with</span>
-              <div style={{ flex: 1, height: 1, background: 'var(--sd-border)' }} />
-            </div>
+            {!isSignup && (
+              <>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '16px 0' }}>
+                  <div style={{ flex: 1, height: 1, background: 'var(--sd-border)' }} />
+                  <span style={{ fontFamily: "'Special Elite', serif", fontSize: 10, color: 'var(--sd-muted)' }}>or continue with</span>
+                  <div style={{ flex: 1, height: 1, background: 'var(--sd-border)' }} />
+                </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-              <button onClick={handleGoogleLogin} style={{
-                background: 'var(--sd-card2)', border: '1px solid var(--sd-border)',
-                borderRadius: 10, padding: '10px', cursor: 'pointer',
-                fontFamily: "'Special Elite', serif", fontSize: 10, color: 'var(--sd-cream-dim)',
-              }}>
-                Google
-              </button>
-              <button style={{
-                background: 'var(--sd-card2)', border: '1px solid var(--sd-border)',
-                borderRadius: 10, padding: '10px', cursor: 'not-allowed', opacity: 0.5,
-                fontFamily: "'Special Elite', serif", fontSize: 10, color: 'var(--sd-cream-dim)',
-              }}>
-                Apple
-              </button>
-            </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                  <button onClick={handleGoogleLogin} style={{
+                    background: 'var(--sd-card2)', border: '1px solid var(--sd-border)',
+                    borderRadius: 10, padding: '10px', cursor: 'pointer',
+                    fontFamily: "'Special Elite', serif", fontSize: 10, color: 'var(--sd-cream-dim)',
+                  }}>
+                    Google
+                  </button>
+                  <button disabled style={{
+                    background: 'var(--sd-card2)', border: '1px solid var(--sd-border)',
+                    borderRadius: 10, padding: '10px', cursor: 'not-allowed', opacity: 0.4,
+                    fontFamily: "'Special Elite', serif", fontSize: 10, color: 'var(--sd-cream-dim)',
+                  }}>
+                    Apple
+                  </button>
+                </div>
+              </>
+            )}
 
             <div style={{ textAlign: 'center', marginTop: 16 }}>
               <span style={{ fontFamily: "'Special Elite', serif", fontSize: 10, color: 'var(--sd-muted)' }}>
-                New here?{' '}
-                <span style={{ color: 'var(--sd-red)', cursor: 'pointer' }}>Create an account</span>
+                {isSignup ? 'Already have an account? ' : 'New here? '}
+                <span
+                  onClick={() => { setMode(isSignup ? 'login' : 'signup'); setAuthError('') }}
+                  style={{ color: 'var(--sd-red)', cursor: 'pointer' }}
+                >
+                  {isSignup ? 'Sign in' : 'Create an account'}
+                </span>
               </span>
             </div>
           </div>
@@ -148,9 +213,17 @@ export default function Profile() {
     )
   }
 
+  // ── Logged-in view ────────────────────────────────────────────────
+
+  const user = session?.user
+  const initials = user?.email?.slice(0, 2).toUpperCase() || '??'
+  const memberSince = user?.created_at
+    ? new Date(user.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+    : ''
+
   return (
     <div className="sd-wrap">
-      <Logo />
+      <Header activePage="profile" />
 
       {/* Avatar + info */}
       <div style={{ textAlign: 'center', padding: '24px var(--sd-px) 16px' }}>
@@ -162,12 +235,6 @@ export default function Profile() {
           }}>
             <span style={{ fontFamily: "'Creepster', cursive", fontSize: 26, color: 'var(--sd-red)' }}>{initials}</span>
           </div>
-          <button style={{
-            position: 'absolute', bottom: 0, right: 0,
-            width: 22, height: 22, borderRadius: '50%',
-            background: 'var(--sd-card)', border: '1px solid var(--sd-border)',
-            fontSize: 10, cursor: 'pointer', color: 'var(--sd-muted)',
-          }}>✎</button>
         </div>
         <div style={{ fontFamily: "'Teko', sans-serif", fontSize: 20, color: 'var(--sd-cream)', marginTop: 10 }}>
           {user?.email}
@@ -177,13 +244,6 @@ export default function Profile() {
             Member since {memberSince}
           </div>
         )}
-        <button style={{
-          marginTop: 10, background: 'none', border: '1px solid var(--sd-border)',
-          borderRadius: 20, padding: '5px 16px', cursor: 'pointer',
-          fontFamily: "'Special Elite', serif", fontSize: 10, color: 'var(--sd-cream-dim)',
-        }}>
-          Edit profile
-        </button>
       </div>
 
       {/* Rank card */}
@@ -200,7 +260,7 @@ export default function Profile() {
             <div style={{ width: `${xpBarFill}%`, height: '100%', background: rank.color, borderRadius: 3 }} />
           </div>
           <div style={{ fontFamily: "'Special Elite', serif", fontSize: 9, color: 'var(--sd-muted)' }}>
-            {userXP} XP{nextRank ? ` · ${nextRank.minXP - userXP} to ${nextRank.name}` : ' · Max rank'}
+            {displayXP} XP{nextRank ? ` · ${nextRank.minXP - displayXP} to ${nextRank.name}` : ' · Max rank'}
           </div>
         </div>
       </div>
@@ -208,10 +268,10 @@ export default function Profile() {
       {/* Stats grid */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, padding: '0 var(--sd-px) 16px' }}>
         {[
-          { label: 'Day streak',     value: streak },
-          { label: 'Days played',    value: daysPlayed },
-          { label: 'Correct rate',   value: correctRate },
-          { label: 'Total XP',       value: userXP },
+          { label: 'Day streak',  value: streak },
+          { label: 'Days played', value: daysPlayed },
+          { label: 'Total XP',    value: displayXP },
+          { label: 'Correct rate', value: '—' },
         ].map(({ label, value }) => (
           <div key={label} style={{
             background: 'var(--sd-card)', border: '1px solid var(--sd-border)',
@@ -228,14 +288,13 @@ export default function Profile() {
         <div className="sd-section-label">Rank ladder</div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6, padding: '0 var(--sd-px)' }}>
           {RANKS.map((r) => {
-            const isCurrent = getRankForXP(userXP).name === r.name
-            const isUnlocked = userXP >= r.minXP
+            const isCurrent = getRankForXP(displayXP).name === r.name
+            const isUnlocked = displayXP >= r.minXP
             return (
               <div key={r.name} style={{
                 background: 'var(--sd-card)', borderRadius: 10,
                 border: isCurrent ? `1px solid ${r.color}66` : '1px solid var(--sd-border)',
-                padding: '10px 14px',
-                opacity: isUnlocked ? 1 : 0.35,
+                padding: '10px 14px', opacity: isUnlocked ? 1 : 0.35,
                 display: 'flex', alignItems: 'center', gap: 10,
               }}>
                 <div style={{ width: 8, height: 8, borderRadius: '50%', background: r.color, flexShrink: 0 }} />
@@ -262,8 +321,7 @@ export default function Profile() {
         <div style={{ display: 'flex', flexDirection: 'column', padding: '0 var(--sd-px)', gap: 1 }}>
           {['Daily reminder', 'Streak freeze', 'Horror sub-genres', 'About'].map(item => (
             <div key={item} style={{
-              padding: '14px 0',
-              borderBottom: '0.5px solid var(--sd-border)',
+              padding: '14px 0', borderBottom: '0.5px solid var(--sd-border)',
               display: 'flex', justifyContent: 'space-between', alignItems: 'center',
               fontFamily: "'Teko', sans-serif", fontSize: 16, color: 'var(--sd-cream)',
               cursor: 'pointer',

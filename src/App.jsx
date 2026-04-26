@@ -8,13 +8,23 @@ import ActFour from './pages/ActFour'
 import Results from './pages/Results'
 import Profile from './pages/Profile'
 import useGameStore from './store/useGameStore'
+import { pushStats } from './utils/syncStats'
 
 export default function App() {
   const checkNewDay = useGameStore((s) => s.checkNewDay)
+  const ritualBanked = useGameStore((s) => s.ritualBanked)
+  const session = useGameStore((s) => s.session)
 
+  // Roll over to a new day on mount; push updated totals if logged in
   useEffect(() => {
     checkNewDay()
+    if (session) pushStats(session)
   }, [])
+
+  // Push stats whenever the ritual is completed
+  useEffect(() => {
+    if (ritualBanked && session) pushStats(session)
+  }, [ritualBanked])
 
   return (
     <BrowserRouter>
