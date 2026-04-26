@@ -51,7 +51,7 @@ describe('gradeAnswer', () => {
   })
 
   it('substring match (input inside correct) returns close', () => {
-    expect(gradeAnswer('myers', 'michael myers')).toEqual({ grade: 'close', xp: 60 })
+    expect(gradeAnswer('michael', 'michael myers')).toEqual({ grade: 'close', xp: 60 })
   })
 
   it('variant substring match returns close', () => {

@@ -41,8 +41,12 @@ export function gradeAnswer(userInput, correctAnswer, acceptedVariants = []) {
 
   if (input === correct || variants.includes(input)) return { grade: 'exact', xp: 100 }
 
-  if (input.includes(correct) || correct.includes(input)) return { grade: 'close', xp: 60 }
-  if (variants.some(v => input.includes(v) || v.includes(input))) return { grade: 'close', xp: 60 }
+  const subLen = Math.max(4, Math.ceil(correct.length * 0.4))
+  if (input.includes(correct) || (input.length >= subLen && correct.includes(input))) return { grade: 'close', xp: 60 }
+  if (variants.some(v => {
+    const vLen = Math.max(4, Math.ceil(v.length * 0.4))
+    return input.includes(v) || (input.length >= vLen && v.includes(input))
+  })) return { grade: 'close', xp: 60 }
 
   const dist = levenshtein(input, correct)
   if (dist <= 2) return { grade: 'close', xp: 60 }

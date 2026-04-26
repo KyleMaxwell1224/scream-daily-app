@@ -178,9 +178,11 @@ export default function ActOne() {
           <div style={{ fontFamily: "'Creepster', cursive", fontSize: 26, color: result.correct ? '#7cc48a' : '#e24b4a' }}>
             +{result.xp} xp
           </div>
-          {!result.correct && q && (
-            <div style={{ fontFamily: "'Special Elite', serif", fontSize: 10, color: 'var(--sd-muted)', marginTop: 6 }}>
-              The film was: {q.correct_answer}
+          {q && (
+            <div style={{ borderTop: '0.5px solid rgba(255,255,255,0.08)', marginTop: 10, paddingTop: 8 }}>
+              <div style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-cream)' }}>{q.correct_answer}</div>
+              {q.decade && <div style={{ fontFamily: "'Special Elite', serif", fontSize: 9, color: 'var(--sd-muted)', marginTop: 2 }}>{q.decade}</div>}
+              {q.authored_by && <div style={{ fontFamily: "'Special Elite', serif", fontSize: 9, color: 'var(--sd-muted)' }}>Dir. {q.authored_by}</div>}
             </div>
           )}
         </div>

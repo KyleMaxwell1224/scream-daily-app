@@ -132,6 +132,19 @@ const useGameStore = create(
 
       bankBackfillXP: (xp) => set((state) => ({ userXP: state.userXP + xp })),
 
+      // ── Past ritual in-progress snapshots ────────────────────────
+      // Keyed by date string. Cleared when the ritual is finished.
+      pastRitualProgress: {},
+
+      savePastRitualProgress: (date, progress) => set((state) => ({
+        pastRitualProgress: { ...state.pastRitualProgress, [date]: progress },
+      })),
+
+      clearPastRitualProgress: (date) => set((state) => {
+        const { [date]: _, ...rest } = state.pastRitualProgress
+        return { pastRitualProgress: rest }
+      }),
+
       setSession: (session) => set({ session }),
 
       // Called on every app mount — rolls over to a new day when needed

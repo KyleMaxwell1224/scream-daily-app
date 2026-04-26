@@ -8,6 +8,10 @@ import { supabase } from '../supabaseClient'
 import { gradeAnswer } from '../utils/questions'
 import { logRitual, pushStats } from '../utils/syncStats'
 
+function getSaved(date) {
+  return useGameStore.getState().pastRitualProgress[date] ?? null
+}
+
 const MULT = 0.5
 const XP = {
   act1: Math.floor(25 * MULT),   // 12
@@ -26,35 +30,38 @@ function formatDate(dateStr) {
 export default function PastRitual() {
   const { date } = useParams()
   const navigate = useNavigate()
-  const { session, bankBackfillXP } = useGameStore()
+  const { session, bankBackfillXP, savePastRitualProgress, clearPastRitualProgress } = useGameStore()
 
   const [loading, setLoading] = useState(true)
   const [questions, setQuestions] = useState(null)
   const [alreadyDone, setAlreadyDone] = useState(false)
   const [doneXP, setDoneXP] = useState(0)
 
+  // Restore in-progress state from localStorage-backed store on first render
+  const _saved = getSaved(date)
+
   // Step: 'act1' | 'act2' | 'act3' | 'act4' | 'done'
-  const [step, setStep] = useState('act1')
+  const [step, setStep] = useState(_saved?.step ?? 'act1')
 
   // Act 1
-  const [act1Answer, setAct1Answer] = useState('')
-  const [act1Result, setAct1Result] = useState(null) // { correct, xp }
+  const [act1Answer, setAct1Answer] = useState(_saved?.act1Answer ?? '')
+  const [act1Result, setAct1Result] = useState(_saved?.act1Result ?? null)
 
   // Act 2
-  const [act2Idx, setAct2Idx] = useState(0)
+  const [act2Idx, setAct2Idx] = useState(_saved?.act2Idx ?? 0)
   const [act2Selected, setAct2Selected] = useState(null)
   const [act2Revealed, setAct2Revealed] = useState(false)
-  const [act2CorrectCount, setAct2CorrectCount] = useState(0)
+  const [act2CorrectCount, setAct2CorrectCount] = useState(_saved?.act2CorrectCount ?? 0)
   // Act 3
   const [act3Selected, setAct3Selected] = useState(null)
   const [act3Revealed, setAct3Revealed] = useState(false)
 
   // Act 4
   const [act4Answer, setAct4Answer] = useState('')
-  const [act4Result, setAct4Result] = useState(null)
+  const [act4Result, setAct4Result] = useState(_saved?.act4Result ?? null)
 
   // Accumulated XP per act — state so values are safe to read during render
-  const [xpByAct, setXpByAct] = useState({ act1: 0, act2: 0, act3: 0 })
+  const [xpByAct, setXpByAct] = useState(_saved?.xpByAct ?? { act1: 0, act2: 0, act3: 0 })
   const bankedRef = useRef(false)
 
   useEffect(() => {
@@ -77,14 +84,24 @@ export default function PastRitual() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [date, session?.user?.id])
 
+  // Persist in-progress state so a refresh doesn't let acts be replayed
+  useEffect(() => {
+    if (loading || alreadyDone || step === 'done') return
+    savePastRitualProgress(date, {
+      step, act1Answer, act1Result, act2Idx, act2CorrectCount, xpByAct, act4Result,
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, act1Answer, act1Result, act2Idx, act2CorrectCount, xpByAct, act4Result])
+
   const finishRitual = useCallback(async (act4XP) => {
     if (bankedRef.current) return
     bankedRef.current = true
     const total = xpByAct.act1 + xpByAct.act2 + xpByAct.act3 + act4XP
     bankBackfillXP(total)
+    clearPastRitualProgress(date)
     await logRitual(session, date, total, true)
     if (session) await pushStats(session)
-  }, [xpByAct, bankBackfillXP, session, date])
+  }, [xpByAct, bankBackfillXP, clearPastRitualProgress, session, date])
 
   // ── Act 1 handlers ────────────────────────────────────────────────
 
@@ -366,7 +383,11 @@ function Act1View({ q, answer, setAnswer, result, onSubmit, onContinue, maxXP })
         <div style={{ margin: '10px var(--sd-px) 4px', background: result.correct ? 'rgba(45,102,64,0.2)' : 'rgba(90,18,18,0.2)', border: `1px solid ${result.correct ? 'rgba(45,102,64,0.4)' : 'rgba(192,21,42,0.3)'}`, borderRadius: 12, padding: '14px 16px' }}>
           <div style={{ fontFamily: "'Creepster', cursive", fontSize: 20, color: result.correct ? '#7cc48a' : '#e24b4a', marginBottom: 2 }}>{result.correct ? 'Correct.' : 'Wrong.'}</div>
           <div style={{ fontFamily: "'Creepster', cursive", fontSize: 26, color: result.correct ? '#7cc48a' : '#e24b4a' }}>+{result.xp} xp</div>
-          {!result.correct && <div style={{ fontFamily: "'Special Elite', serif", fontSize: 10, color: 'var(--sd-muted)', marginTop: 6 }}>The film was: {q.correct_answer}</div>}
+          <div style={{ borderTop: '0.5px solid rgba(255,255,255,0.08)', marginTop: 10, paddingTop: 8 }}>
+            <div style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-cream)' }}>{q.correct_answer}</div>
+            {q.decade && <div style={{ fontFamily: "'Special Elite', serif", fontSize: 9, color: 'var(--sd-muted)', marginTop: 2 }}>{q.decade}</div>}
+            {q.authored_by && <div style={{ fontFamily: "'Special Elite', serif", fontSize: 9, color: 'var(--sd-muted)' }}>Dir. {q.authored_by}</div>}
+          </div>
         </div>
       )}
       <div style={{ padding: '10px 0 6px' }}>
