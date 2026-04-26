@@ -5,6 +5,7 @@ import useGameStore from '../store/useGameStore'
 import { supabase } from '../supabaseClient'
 import { RANKS, getRankForXP, getNextRank } from '../utils/ranks'
 import { pullStats, pushStats } from '../utils/syncStats'
+import { checkProfanity } from 'glin-profanity';
 
 const SLASHERS = [
   'Michael Myers',
@@ -79,6 +80,11 @@ export default function Profile() {
     if (!trimmed) { setSaveError('Username is required.'); return }
     if (trimmed.length > 20) { setSaveError('Max 20 characters.'); return }
     if (!/^[a-zA-Z0-9_]+$/.test(trimmed)) { setSaveError('Letters, numbers, and _ only.'); return }
+    const profanity_check = checkProfanity(trimmed, {
+      detectLeetspeak: true,
+      languages: ['english']
+    })
+    if (profanity_check.containsProfanity) { setSaveError('Reconsider your username.'); return }
 
     setSaving(true)
     setSaveError('')
@@ -117,7 +123,11 @@ export default function Profile() {
       if (!trimmed) { setAuthError('Choose a username.'); setLoading(false); return }
       if (trimmed.length > 20) { setAuthError('Username max 20 characters.'); setLoading(false); return }
       if (!/^[a-zA-Z0-9_]+$/.test(trimmed)) { setAuthError('Letters, numbers, and _ only.'); setLoading(false); return }
-
+      const profanity_check = checkProfanity(trimmed, {
+        detectLeetspeak: true,
+        languages: ['english']
+      })
+      if (profanity_check.containsProfanity) { setAuthError('Reconsider your username.'); setLoading(false); return }
       // Check uniqueness before creating account
       const { data: existing } = await supabase
         .from('user_stats')
