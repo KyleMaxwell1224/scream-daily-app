@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import Header from '../components/Header'
+import ProgressBar from '../components/ProgressBar'
 import BottomNav from '../components/BottomNav'
 import useGameStore from '../store/useGameStore'
 import { supabase } from '../supabaseClient'
@@ -265,13 +266,7 @@ export default function PastRitual() {
   return (
     <div className="sd-wrap">
       <Header activePage="ritual" />
-
-      {/* Progress */}
-      <div className="sd-progress">
-        {[1, 2, 3, 4].map(n => (
-          <div key={n} className={`sd-progress-seg ${n < stepNum ? 'completed' : n === stepNum ? 'active' : 'upcoming'}`} />
-        ))}
-      </div>
+      <ProgressBar currentAct={stepNum} />
 
       {/* Backfill banner */}
       <div style={{

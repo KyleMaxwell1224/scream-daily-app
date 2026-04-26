@@ -1,8 +1,9 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Header from '../components/Header'
 import BottomNav from '../components/BottomNav'
 import useGameStore from '../store/useGameStore'
+import { supabase } from '../supabaseClient'
 import { getTodaysQuestions, getDayNumber } from '../utils/questions'
 import { getRankForXP, getNextRank } from '../utils/ranks'
 
@@ -177,9 +178,19 @@ function ActList({ completedActs, navigate }) {
   )
 }
 
+function formatPastDate(dateStr) {
+  const yesterday = new Date()
+  yesterday.setDate(yesterday.getDate() - 1)
+  if (dateStr === yesterday.toISOString().slice(0, 10)) return 'Yesterday'
+  return new Date(dateStr + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })
+}
+
 export default function Home() {
   const navigate = useNavigate()
-  const { completedActs, xpEarned, setTodayQuestions, userXP, streak, daysPlayed } = useGameStore()
+  const { completedActs, xpEarned, setTodayQuestions, userXP, streak, daysPlayed, session } = useGameStore()
+
+  const [pastAvail, setPastAvail] = useState([])
+  const [pastLog, setPastLog] = useState({})
 
   const totalXP = Object.values(xpEarned).reduce((s, v) => s + v, 0)
   const displayXP = userXP + totalXP
@@ -188,6 +199,7 @@ export default function Home() {
   const dayNum = getDayNumber()
 
   const today = new Date()
+  const todayStr = today.toISOString().slice(0, 10)
   const dateStr = today.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
   const nextAct = [1, 2, 3, 4].find(n => !completedActs.includes(n)) || null
 
@@ -195,6 +207,37 @@ export default function Home() {
     getTodaysQuestions().then(setTodayQuestions)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  useEffect(() => {
+    async function loadPast() {
+      const cutoff = new Date()
+      cutoff.setDate(cutoff.getDate() - 7)
+      const cutoffStr = cutoff.toISOString().slice(0, 10)
+
+      const { data: qRows } = await supabase
+        .from('questions')
+        .select('used_on')
+        .gte('used_on', cutoffStr)
+        .lt('used_on', todayStr)
+        .not('used_on', 'is', null)
+
+      const dates = [...new Set((qRows || []).map(r => r.used_on))]
+        .sort((a, b) => b.localeCompare(a))
+        .slice(0, 3)
+      setPastAvail(dates)
+
+      if (session?.user && dates.length) {
+        const { data: logRows } = await supabase
+          .from('ritual_log')
+          .select('date, xp_earned')
+          .in('date', dates)
+        const byDate = Object.fromEntries((logRows || []).map(r => [r.date, r]))
+        setPastLog(byDate)
+      }
+    }
+    loadPast()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session?.user?.id])
 
   const xpBarFill = nextRank
     ? ((displayXP - rank.minXP) / (nextRank.minXP - rank.minXP)) * 100
@@ -250,6 +293,67 @@ export default function Home() {
               {completedActs.length === 0 ? 'Begin the ritual' : nextAct ? 'Continue the ritual' : 'Ritual complete'}
             </button>
           </div>
+
+          {pastAvail.length > 0 && (
+            <div style={{ paddingBottom: 22 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                <div style={{ fontFamily: "'Special Elite', serif", fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.14em', color: 'var(--sd-cream-dim)' }}>
+                  Past Rituals
+                </div>
+                <span
+                  onClick={() => navigate('/history')}
+                  style={{ fontFamily: "'Special Elite', serif", fontSize: 10, color: 'var(--sd-red)', cursor: 'pointer' }}
+                >
+                  See all →
+                </span>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {pastAvail.map(dateStr => {
+                  const entry = pastLog[dateStr]
+                  const done = !!entry
+                  return (
+                    <div
+                      key={dateStr}
+                      onClick={() => !done && navigate(`/past/${dateStr}`)}
+                      style={{
+                        background: done ? 'rgba(45,102,64,0.06)' : 'var(--sd-card)',
+                        borderRadius: 14,
+                        border: done ? '1px solid rgba(45,102,64,0.2)' : '1px solid var(--sd-border)',
+                        padding: '16px 18px',
+                        display: 'flex', alignItems: 'center', gap: 14,
+                        cursor: done ? 'default' : 'pointer',
+                        opacity: done ? 0.7 : 1,
+                      }}
+                    >
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontFamily: "'Teko', sans-serif", fontSize: 22, color: done ? 'var(--sd-cream-dim)' : 'var(--sd-cream)', fontWeight: 500, lineHeight: 1.1 }}>
+                          {formatPastDate(dateStr)}
+                        </div>
+                        <div style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-muted)', marginTop: 3 }}>
+                          {done ? 'Backfill · 50% xp' : 'Available to play'}
+                        </div>
+                      </div>
+                      {done ? (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+                          <span style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: '#7cc48a', border: '0.5px solid rgba(45,102,64,0.4)', borderRadius: 20, padding: '3px 10px' }}>
+                            +{entry.xp_earned} xp
+                          </span>
+                          <CheckIcon />
+                        </div>
+                      ) : (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+                          <span style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-cream-dim)', border: '0.5px solid var(--sd-border)', borderRadius: 20, padding: '3px 10px' }}>
+                            +50% xp
+                          </span>
+                          <span style={{ color: 'var(--sd-cream-dim)', fontSize: 18 }}>›</span>
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
 
           <div className="sd-mobile-only" style={{ paddingBottom: 18, display: 'flex', flexDirection: 'column', gap: 18 }}>
             <StatsRow streak={streak} daysPlayed={daysPlayed} />
