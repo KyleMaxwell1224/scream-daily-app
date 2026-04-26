@@ -42,10 +42,23 @@ export async function pullStats(session) {
     .eq('user_id', session.user.id)
     .single()
 
-  if (error || !data) {
+  if (error?.code === 'PGRST116') {
+    // Brand new account — wipe any local guest progress before creating the remote row
+    useGameStore.setState({
+      userXP: 0,
+      streak: 0,
+      daysPlayed: 0,
+      lastCompletedDate: null,
+      totalCorrect: 0,
+      totalAnswered: 0,
+      username: '',
+      favoriteSlasher: '',
+    })
     await pushStats(session)
     return
   }
+
+  if (error || !data) return
 
   // Always sync profile fields down if they exist remotely
   const profileUpdate = {}
