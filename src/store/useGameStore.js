@@ -132,6 +132,15 @@ const useGameStore = create(
 
       bankBackfillXP: (xp) => set((state) => ({ userXP: state.userXP + xp })),
 
+      // ── Completed backfill rituals (local record, no Supabase dependency) ──
+      // Keyed by date string → xp earned. Written at finish time so the
+      // "already done" check is instant on revisit without needing RLS.
+      completedBackfills: {},
+
+      recordCompletedBackfill: (date, xp) => set((state) => ({
+        completedBackfills: { ...state.completedBackfills, [date]: xp },
+      })),
+
       // ── Past ritual in-progress snapshots ────────────────────────
       // Keyed by date string. Cleared when the ritual is finished.
       pastRitualProgress: {},

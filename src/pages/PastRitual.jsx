@@ -30,12 +30,13 @@ function formatDate(dateStr) {
 export default function PastRitual() {
   const { date } = useParams()
   const navigate = useNavigate()
-  const { session, bankBackfillXP, savePastRitualProgress, clearPastRitualProgress } = useGameStore()
+  const { session, bankBackfillXP, savePastRitualProgress, clearPastRitualProgress, completedBackfills, recordCompletedBackfill } = useGameStore()
 
   const [loading, setLoading] = useState(true)
   const [questions, setQuestions] = useState(null)
-  const [alreadyDone, setAlreadyDone] = useState(false)
-  const [doneXP, setDoneXP] = useState(0)
+  // Check local record first — instant, no Supabase RLS dependency
+  const [alreadyDone, setAlreadyDone] = useState(completedBackfills[date] != null)
+  const [doneXP, setDoneXP] = useState(completedBackfills[date] ?? 0)
 
   // Restore in-progress state from localStorage-backed store on first render
   const _saved = getSaved(date)
@@ -98,10 +99,11 @@ export default function PastRitual() {
     bankedRef.current = true
     const total = xpByAct.act1 + xpByAct.act2 + xpByAct.act3 + act4XP
     bankBackfillXP(total)
+    recordCompletedBackfill(date, total)
     clearPastRitualProgress(date)
     await logRitual(session, date, total, true)
     if (session) await pushStats(session)
-  }, [xpByAct, bankBackfillXP, clearPastRitualProgress, session, date])
+  }, [xpByAct, bankBackfillXP, recordCompletedBackfill, clearPastRitualProgress, session, date])
 
   // ── Act 1 handlers ────────────────────────────────────────────────
 
