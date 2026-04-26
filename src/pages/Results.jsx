@@ -158,7 +158,7 @@ export default function Results() {
       {/* Secondary buttons */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, padding: '0 var(--sd-px) 14px' }}>
         {[
-          { label: 'Past rituals', onClick: () => {} },
+          { label: 'Past rituals', onClick: () => navigate('/history') },
           { label: 'My profile',   onClick: () => navigate('/profile') },
         ].map(({ label, onClick }) => (
           <button key={label} onClick={onClick} style={{

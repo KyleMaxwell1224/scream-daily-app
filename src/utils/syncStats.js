@@ -23,6 +23,16 @@ export async function pushStats(session) {
   })
 }
 
+export async function logRitual(session, date, xp, isBackfill = false) {
+  if (!session?.user) return
+  await supabase.from('ritual_log').upsert({
+    user_id: session.user.id,
+    date,
+    xp_earned: xp,
+    is_backfill: isBackfill,
+  }, { onConflict: 'user_id,date' })
+}
+
 export async function pullStats(session) {
   if (!session?.user) return
 

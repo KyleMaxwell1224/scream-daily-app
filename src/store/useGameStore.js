@@ -130,6 +130,8 @@ const useGameStore = create(
         return Object.values(xpEarned).reduce((sum, v) => sum + v, 0)
       },
 
+      bankBackfillXP: (xp) => set((state) => ({ userXP: state.userXP + xp })),
+
       setSession: (session) => set({ session }),
 
       // Called on every app mount — rolls over to a new day when needed
