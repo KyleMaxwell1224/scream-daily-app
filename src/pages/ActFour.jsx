@@ -4,8 +4,7 @@ import Header from '../components/Header'
 import ProgressBar from '../components/ProgressBar'
 import BottomNav from '../components/BottomNav'
 import useGameStore from '../store/useGameStore'
-import { supabase } from '../supabaseClient'
-import { gradeAnswer } from '../utils/questions'
+import { gradeAnswer, getTodaysQuestions } from '../utils/questions'
 
 export default function ActFour() {
   const navigate = useNavigate()
@@ -21,12 +20,10 @@ export default function ActFour() {
   useEffect(() => {
     if (!q) {
       setLoading(true)
-      supabase.from('questions').select('*').eq('act', 4).limit(1)
-        .then(({ data }) => {
-          const current = useGameStore.getState().todayQuestions
-          setTodayQuestions({ ...current, act4: data?.[0] || null })
-          setLoading(false)
-        })
+      getTodaysQuestions().then(qs => {
+        setTodayQuestions(qs)
+        setLoading(false)
+      })
     }
   }, [])
 

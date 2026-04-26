@@ -4,7 +4,7 @@ import Header from '../components/Header'
 import ProgressBar from '../components/ProgressBar'
 import BottomNav from '../components/BottomNav'
 import useGameStore from '../store/useGameStore'
-import { supabase } from '../supabaseClient'
+import { getTodaysQuestions } from '../utils/questions'
 
 const LETTERS = ['A', 'B', 'C', 'D']
 
@@ -38,12 +38,10 @@ export default function ActTwo() {
   useEffect(() => {
     if (questions.length === 0) {
       setLoading(true)
-      supabase.from('questions').select('*').eq('act', 2).limit(5)
-        .then(({ data }) => {
-          const current = useGameStore.getState().todayQuestions
-      setTodayQuestions({ ...current, act2: data || [] })
-          setLoading(false)
-        })
+      getTodaysQuestions().then(q => {
+        setTodayQuestions(q)
+        setLoading(false)
+      })
     }
   }, [])
 

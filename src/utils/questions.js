@@ -1,31 +1,13 @@
 import { supabase } from '../supabaseClient'
 
-function getDayOfYear() {
-  const now = new Date()
-  const start = new Date(now.getFullYear(), 0, 0)
-  return Math.floor((now - start) / 86400000)
-}
-
 export async function getTodaysQuestions() {
-  const d = getDayOfYear()
-
-  const act1Offset = d % 10
-  const act2Offset = (d * 5) % 50
-  const act3Offset = d % 50
-  const act4Offset = d % 10
-
-  const [r1, r2, r3, r4] = await Promise.all([
-    supabase.from('questions').select('*').eq('act', 1).range(act1Offset, act1Offset),
-    supabase.from('questions').select('*').eq('act', 2).range(act2Offset, act2Offset + 4),
-    supabase.from('questions').select('*').eq('act', 3).range(act3Offset, act3Offset),
-    supabase.from('questions').select('*').eq('act', 4).range(act4Offset, act4Offset),
-  ])
-
+  const { data, error } = await supabase.rpc('get_todays_questions')
+  if (error || !data) return { act1: null, act2: [], act3: null, act4: null }
   return {
-    act1: r1.data?.[0] || null,
-    act2: r2.data || [],
-    act3: r3.data?.[0] || null,
-    act4: r4.data?.[0] || null,
+    act1: data.act1 || null,
+    act2: data.act2 || [],
+    act3: data.act3 || null,
+    act4: data.act4 || null,
   }
 }
 
