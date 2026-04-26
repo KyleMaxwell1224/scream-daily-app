@@ -133,7 +133,9 @@ body::after {
   transform: translateX(-50%);
   width: 100%;
   max-width: 480px;
-  background: #120d0d;
+  background: rgba(12, 7, 7, 0.96);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   border-top: 0.5px solid var(--sd-border);
   border-left: 0.5px solid rgba(192, 21, 42, 0.12);
   border-right: 0.5px solid rgba(192, 21, 42, 0.12);
@@ -152,6 +154,24 @@ body::after {
   border: none;
   position: relative;
   text-decoration: none;
+  transition: opacity 0.15s;
+}
+
+.sd-nav-tab::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%) scaleX(0);
+  width: 24px;
+  height: 1.5px;
+  background: var(--sd-red);
+  border-radius: 0 0 2px 2px;
+  transition: transform 0.2s ease;
+}
+
+.sd-nav-tab.active::before {
+  transform: translateX(-50%) scaleX(1);
 }
 
 .sd-nav-tab.disabled {
@@ -164,10 +184,12 @@ body::after {
   height: 22px;
   fill: none;
   stroke-width: 1.5;
+  transition: stroke 0.15s;
 }
 
 .sd-nav-tab.active svg {
   stroke: var(--sd-red);
+  filter: drop-shadow(0 0 6px rgba(192, 21, 42, 0.5));
 }
 
 .sd-nav-tab:not(.active) svg {
@@ -180,6 +202,7 @@ body::after {
   text-transform: uppercase;
   letter-spacing: 0.1em;
   margin-top: 4px;
+  transition: color 0.15s;
 }
 
 .sd-nav-tab.active .sd-nav-label {
@@ -224,6 +247,19 @@ body::after {
   padding: 15px;
   cursor: pointer;
   display: block;
+  transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+  box-shadow: 0 2px 16px rgba(192, 21, 42, 0.25);
+}
+
+.sd-cta-btn:hover:not(:disabled) {
+  background: #d4182f;
+  box-shadow: 0 4px 24px rgba(192, 21, 42, 0.4);
+  transform: translateY(-1px);
+}
+
+.sd-cta-btn:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 12px rgba(192, 21, 42, 0.3);
 }
 
 @media (min-width: 520px) {
@@ -238,6 +274,7 @@ body::after {
   background: var(--sd-card2);
   color: var(--sd-muted);
   cursor: not-allowed;
+  box-shadow: none;
 }
 
 /* Shared skip link */
@@ -318,7 +355,12 @@ body::after {
   border-radius: 10px;
   padding: 13px 16px;
   cursor: pointer;
-  transition: border-color 0.1s, background 0.1s;
+  transition: border-color 0.15s, background 0.15s, transform 0.1s;
+}
+
+.sd-option:hover:not(.disabled) {
+  border-color: rgba(192, 21, 42, 0.4);
+  background: rgba(192, 21, 42, 0.04);
 }
 
 @media (min-width: 520px) {
@@ -475,12 +517,18 @@ body::after {
   border-radius: 8px;
   color: var(--sd-muted);
   position: relative;
-  transition: color 0.15s;
+  transition: color 0.15s, background 0.15s;
+}
+
+.sd-desktop-tab:hover:not(.disabled):not(.active) {
+  color: var(--sd-cream-dim);
+  background: rgba(255, 255, 255, 0.03);
 }
 
 .sd-desktop-tab.active {
   color: var(--sd-cream);
   background: var(--sd-card);
+  box-shadow: inset 0 0 0 0.5px rgba(192, 21, 42, 0.3);
 }
 
 .sd-desktop-tab.disabled {
