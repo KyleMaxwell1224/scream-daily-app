@@ -187,7 +187,7 @@ function formatPastDate(dateStr) {
 
 export default function Home() {
   const navigate = useNavigate()
-  const { completedActs, xpEarned, setTodayQuestions, userXP, streak, daysPlayed, session } = useGameStore()
+  const { completedActs, xpEarned, setTodayQuestions, userXP, streak, daysPlayed, session, completedBackfills } = useGameStore()
 
   const [pastAvail, setPastAvail] = useState([])
   const [pastLog, setPastLog] = useState({})
@@ -230,6 +230,7 @@ export default function Home() {
         const { data: logRows } = await supabase
           .from('ritual_log')
           .select('date, xp_earned')
+          .eq('user_id', session.user.id)
           .in('date', dates)
         const byDate = Object.fromEntries((logRows || []).map(r => [r.date, r]))
         setPastLog(byDate)
@@ -309,7 +310,7 @@ export default function Home() {
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {pastAvail.map(dateStr => {
-                  const entry = pastLog[dateStr]
+                  const entry = pastLog[dateStr] ?? (completedBackfills[dateStr] != null ? { xp_earned: completedBackfills[dateStr] } : null)
                   const done = !!entry
                   return (
                     <div

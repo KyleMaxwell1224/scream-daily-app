@@ -19,7 +19,7 @@ function formatDate(dateStr) {
 
 export default function History() {
   const navigate = useNavigate()
-  const { session, completedActs, xpEarned, ritualBanked } = useGameStore()
+  const { session, completedActs, xpEarned, ritualBanked, completedBackfills } = useGameStore()
 
   const [log, setLog] = useState([])     // { date, xp_earned, is_backfill }[]
   const [avail, setAvail] = useState([]) // date strings that have questions
@@ -51,6 +51,7 @@ export default function History() {
         const { data: logRows } = await supabase
           .from('ritual_log')
           .select('date, xp_earned, is_backfill')
+          .eq('user_id', session.user.id)
           .gte('date', cutoffStr)
           .order('date', { ascending: false })
         setLog(logRows || [])
@@ -124,7 +125,7 @@ export default function History() {
             No past rituals available yet.
           </div>
         ) : avail.map(dateStr => {
-          const entry = logByDate[dateStr]
+          const entry = logByDate[dateStr] ?? (completedBackfills[dateStr] != null ? { xp_earned: completedBackfills[dateStr], is_backfill: true } : null)
           const done = !!entry
 
           return (
