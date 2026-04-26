@@ -41,7 +41,7 @@ function CheckIcon() {
   )
 }
 
-function ProfilePanel({ username, rank, displayXP, nextRank, xpBarFill, streak, daysPlayed, weekDays, today }) {
+function ProfilePanel({ username, rank, displayXP, nextRank, xpBarFill, streak, daysPlayed, weekDays, today, weekCompletions }) {
   const displayName = username || 'Survivor'
   const initials = displayName.slice(0, 2).toUpperCase()
 
@@ -126,27 +126,46 @@ function ProfilePanel({ username, rank, displayXP, nextRank, xpBarFill, streak, 
         </div>
         <div style={{ display: 'flex', gap: 4 }}>
           {weekDays.map((d, i) => {
+            const dateKey = d.toISOString().slice(0, 10)
             const isToday = d.toDateString() === today.toDateString()
             const isPast = d < today && !isToday
+            const isFuture = d > today && !isToday
+            const done = weekCompletions.has(dateKey)
+            const dotColor = done ? '#3d8f55' : isToday ? rank.color : isPast ? 'rgba(255,255,255,0.1)' : 'transparent'
+            const borderColor = done
+              ? 'rgba(45,102,64,0.5)'
+              : isToday
+              ? rank.color
+              : isPast
+              ? 'rgba(255,255,255,0.07)'
+              : 'rgba(255,255,255,0.04)'
+            const bg = done
+              ? 'rgba(45,102,64,0.12)'
+              : isToday
+              ? `${rank.color}18`
+              : 'transparent'
+            const labelColor = done
+              ? '#3d8f55'
+              : isToday
+              ? rank.color
+              : isFuture
+              ? 'var(--sd-muted)'
+              : 'var(--sd-cream-dim)'
             return (
               <div key={i} style={{
                 flex: 1, textAlign: 'center', padding: '8px 2px 7px', borderRadius: 8,
-                border: isToday
-                  ? `1px solid ${rank.color}`
-                  : isPast
-                  ? '1px solid rgba(255,255,255,0.08)'
-                  : '1px solid rgba(255,255,255,0.04)',
-                background: isToday ? `${rank.color}18` : 'transparent',
+                border: `1px solid ${borderColor}`,
+                background: bg,
               }}>
                 <div style={{
-                  fontFamily: "'Special Elite', serif", fontSize: 9, textTransform: 'uppercase',
-                  color: isToday ? rank.color : isPast ? 'var(--sd-cream-dim)' : 'var(--sd-muted)',
+                  fontFamily: "'Special Elite', serif", fontSize: 9,
+                  textTransform: 'uppercase', color: labelColor,
                 }}>
                   {DAY_LABELS[i]}
                 </div>
                 <div style={{
                   width: 4, height: 4, borderRadius: '50%', margin: '5px auto 0',
-                  background: isToday ? rank.color : isPast ? 'rgba(255,255,255,0.12)' : 'transparent',
+                  background: dotColor,
                 }} />
               </div>
             )
@@ -223,11 +242,12 @@ export default function Home() {
   const navigate = useNavigate()
   const {
     completedActs, xpEarned, setTodayQuestions,
-    userXP, streak, daysPlayed, session, completedBackfills, username,
+    userXP, streak, daysPlayed, session, completedBackfills, username, ritualBanked,
   } = useGameStore()
 
   const [pastAvail, setPastAvail] = useState([])
   const [pastLog, setPastLog] = useState({})
+  const [weekCompletions, setWeekCompletions] = useState(new Set())
 
   const totalXP = Object.values(xpEarned).reduce((s, v) => s + v, 0)
   const displayXP = userXP + totalXP
@@ -276,6 +296,38 @@ export default function Home() {
     loadPast()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session?.user?.id])
+
+  useEffect(() => {
+    async function loadWeek() {
+      const days = getWeekDays()
+      const dateStrs = days.map(d => d.toISOString().slice(0, 10))
+      const completed = new Set()
+
+      // Today: check local state first
+      if (ritualBanked) completed.add(todayStr)
+
+      // Local backfills
+      for (const d of dateStrs) {
+        if (completedBackfills[d] != null) completed.add(d)
+      }
+
+      // Supabase ritual_log for the rest
+      if (session?.user) {
+        const weekStart = dateStrs[0]
+        const { data } = await supabase
+          .from('ritual_log')
+          .select('date')
+          .eq('user_id', session.user.id)
+          .gte('date', weekStart)
+          .lte('date', todayStr)
+        for (const row of data || []) completed.add(row.date)
+      }
+
+      setWeekCompletions(completed)
+    }
+    loadWeek()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session?.user?.id, ritualBanked])
 
   const xpBarFill = nextRank
     ? ((displayXP - rank.minXP) / (nextRank.minXP - rank.minXP)) * 100
@@ -428,6 +480,7 @@ export default function Home() {
             daysPlayed={daysPlayed}
             weekDays={weekDays}
             today={today}
+            weekCompletions={weekCompletions}
           />
         </div>
 
