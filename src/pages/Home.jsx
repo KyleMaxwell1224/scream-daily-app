@@ -202,7 +202,7 @@ export default function Home() {
         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
         padding: '13px var(--sd-px)',
         borderBottom: '0.5px solid var(--sd-border)',
-        background: 'rgba(192, 21, 42, 0.04)',
+        background: 'rgba(9, 5, 5, 0.55)',
       }}>
         <span style={{ color: 'var(--sd-red)', fontSize: 12 }}>▼</span>
         <span style={{ fontFamily: "'Special Elite', serif", fontSize: 15, color: 'var(--sd-cream)', letterSpacing: '0.04em' }}>

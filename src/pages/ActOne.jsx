@@ -4,7 +4,7 @@ import Header from '../components/Header'
 import ProgressBar from '../components/ProgressBar'
 import BottomNav from '../components/BottomNav'
 import useGameStore from '../store/useGameStore'
-import { getDayNumber } from '../utils/questions'
+import { getDayNumber, gradeAnswer } from '../utils/questions'
 
 const SUGGESTIONS = ['Halloween', 'The Shining', 'A Nightmare on Elm Street', 'Scream']
 
@@ -48,11 +48,13 @@ function HouseSVG() {
 
 export default function ActOne() {
   const navigate = useNavigate()
-  const { completeAct, todayQuestions } = useGameStore()
+  const { completeAct, todayQuestions, actResults, setActResult } = useGameStore()
   const q = todayQuestions.act1
   const dayNum = getDayNumber()
+  const saved = actResults.act1
 
-  const [answer, setAnswer] = useState('')
+  const [answer, setAnswer] = useState(saved?.answer ?? '')
+  const [result, setResult] = useState(saved ? { correct: saved.correct, xp: saved.xp } : null)
   const [usedClues, setUsedClues] = useState({})
   const [revealedClues, setRevealedClues] = useState({})
 
@@ -60,7 +62,7 @@ export default function ActOne() {
   const maxXP = Math.max(0, 25 - penaltyTotal)
 
   function useClue(key, penalty) {
-    if (usedClues[key]) return
+    if (usedClues[key] || result) return
     setUsedClues(prev => ({ ...prev, [key]: true }))
     if (q) {
       const val = key === 'year' ? q.decade : key === 'director' ? (q.authored_by || '—') : q.subgenre
@@ -69,8 +71,13 @@ export default function ActOne() {
   }
 
   function handleSubmit() {
-    completeAct(1, answer.trim() ? maxXP : 0)
-    navigate('/act/2')
+    if (!q || result) return
+    const grade = gradeAnswer(answer, q.correct_answer, q.accepted_variants || [])
+    const xp = grade.grade === 'wrong' ? 0 : maxXP
+    const r = { correct: grade.grade !== 'wrong', xp }
+    setResult(r)
+    setActResult(1, { answer, correct: r.correct, xp: r.xp })
+    completeAct(1, xp)
   }
 
   return (
@@ -91,9 +98,18 @@ export default function ActOne() {
           position: 'relative', width: '100%', paddingTop: '56.25%',
           borderRadius: 12, overflow: 'hidden',
           border: '1px solid var(--sd-border)',
+          background: '#120808',
         }}>
           <div style={{ position: 'absolute', inset: 0 }}>
-            <HouseSVG />
+            {q?.image_url ? (
+              <img
+                src={q.image_url}
+                alt="Identify this horror film"
+                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+              />
+            ) : (
+              <HouseSVG />
+            )}
           </div>
         </div>
         <div style={{
@@ -143,36 +159,68 @@ export default function ActOne() {
       <input
         className="sd-input"
         value={answer}
-        onChange={e => setAnswer(e.target.value)}
+        onChange={e => !result && setAnswer(e.target.value)}
         placeholder="Type your answer..."
+        disabled={!!result}
+        style={{ opacity: result ? 0.6 : 1 }}
       />
 
       {/* Suggestion chips */}
-      <div style={{ display: 'flex', gap: 6, padding: '10px var(--sd-px)', flexWrap: 'wrap' }}>
-        {SUGGESTIONS.map(s => (
-          <button
-            key={s}
-            onClick={() => setAnswer(s)}
-            style={{
-              background: 'var(--sd-card)', border: '1px solid var(--sd-border)',
-              borderRadius: 20, padding: '5px 12px', cursor: 'pointer',
-              fontFamily: "'Special Elite', serif", fontSize: 10, color: 'var(--sd-cream-dim)',
-            }}
-          >
-            {s}
-          </button>
-        ))}
-      </div>
+      {!result && (
+        <div style={{ display: 'flex', gap: 6, padding: '10px var(--sd-px)', flexWrap: 'wrap' }}>
+          {SUGGESTIONS.map(s => (
+            <button
+              key={s}
+              onClick={() => setAnswer(s)}
+              style={{
+                background: 'var(--sd-card)', border: '1px solid var(--sd-border)',
+                borderRadius: 20, padding: '5px 12px', cursor: 'pointer',
+                fontFamily: "'Special Elite', serif", fontSize: 10, color: 'var(--sd-cream-dim)',
+              }}
+            >
+              {s}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Result */}
+      {result && (
+        <div style={{
+          margin: '10px var(--sd-px) 4px',
+          background: result.correct ? 'rgba(45,102,64,0.2)' : 'rgba(90,18,18,0.2)',
+          border: `1px solid ${result.correct ? 'rgba(45,102,64,0.4)' : 'rgba(192,21,42,0.3)'}`,
+          borderRadius: 12, padding: '14px 16px',
+        }}>
+          <div style={{ fontFamily: "'Creepster', cursive", fontSize: 20, color: result.correct ? '#7cc48a' : '#e24b4a', marginBottom: 2 }}>
+            {result.correct ? 'Correct.' : 'Wrong.'}
+          </div>
+          <div style={{ fontFamily: "'Creepster', cursive", fontSize: 26, color: result.correct ? '#7cc48a' : '#e24b4a' }}>
+            +{result.xp} xp
+          </div>
+          {!result.correct && q && (
+            <div style={{ fontFamily: "'Special Elite', serif", fontSize: 10, color: 'var(--sd-muted)', marginTop: 6 }}>
+              The film was: {q.correct_answer}
+            </div>
+          )}
+        </div>
+      )}
 
       <div style={{ padding: '10px 0 6px' }}>
-        <button className="sd-cta-btn" onClick={handleSubmit} disabled={!answer.trim()}>
-          Lock it in
+        <button
+          className="sd-cta-btn"
+          onClick={result ? () => navigate('/act/2') : handleSubmit}
+          disabled={!result && !answer.trim()}
+        >
+          {result ? 'Continue' : 'Lock it in'}
         </button>
       </div>
 
-      <button className="sd-skip-link" onClick={() => { completeAct(1, 0); navigate('/act/2') }}>
-        Skip — 0 xp
-      </button>
+      {!result && (
+        <button className="sd-skip-link" onClick={() => { completeAct(1, 0); navigate('/act/2') }}>
+          Skip — 0 xp
+        </button>
+      )}
 
       </div>
       <BottomNav activePage="ritual" />

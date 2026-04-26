@@ -10,10 +10,11 @@ const LETTERS = ['A', 'B', 'C', 'D']
 
 export default function ActThree() {
   const navigate = useNavigate()
-  const { todayQuestions, setTodayQuestions, completeAct } = useGameStore()
+  const { todayQuestions, setTodayQuestions, completeAct, actResults, setActResult } = useGameStore()
+  const saved = actResults.act3
 
-  const [selected, setSelected] = useState(null)
-  const [revealed, setRevealed] = useState(false)
+  const [selected, setSelected] = useState(saved?.selected ?? null)
+  const [revealed, setRevealed] = useState(saved?.revealed ?? false)
   const [loading, setLoading] = useState(false)
 
   const q = todayQuestions.act3
@@ -33,6 +34,7 @@ export default function ActThree() {
   function handleConfirm() {
     if (!revealed) {
       setRevealed(true)
+      setActResult(3, { selected, revealed: true })
     } else {
       const xp = selected === q.correct_answer ? 35 : 0
       completeAct(3, xp)

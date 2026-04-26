@@ -9,10 +9,11 @@ import { gradeAnswer } from '../utils/questions'
 
 export default function ActFour() {
   const navigate = useNavigate()
-  const { todayQuestions, setTodayQuestions, completeAct } = useGameStore()
+  const { todayQuestions, setTodayQuestions, completeAct, actResults, setActResult } = useGameStore()
+  const saved = actResults.act4
 
-  const [answer, setAnswer] = useState('')
-  const [result, setResult] = useState(null)
+  const [answer, setAnswer] = useState(saved?.answer ?? '')
+  const [result, setResult] = useState(saved ? { grade: saved.grade, xp: saved.xp } : null)
   const [loading, setLoading] = useState(false)
 
   const q = todayQuestions.act4
@@ -33,6 +34,7 @@ export default function ActFour() {
     if (!q || result) return
     const r = gradeAnswer(answer, q.correct_answer, q.accepted_variants || [])
     setResult(r)
+    setActResult(4, { answer, grade: r.grade, xp: r.xp })
     completeAct(4, r.xp)
   }
 

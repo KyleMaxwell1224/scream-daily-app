@@ -12,18 +12,28 @@ export default function ActTwo() {
   const navigate = useNavigate()
   const {
     todayQuestions, setTodayQuestions,
-    act2CurrentQuestion, act2Answers,
+    act2CurrentQuestion, act2Answers, act2Selections,
     advanceAct2Question, recordAct2Answer,
-    completeAct, xpEarned,
+    completeAct,
   } = useGameStore()
-
-  const [selected, setSelected] = useState(null)
-  const [revealed, setRevealed] = useState(false)
-  const [loading, setLoading] = useState(false)
 
   const questions = todayQuestions.act2
   const qIndex = act2CurrentQuestion
   const q = questions[qIndex]
+
+  // Derive persisted state for the current question
+  const persistedSelection = act2Selections[qIndex] ?? null
+  const persistedRevealed = act2Answers.length > qIndex
+
+  const [selected, setSelected] = useState(persistedSelection)
+  const [revealed, setRevealed] = useState(persistedRevealed)
+  const [loading, setLoading] = useState(false)
+
+  // Sync local UI state whenever the active question index changes
+  useEffect(() => {
+    setSelected(act2Selections[qIndex] ?? null)
+    setRevealed(act2Answers.length > qIndex)
+  }, [qIndex])
 
   useEffect(() => {
     if (questions.length === 0) {
@@ -45,7 +55,7 @@ export default function ActTwo() {
   function handleConfirm() {
     if (!revealed) {
       const correct = selected === q.correct_answer
-      recordAct2Answer(correct)
+      recordAct2Answer(correct, selected)
       setRevealed(true)
     } else {
       setSelected(null)

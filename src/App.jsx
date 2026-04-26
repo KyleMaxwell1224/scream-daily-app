@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Home from './pages/Home'
 import ActOne from './pages/ActOne'
@@ -6,8 +7,15 @@ import ActThree from './pages/ActThree'
 import ActFour from './pages/ActFour'
 import Results from './pages/Results'
 import Profile from './pages/Profile'
+import useGameStore from './store/useGameStore'
 
 export default function App() {
+  const checkNewDay = useGameStore((s) => s.checkNewDay)
+
+  useEffect(() => {
+    checkNewDay()
+  }, [])
+
   return (
     <BrowserRouter>
       <Routes>

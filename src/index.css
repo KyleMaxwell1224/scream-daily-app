@@ -1,12 +1,12 @@
 :root {
-  --sd-black: #0e0b0b;
+  --sd-black: #090505;
   --sd-red: #c0152a;
   --sd-red-dark: #8a0e1e;
   --sd-cream: #f0e8d8;
   --sd-cream-dim: #c8bfae;
-  --sd-card: #1a1212;
-  --sd-card2: #221818;
-  --sd-border: rgba(192, 21, 42, 0.25);
+  --sd-card: #180f0f;
+  --sd-card2: #201414;
+  --sd-border: rgba(192, 21, 42, 0.22);
   --sd-muted: #7a6a6a;
   --sd-px: 20px;
 }
@@ -26,10 +26,26 @@
 body {
   background: var(--sd-black);
   background-image:
-    radial-gradient(ellipse 80% 40% at 50% 0%, rgba(192, 21, 42, 0.07) 0%, transparent 70%),
-    radial-gradient(ellipse 60% 30% at 50% 100%, rgba(140, 10, 20, 0.05) 0%, transparent 70%);
+    radial-gradient(ellipse 90% 55% at 50% -5%,  rgba(192, 21, 42, 0.22) 0%, transparent 60%),
+    radial-gradient(ellipse 55% 40% at 50% 108%, rgba(110, 6, 14, 0.14) 0%, transparent 60%),
+    radial-gradient(ellipse 30% 50% at 5% 50%,   rgba(80, 4, 10, 0.06)  0%, transparent 70%),
+    radial-gradient(ellipse 30% 50% at 95% 50%,  rgba(80, 4, 10, 0.06)  0%, transparent 70%),
+    radial-gradient(ellipse 140% 100% at 50% 50%, transparent 45%, rgba(0, 0, 0, 0.55) 100%);
+  min-height: 100dvh;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Film grain overlay */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='256' height='256'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='256' height='256' filter='url(%23n)'/></svg>");
+  background-size: 256px 256px;
+  opacity: 0.038;
 }
 
 #root {
@@ -50,7 +66,10 @@ body {
 
 @media (min-width: 520px) {
   .sd-wrap {
-    box-shadow: 0 0 0 0.5px rgba(192, 21, 42, 0.18), 0 8px 60px rgba(0, 0, 0, 0.6);
+    box-shadow:
+      0 0 0 0.5px rgba(192, 21, 42, 0.2),
+      0 0 40px rgba(192, 21, 42, 0.04),
+      0 8px 60px rgba(0, 0, 0, 0.5);
     min-height: 100vh;
   }
 }
@@ -508,26 +527,33 @@ body {
     --sd-px: 32px;
   }
 
-  body {
-    background-image:
-      radial-gradient(ellipse 60% 50% at 50% 0%, rgba(192, 21, 42, 0.09) 0%, transparent 70%),
-      radial-gradient(ellipse 40% 30% at 50% 100%, rgba(140, 10, 20, 0.06) 0%, transparent 70%);
-  }
-
   .sd-wrap {
     max-width: 960px;
-    box-shadow: 0 0 0 0.5px rgba(192, 21, 42, 0.2), 0 16px 80px rgba(0, 0, 0, 0.7);
+    background: transparent;
+    box-shadow:
+      -1px 0 0 rgba(192, 21, 42, 0.10),
+       1px 0 0 rgba(192, 21, 42, 0.10),
+      0 0 0 0.5px rgba(192, 21, 42, 0.14),
+      0 0 80px rgba(192, 21, 42, 0.05),
+      0 20px 100px rgba(0, 0, 0, 0.6);
     padding-bottom: 0;
   }
 
   /* Header */
+  .sd-header {
+    background: rgba(9, 5, 5, 0.72);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
   .sd-header-inner {
     padding: 28px 32px 18px;
   }
 
   .sd-logo {
-    font-size: 40px;
+    font-size: 42px;
     letter-spacing: 8px;
+    text-shadow: 0 0 40px rgba(192, 21, 42, 0.35);
   }
 
   .sd-desktop-nav {
@@ -649,6 +675,24 @@ body {
   /* Section label */
   .sd-section-label {
     padding: 0;
+  }
+}
+
+/* ─── Scanlines — desktop only ───────────────────────────────────── */
+@media (min-width: 900px) {
+  #root::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 9998;
+    background: repeating-linear-gradient(
+      to bottom,
+      transparent 0px,
+      transparent 3px,
+      rgba(0, 0, 0, 0.04) 3px,
+      rgba(0, 0, 0, 0.04) 4px
+    );
   }
 }
 
