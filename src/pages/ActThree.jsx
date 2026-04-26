@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Header from '../components/Header'
 import ProgressBar from '../components/ProgressBar'
@@ -19,6 +19,11 @@ export default function ActThree() {
 
   const q = todayQuestions.act3
   const options = q?.options || []
+  const containerRef = useRef(null)
+
+  useEffect(() => {
+    if (!loading) containerRef.current?.focus()
+  }, [loading])
 
   useEffect(() => {
     if (!q) {
@@ -82,7 +87,7 @@ export default function ActThree() {
     <div className="sd-wrap">
       <Header activePage="ritual" />
       <ProgressBar currentAct={3} />
-      <div className="sd-game-content">
+      <div ref={containerRef} tabIndex={-1} style={{ outline: 'none' }} className="sd-game-content">
 
       <div className="sd-act-header">
         <span className="sd-act-badge">ACT III</span>

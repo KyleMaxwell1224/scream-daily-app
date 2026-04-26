@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Header from '../components/Header'
 import ProgressBar from '../components/ProgressBar'
@@ -72,6 +72,11 @@ export default function ActTwo() {
   }
 
   const options = q?.options || []
+  const containerRef = useRef(null)
+
+  useEffect(() => {
+    if (!loading) containerRef.current?.focus()
+  }, [loading])
 
   useEffect(() => {
     function onKey(e) {
@@ -115,7 +120,7 @@ export default function ActTwo() {
     <div className="sd-wrap">
       <Header activePage="ritual" />
       <ProgressBar currentAct={2} />
-      <div className="sd-game-content">
+      <div ref={containerRef} tabIndex={-1} style={{ outline: 'none' }} className="sd-game-content">
 
         <div className="sd-act-header">
           <span className="sd-act-badge">ACT II</span>
