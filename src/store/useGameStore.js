@@ -56,6 +56,9 @@ const useGameStore = create(
       totalCorrect: 0,
       totalAnswered: 0,
 
+      // ── Auth identity (persisted to detect user switches) ────────
+      lastUserId: null,
+
       // ── Auth (not persisted) ──────────────────────────────────────
       session: null,
 

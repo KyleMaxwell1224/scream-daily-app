@@ -33,8 +33,32 @@ export async function logRitual(session, date, xp, isBackfill = false) {
   }, { onConflict: 'user_id,date' })
 }
 
+function fullReset(extraState = {}) {
+  useGameStore.setState({
+    userXP: 0, streak: 0, daysPlayed: 0, lastCompletedDate: null,
+    lastPlayedDate: null, totalCorrect: 0, totalAnswered: 0,
+    username: '', favoriteSlasher: '',
+    completedActs: [], xpEarned: { act1: 0, act2: 0, act3: 0, act4: 0 },
+    act2CurrentQuestion: 0, act2Answers: [], act2Selections: [],
+    todayQuestions: { act1: null, act2: [], act3: null, act4: null },
+    actResults: { act1: null, act3: null, act4: null },
+    ritualBanked: false,
+    completedBackfills: {},
+    pastRitualProgress: {},
+    ...extraState,
+  })
+}
+
 export async function pullStats(session) {
   if (!session?.user) return
+
+  const { lastUserId } = useGameStore.getState()
+  if (lastUserId && lastUserId !== session.user.id) {
+    // Different user signed in — wipe all local state so nothing leaks across accounts
+    fullReset({ lastUserId: session.user.id })
+  } else {
+    useGameStore.setState({ lastUserId: session.user.id })
+  }
 
   const { data, error } = await supabase
     .from('user_stats')
@@ -43,19 +67,10 @@ export async function pullStats(session) {
     .single()
 
   if (error?.code === 'PGRST116') {
-    // Brand new account — reset all guest progress, but keep username set during email signup
+    // Brand new account — preserve username/slasher set during email signup flow
     const { username, favoriteSlasher } = useGameStore.getState()
-    useGameStore.setState({
-      // Long-term stats
-      userXP: 0, streak: 0, daysPlayed: 0, lastCompletedDate: null,
-      totalCorrect: 0, totalAnswered: 0,
-      // Daily state
-      completedActs: [], xpEarned: { act1: 0, act2: 0, act3: 0, act4: 0 },
-      act2CurrentQuestion: 0, act2Answers: [], act2Selections: [],
-      todayQuestions: { act1: null, act2: [], act3: null, act4: null },
-      actResults: { act1: null, act3: null, act4: null },
-      ritualBanked: false,
-      // Preserve username/slasher set during email signup flow
+    fullReset({
+      lastUserId: session.user.id,
       username: username || '',
       favoriteSlasher: favoriteSlasher || '',
     })
