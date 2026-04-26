@@ -1,4 +1,7 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
+
+vi.mock('../supabaseClient', () => ({ supabase: { from: vi.fn(), rpc: vi.fn() } }))
+
 import { gradeAnswer, levenshtein } from '../utils/questions'
 
 describe('levenshtein', () => {
