@@ -15,18 +15,18 @@ export default function ActThree() {
 
   const [selected, setSelected] = useState(saved?.selected ?? null)
   const [revealed, setRevealed] = useState(saved?.revealed ?? false)
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(!todayQuestions.act3)
 
   const q = todayQuestions.act3
 
   useEffect(() => {
     if (!q) {
-      setLoading(true)
       getTodaysQuestions().then(qs => {
         setTodayQuestions(qs)
         setLoading(false)
       })
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   function handleConfirm() {

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import Header from '../components/Header'
 import BottomNav from '../components/BottomNav'
@@ -52,8 +52,8 @@ export default function PastRitual() {
   const [act4Answer, setAct4Answer] = useState('')
   const [act4Result, setAct4Result] = useState(null)
 
-  // Accumulated XP refs (safe to read at any step)
-  const xpRef = useRef({ act1: 0, act2: 0, act3: 0, act4: 0 })
+  // Accumulated XP per act — state so values are safe to read during render
+  const [xpByAct, setXpByAct] = useState({ act1: 0, act2: 0, act3: 0 })
   const bankedRef = useRef(false)
 
   useEffect(() => {
@@ -73,17 +73,17 @@ export default function PastRitual() {
       setLoading(false)
     }
     load()
-  }, [date])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [date, session?.user?.id])
 
-  async function finishRitual(act4XP) {
+  const finishRitual = useCallback(async (act4XP) => {
     if (bankedRef.current) return
     bankedRef.current = true
-    xpRef.current.act4 = act4XP
-    const total = Object.values(xpRef.current).reduce((s, v) => s + v, 0)
+    const total = xpByAct.act1 + xpByAct.act2 + xpByAct.act3 + act4XP
     bankBackfillXP(total)
     await logRitual(session, date, total, true)
     if (session) await pushStats(session)
-  }
+  }, [xpByAct, bankBackfillXP, session, date])
 
   // ── Act 1 handlers ────────────────────────────────────────────────
 
@@ -92,7 +92,7 @@ export default function PastRitual() {
     const grade = gradeAnswer(act1Answer, questions.act1.correct_answer, questions.act1.accepted_variants || [])
     const xp = grade.grade === 'wrong' ? 0 : XP.act1
     const result = { correct: grade.grade !== 'wrong', xp }
-    xpRef.current.act1 = xp
+    setXpByAct(prev => ({ ...prev, act1: xp }))
     setAct1Result(result)
   }
 
@@ -110,7 +110,7 @@ export default function PastRitual() {
         const correct = act2Selected === q.correct_answer
         const finalCount = act2CorrectCount + (correct ? 1 : 0)
         const xp = finalCount * XP.act2perQ
-        xpRef.current.act2 = xp
+        setXpByAct(prev => ({ ...prev, act2: xp }))
         setStep('act3')
       } else {
         setAct2Idx(i => i + 1)
@@ -125,7 +125,7 @@ export default function PastRitual() {
   function handleAct3Confirm() {
     if (!act3Revealed) {
       const xp = act3Selected === questions.act3?.correct_answer ? XP.act3 : 0
-      xpRef.current.act3 = xp
+      setXpByAct(prev => ({ ...prev, act3: xp }))
       setAct3Revealed(true)
     } else {
       setStep('act4')
@@ -199,17 +199,18 @@ export default function PastRitual() {
     )
   }
 
-  const totalSoFar = Object.values(xpRef.current).reduce((s, v) => s + v, 0)
+  const act4XP = act4Result?.xp ?? 0
+  const totalSoFar = xpByAct.act1 + xpByAct.act2 + xpByAct.act3 + act4XP
 
   // ── Done screen ───────────────────────────────────────────────────
 
   if (step === 'done') {
-    const total = Object.values(xpRef.current).reduce((s, v) => s + v, 0)
+    const total = xpByAct.act1 + xpByAct.act2 + xpByAct.act3 + act4XP
     const ACTS_META = [
-      { label: 'Act I — Scene of the Crime', xp: xpRef.current.act1, max: XP.act1 },
-      { label: 'Act II — The Inquisition',   xp: xpRef.current.act2, max: XP.act2perQ * 5 },
-      { label: 'Act III — Speak of the Devil', xp: xpRef.current.act3, max: XP.act3 },
-      { label: 'Act IV — Final Reckoning',   xp: xpRef.current.act4, max: XP.act4 },
+      { label: 'Act I — Scene of the Crime',   xp: xpByAct.act1, max: XP.act1 },
+      { label: 'Act II — The Inquisition',      xp: xpByAct.act2, max: XP.act2perQ * 5 },
+      { label: 'Act III — Speak of the Devil',  xp: xpByAct.act3, max: XP.act3 },
+      { label: 'Act IV — Final Reckoning',      xp: act4XP,       max: XP.act4 },
     ]
     return (
       <div className="sd-wrap">

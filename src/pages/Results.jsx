@@ -26,7 +26,7 @@ export default function Results() {
   const [counted, setCounted] = useState(0)
 
   useEffect(() => {
-    if (todayTotal === 0) { setCounted(0); return }
+    if (todayTotal === 0) return
     let start = 0
     const step = Math.ceil(todayTotal / 60)
     const id = setInterval(() => {

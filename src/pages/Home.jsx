@@ -40,31 +40,8 @@ function CheckIcon() {
   )
 }
 
-export default function Home() {
-  const navigate = useNavigate()
-  const { completedActs, xpEarned, setTodayQuestions, userXP, streak, daysPlayed } = useGameStore()
-
-  const totalXP = Object.values(xpEarned).reduce((s, v) => s + v, 0)
-  const displayXP = userXP + totalXP
-  const rank = getRankForXP(displayXP)
-  const nextRank = getNextRank(displayXP)
-  const dayNum = getDayNumber()
-
-  const today = new Date()
-  const dateStr = today.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
-  const nextAct = [1, 2, 3, 4].find(n => !completedActs.includes(n)) || null
-
-  useEffect(() => {
-    getTodaysQuestions().then(setTodayQuestions)
-  }, [])
-
-  const xpBarFill = nextRank
-    ? ((displayXP - rank.minXP) / (nextRank.minXP - rank.minXP)) * 100
-    : 100
-
-  const weekDays = getWeekDays()
-
-  const RankCard = () => (
+function RankCard({ rank, displayXP, nextRank, xpBarFill }) {
+  return (
     <div style={{
       background: 'var(--sd-card)', border: '1px solid var(--sd-border)',
       borderRadius: 16, padding: '18px 20px',
@@ -87,8 +64,10 @@ export default function Home() {
       </div>
     </div>
   )
+}
 
-  const StatsRow = () => (
+function StatsRow({ streak, daysPlayed }) {
+  return (
     <div style={{ display: 'flex', gap: 10 }}>
       {[{ label: 'Day Streak', value: streak }, { label: 'Days Played', value: daysPlayed }].map(({ label, value }) => (
         <div key={label} style={{
@@ -101,8 +80,10 @@ export default function Home() {
       ))}
     </div>
   )
+}
 
-  const CalendarStrip = () => (
+function CalendarStrip({ weekDays, today }) {
+  return (
     <div>
       <div style={{
         fontFamily: "'Special Elite', serif", fontSize: 11,
@@ -144,8 +125,10 @@ export default function Home() {
       </div>
     </div>
   )
+}
 
-  const ActList = () => (
+function ActList({ completedActs, navigate }) {
+  return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
       {ACTS.map(({ num, badge, name, desc, xp }) => {
         const done = completedActs.includes(num)
@@ -192,6 +175,32 @@ export default function Home() {
       })}
     </div>
   )
+}
+
+export default function Home() {
+  const navigate = useNavigate()
+  const { completedActs, xpEarned, setTodayQuestions, userXP, streak, daysPlayed } = useGameStore()
+
+  const totalXP = Object.values(xpEarned).reduce((s, v) => s + v, 0)
+  const displayXP = userXP + totalXP
+  const rank = getRankForXP(displayXP)
+  const nextRank = getNextRank(displayXP)
+  const dayNum = getDayNumber()
+
+  const today = new Date()
+  const dateStr = today.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
+  const nextAct = [1, 2, 3, 4].find(n => !completedActs.includes(n)) || null
+
+  useEffect(() => {
+    getTodaysQuestions().then(setTodayQuestions)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const xpBarFill = nextRank
+    ? ((displayXP - rank.minXP) / (nextRank.minXP - rank.minXP)) * 100
+    : 100
+
+  const weekDays = getWeekDays()
 
   return (
     <div className="sd-wrap">
@@ -220,7 +229,7 @@ export default function Home() {
         {/* Left: act list + CTA */}
         <div className="sd-home-left">
           <div className="sd-mobile-only" style={{ paddingTop: 'var(--sd-px)' }}>
-            <RankCard />
+            <RankCard rank={rank} displayXP={displayXP} nextRank={nextRank} xpBarFill={xpBarFill} />
           </div>
 
           <div style={{ paddingTop: 22, paddingBottom: 10 }}>
@@ -229,7 +238,7 @@ export default function Home() {
               textTransform: 'uppercase', letterSpacing: '0.14em',
               color: 'var(--sd-cream-dim)', marginBottom: 12,
             }}>Today's ritual</div>
-            <ActList />
+            <ActList completedActs={completedActs} navigate={navigate} />
           </div>
 
           <div style={{ paddingBottom: 22 }}>
@@ -243,16 +252,16 @@ export default function Home() {
           </div>
 
           <div className="sd-mobile-only" style={{ paddingBottom: 18, display: 'flex', flexDirection: 'column', gap: 18 }}>
-            <StatsRow />
-            <CalendarStrip />
+            <StatsRow streak={streak} daysPlayed={daysPlayed} />
+            <CalendarStrip weekDays={weekDays} today={today} />
           </div>
         </div>
 
         {/* Right sidebar — desktop only */}
         <div className="sd-home-right sd-desktop-only" style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingTop: 22 }}>
-          <RankCard />
-          <StatsRow />
-          <CalendarStrip />
+          <RankCard rank={rank} displayXP={displayXP} nextRank={nextRank} xpBarFill={xpBarFill} />
+          <StatsRow streak={streak} daysPlayed={daysPlayed} />
+          <CalendarStrip weekDays={weekDays} today={today} />
         </div>
 
       </div>

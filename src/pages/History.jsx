@@ -59,7 +59,8 @@ export default function History() {
       setLoading(false)
     }
     load()
-  }, [session])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session?.user?.id])
 
   const logByDate = Object.fromEntries(log.map(r => [r.date, r]))
 

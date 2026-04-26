@@ -59,7 +59,7 @@ export default function ActOne() {
   const penaltyTotal = CLUES.filter(c => usedClues[c.key]).reduce((s, c) => s + c.penalty, 0)
   const maxXP = Math.max(0, 25 - penaltyTotal)
 
-  function useClue(key, penalty) {
+  function revealClue(key) {
     if (usedClues[key] || result) return
     setUsedClues(prev => ({ ...prev, [key]: true }))
     if (q) {
@@ -123,7 +123,7 @@ export default function ActOne() {
         {CLUES.map(({ key, label, penalty }) => (
           <button
             key={key}
-            onClick={() => useClue(key, penalty)}
+            onClick={() => revealClue(key)}
             style={{
               flex: 1, background: usedClues[key] ? 'var(--sd-card2)' : 'var(--sd-card)',
               border: '1px solid var(--sd-border)', borderRadius: 8,

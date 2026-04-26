@@ -162,10 +162,7 @@ const useGameStore = create(
       name: 'scream-daily-v1',
       storage: createJSONStorage(() => localStorage),
       // Persist everything except the live Supabase session
-      partialize: (state) => {
-        const { session, ...rest } = state
-        return rest
-      },
+      partialize: ({ session: _session, ...rest }) => rest,
     }
   )
 )

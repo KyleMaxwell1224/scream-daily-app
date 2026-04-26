@@ -22,11 +22,13 @@ export default function App() {
   useEffect(() => {
     checkNewDay()
     if (session) pushStats(session)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // Push XP to leaderboard after each act so rankings stay current
   useEffect(() => {
     if (completedActs.length > 0 && session) pushStats(session)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [completedActs])
 
   // Push stats and log ritual when the full ritual is banked
@@ -38,6 +40,7 @@ export default function App() {
       const today = new Date().toISOString().slice(0, 10)
       logRitual(session, today, total, false)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ritualBanked])
 
   return (

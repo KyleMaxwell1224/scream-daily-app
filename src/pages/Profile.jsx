@@ -64,6 +64,7 @@ export default function Profile() {
       if (s) pullStats(s)
     })
     return () => subscription.unsubscribe()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   function openEdit() {

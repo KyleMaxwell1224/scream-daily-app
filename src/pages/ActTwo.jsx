@@ -27,22 +27,25 @@ export default function ActTwo() {
 
   const [selected, setSelected] = useState(persistedSelection)
   const [revealed, setRevealed] = useState(persistedRevealed)
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(questions.length === 0)
 
-  // Sync local UI state whenever the active question index changes
+  // Sync selection/revealed back from persisted store when question index changes
   useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect */
     setSelected(act2Selections[qIndex] ?? null)
     setRevealed(act2Answers.length > qIndex)
+    /* eslint-enable react-hooks/set-state-in-effect */
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [qIndex])
 
   useEffect(() => {
     if (questions.length === 0) {
-      setLoading(true)
       getTodaysQuestions().then(q => {
         setTodayQuestions(q)
         setLoading(false)
       })
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   function handleSelect(opt) {
