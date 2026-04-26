@@ -4,10 +4,10 @@ export default function Header({ activePage }) {
   const navigate = useNavigate()
 
   const tabs = [
-    { id: 'ritual',   label: 'Ritual',   path: '/',        disabled: false },
-    { id: 'scenes',   label: 'Scenes',   path: null,       disabled: true  },
-    { id: 'discover', label: 'Discover', path: null,       disabled: true  },
-    { id: 'profile',  label: 'Profile',  path: '/profile', disabled: false },
+    { id: 'ritual',      label: 'Ritual',    path: '/',            disabled: false },
+    { id: 'leaderboard', label: 'Ranks',     path: '/leaderboard', disabled: false },
+    { id: 'discover',    label: 'Discover',  path: null,           disabled: true  },
+    { id: 'profile',     label: 'Profile',   path: '/profile',     disabled: false },
   ]
 
   return (
