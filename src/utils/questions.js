@@ -35,6 +35,7 @@ export function levenshtein(a, b) {
 
 export function gradeAnswer(userInput, correctAnswer, acceptedVariants = []) {
   const input = userInput.trim().toLowerCase()
+  if (!input) return { grade: 'wrong', xp: 0 }
   const correct = correctAnswer.toLowerCase()
   const variants = acceptedVariants.map(v => v.toLowerCase())
 

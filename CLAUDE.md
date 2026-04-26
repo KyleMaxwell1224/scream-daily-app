@@ -9,10 +9,12 @@ npm run dev        # start local dev server (Vite, HMR)
 npm run build      # production build → dist/
 npm run lint       # ESLint
 npm run preview    # serve the dist/ build locally
+npm test           # run test suite (Vitest, single pass)
+npm run test:watch # Vitest in watch mode
 node scripts/seedQuestions.js   # seed Act 1 + Act 4 questions into Supabase
 ```
 
-No test suite exists yet.
+Tests live in `src/test/`. Pure utility and store logic tests only — no Supabase required. CI runs lint → test → build on every push/PR via `.github/workflows/ci.yml`.
 
 ## Stack
 
