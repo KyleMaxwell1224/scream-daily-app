@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Header from '../components/Header'
 import ProgressBar from '../components/ProgressBar'
@@ -18,6 +18,27 @@ export default function ActThree() {
   const [loading, setLoading] = useState(!todayQuestions.act3)
 
   const q = todayQuestions.act3
+  const options = q?.options || []
+
+  const keyRef = useRef(null)
+  useEffect(() => {
+    keyRef.current = (e) => {
+      const letterIdx = { a: 0, b: 1, c: 2, d: 3 }[e.key.toLowerCase()]
+      if (letterIdx !== undefined && !revealed && options[letterIdx] !== undefined) {
+        setSelected(options[letterIdx])
+        return
+      }
+      if ((e.key === 'Enter' || e.key === ' ') && (selected || revealed)) {
+        e.preventDefault()
+        handleConfirm()
+      }
+    }
+  })
+  useEffect(() => {
+    function onKey(e) { keyRef.current?.(e) }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
 
   useEffect(() => {
     if (!q) {
@@ -51,7 +72,6 @@ export default function ActThree() {
     )
   }
 
-  const options = q.options || []
   const isCorrect = revealed && selected === q.correct_answer
 
   function getOptionClass(opt) {

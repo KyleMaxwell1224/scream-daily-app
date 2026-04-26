@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Header from '../components/Header'
 import ProgressBar from '../components/ProgressBar'
@@ -16,6 +16,22 @@ export default function ActFour() {
   const [loading, setLoading] = useState(!todayQuestions.act4)
 
   const q = todayQuestions.act4
+
+  const keyRef = useRef(null)
+  useEffect(() => {
+    keyRef.current = (e) => {
+      if (e.target.tagName === 'INPUT') return
+      if (result && (e.key === 'Enter' || e.key === ' ')) {
+        e.preventDefault()
+        navigate('/results')
+      }
+    }
+  })
+  useEffect(() => {
+    function onKey(e) { keyRef.current?.(e) }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
 
   useEffect(() => {
     if (!q) {
@@ -128,6 +144,7 @@ export default function ActFour() {
         className="sd-input"
         value={answer}
         onChange={e => !result && setAnswer(e.target.value)}
+        onKeyDown={e => { if (e.key === 'Enter' && !result && answer.trim()) handleSubmit() }}
         placeholder="Type your answer..."
         disabled={!!result}
         style={{ opacity: result ? 0.6 : 1 }}

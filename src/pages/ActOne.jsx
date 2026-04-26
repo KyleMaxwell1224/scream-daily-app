@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Header from '../components/Header'
 import ProgressBar from '../components/ProgressBar'
@@ -58,6 +58,22 @@ export default function ActOne() {
 
   const penaltyTotal = CLUES.filter(c => usedClues[c.key]).reduce((s, c) => s + c.penalty, 0)
   const maxXP = Math.max(0, 25 - penaltyTotal)
+
+  const keyRef = useRef(null)
+  useEffect(() => {
+    keyRef.current = (e) => {
+      if (e.target.tagName === 'INPUT') return
+      if (result && (e.key === 'Enter' || e.key === ' ')) {
+        e.preventDefault()
+        navigate('/act/2')
+      }
+    }
+  })
+  useEffect(() => {
+    function onKey(e) { keyRef.current?.(e) }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
 
   function revealClue(key) {
     if (usedClues[key] || result) return
@@ -158,6 +174,7 @@ export default function ActOne() {
         className="sd-input"
         value={answer}
         onChange={e => !result && setAnswer(e.target.value)}
+        onKeyDown={e => { if (e.key === 'Enter' && !result && answer.trim()) handleSubmit() }}
         placeholder="Type your answer..."
         disabled={!!result}
         style={{ opacity: result ? 0.6 : 1 }}
