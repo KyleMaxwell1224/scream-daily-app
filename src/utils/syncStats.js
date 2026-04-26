@@ -43,16 +43,21 @@ export async function pullStats(session) {
     .single()
 
   if (error?.code === 'PGRST116') {
-    // Brand new account — wipe any local guest progress before creating the remote row
+    // Brand new account — reset all guest progress, but keep username set during email signup
+    const { username, favoriteSlasher } = useGameStore.getState()
     useGameStore.setState({
-      userXP: 0,
-      streak: 0,
-      daysPlayed: 0,
-      lastCompletedDate: null,
-      totalCorrect: 0,
-      totalAnswered: 0,
-      username: '',
-      favoriteSlasher: '',
+      // Long-term stats
+      userXP: 0, streak: 0, daysPlayed: 0, lastCompletedDate: null,
+      totalCorrect: 0, totalAnswered: 0,
+      // Daily state
+      completedActs: [], xpEarned: { act1: 0, act2: 0, act3: 0, act4: 0 },
+      act2CurrentQuestion: 0, act2Answers: [], act2Selections: [],
+      todayQuestions: { act1: null, act2: [], act3: null, act4: null },
+      actResults: { act1: null, act3: null, act4: null },
+      ritualBanked: false,
+      // Preserve username/slasher set during email signup flow
+      username: username || '',
+      favoriteSlasher: favoriteSlasher || '',
     })
     await pushStats(session)
     return
