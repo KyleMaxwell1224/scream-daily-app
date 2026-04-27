@@ -131,11 +131,17 @@ export default function History() {
           return (
             <div
               key={dateStr}
+              onClick={() => !done && navigate(`/past/${dateStr}`)}
               style={{
-                background: done ? 'rgba(45,102,64,0.06)' : 'var(--sd-card)',
-                border: done ? '1px solid rgba(45,102,64,0.2)' : '1px solid var(--sd-border)',
-                borderRadius: 12, padding: '14px 16px',
+                background: done
+                  ? 'linear-gradient(135deg, rgba(45,102,64,0.12) 0%, rgba(24,15,15,0.9) 100%)'
+                  : 'linear-gradient(135deg, rgba(192,21,42,0.1) 0%, rgba(24,15,15,0.9) 100%)',
+                border: `1px solid ${done ? 'rgba(45,102,64,0.32)' : 'rgba(192,21,42,0.35)'}`,
+                borderLeft: `4px solid ${done ? '#2d6640' : 'var(--sd-red)'}`,
+                borderRadius: 12, padding: '14px 16px 14px 14px',
                 display: 'flex', alignItems: 'center', gap: 12,
+                cursor: done ? 'default' : 'pointer',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
               }}
             >
               <div style={{ flex: 1 }}>
@@ -143,7 +149,7 @@ export default function History() {
                   {formatDate(dateStr)}
                 </div>
                 <div style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-muted)', marginTop: 1 }}>
-                  {entry?.is_backfill ? 'Backfill · 50% xp' : dateStr}
+                  {done ? 'Past ritual · 50% XP' : 'Available to play'}
                 </div>
               </div>
 
@@ -156,11 +162,12 @@ export default function History() {
                 </div>
               ) : (
                 <button
-                  onClick={() => navigate(`/past/${dateStr}`)}
+                  onClick={e => { e.stopPropagation(); navigate(`/past/${dateStr}`) }}
                   style={{
-                    background: 'none', border: '1px solid var(--sd-border)',
+                    background: 'var(--sd-red)', border: 'none',
                     borderRadius: 8, padding: '7px 16px', cursor: 'pointer',
-                    fontFamily: "'Special Elite', serif", fontSize: 10, color: 'var(--sd-cream-dim)',
+                    fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-cream)',
+                    flexShrink: 0,
                   }}
                 >
                   Play

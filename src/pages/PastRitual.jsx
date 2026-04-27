@@ -224,7 +224,7 @@ export default function PastRitual() {
           borderBottom: '0.5px solid var(--sd-border)',
         }}>
           <div style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-red)', textTransform: 'uppercase', letterSpacing: '0.16em', marginBottom: 8 }}>
-            {formatDate(date)} · Backfill
+            {formatDate(date)} · Past Ritual
           </div>
           <div style={{ fontFamily: "'Creepster', cursive", fontSize: 36, color: 'var(--sd-cream)', lineHeight: 1.05 }}>
             Ritual complete.

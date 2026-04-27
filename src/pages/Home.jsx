@@ -458,7 +458,7 @@ export default function Home() {
                           {formatPastDate(dateStr)}
                         </div>
                         <div style={{ fontFamily: "'Special Elite', serif", fontSize: 10, color: 'var(--sd-muted)', marginTop: 3 }}>
-                          {done ? 'Backfill · 50% xp' : 'Available to play'}
+                          {done ? 'Past ritual · 50% XP' : 'Available to play'}
                         </div>
                       </div>
                       {done ? (
