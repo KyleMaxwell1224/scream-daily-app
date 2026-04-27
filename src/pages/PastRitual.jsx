@@ -14,10 +14,10 @@ function getSaved(date) {
 
 const MULT = 0.5
 const XP = {
-  act1: Math.floor(25 * MULT),   // 12
+  act1:    Math.floor(25  * MULT), // 12
   act2perQ: Math.floor(10 * MULT), // 5
-  act3: Math.floor(35 * MULT),   // 17
-  act4: Math.floor(100 * MULT),  // 50
+  act3:    Math.floor(35  * MULT), // 17
+  act4:    Math.floor(100 * MULT), // 50
 }
 const LETTERS = ['A', 'B', 'C', 'D']
 
@@ -30,38 +30,29 @@ function formatDate(dateStr) {
 export default function PastRitual() {
   const { date } = useParams()
   const navigate = useNavigate()
-  const { session, bankBackfillXP, savePastRitualProgress, clearPastRitualProgress, completedBackfills, recordCompletedBackfill } = useGameStore()
+  const {
+    session, bankBackfillXP, savePastRitualProgress,
+    clearPastRitualProgress, completedBackfills, recordCompletedBackfill,
+  } = useGameStore()
 
   const [loading, setLoading] = useState(true)
   const [questions, setQuestions] = useState(null)
-  // Check local record first — instant, no Supabase RLS dependency
   const [alreadyDone, setAlreadyDone] = useState(completedBackfills[date] != null)
   const [doneXP, setDoneXP] = useState(completedBackfills[date] ?? 0)
 
-  // Restore in-progress state from localStorage-backed store on first render
   const _saved = getSaved(date)
 
-  // Step: 'act1' | 'act2' | 'act3' | 'act4' | 'done'
   const [step, setStep] = useState(_saved?.step ?? 'act1')
-
-  // Act 1
   const [act1Answer, setAct1Answer] = useState(_saved?.act1Answer ?? '')
   const [act1Result, setAct1Result] = useState(_saved?.act1Result ?? null)
-
-  // Act 2
   const [act2Idx, setAct2Idx] = useState(_saved?.act2Idx ?? 0)
   const [act2Selected, setAct2Selected] = useState(null)
   const [act2Revealed, setAct2Revealed] = useState(false)
   const [act2CorrectCount, setAct2CorrectCount] = useState(_saved?.act2CorrectCount ?? 0)
-  // Act 3
   const [act3Selected, setAct3Selected] = useState(null)
   const [act3Revealed, setAct3Revealed] = useState(false)
-
-  // Act 4
   const [act4Answer, setAct4Answer] = useState('')
   const [act4Result, setAct4Result] = useState(_saved?.act4Result ?? null)
-
-  // Accumulated XP per act — state so values are safe to read during render
   const [xpByAct, setXpByAct] = useState(_saved?.xpByAct ?? { act1: 0, act2: 0, act3: 0 })
   const bankedRef = useRef(false)
 
@@ -73,7 +64,6 @@ export default function PastRitual() {
           ? supabase.from('ritual_log').select('xp_earned').eq('user_id', session.user.id).eq('date', date).maybeSingle()
           : Promise.resolve({ data: null }),
       ])
-
       if (logResult.data) {
         setAlreadyDone(true)
         setDoneXP(logResult.data.xp_earned)
@@ -85,7 +75,6 @@ export default function PastRitual() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [date, session?.user?.id])
 
-  // Persist in-progress state so a refresh doesn't let acts be replayed
   useEffect(() => {
     if (loading || alreadyDone || step === 'done') return
     savePastRitualProgress(date, {
@@ -105,18 +94,13 @@ export default function PastRitual() {
     if (session) await pushStats(session)
   }, [xpByAct, bankBackfillXP, recordCompletedBackfill, clearPastRitualProgress, session, date])
 
-  // ── Act 1 handlers ────────────────────────────────────────────────
-
   function handleAct1Submit() {
     if (!questions?.act1 || act1Result) return
     const grade = gradeAnswer(act1Answer, questions.act1.correct_answer, questions.act1.accepted_variants || [])
     const xp = grade.grade === 'wrong' ? 0 : XP.act1
-    const result = { correct: grade.grade !== 'wrong', xp }
     setXpByAct(prev => ({ ...prev, act1: xp }))
-    setAct1Result(result)
+    setAct1Result({ correct: grade.grade !== 'wrong', xp })
   }
-
-  // ── Act 2 handlers ────────────────────────────────────────────────
 
   function handleAct2Confirm() {
     const q = questions.act2[act2Idx]
@@ -129,8 +113,7 @@ export default function PastRitual() {
       if (isLast) {
         const correct = act2Selected === q.correct_answer
         const finalCount = act2CorrectCount + (correct ? 1 : 0)
-        const xp = finalCount * XP.act2perQ
-        setXpByAct(prev => ({ ...prev, act2: xp }))
+        setXpByAct(prev => ({ ...prev, act2: finalCount * XP.act2perQ }))
         setStep('act3')
       } else {
         setAct2Idx(i => i + 1)
@@ -139,8 +122,6 @@ export default function PastRitual() {
       }
     }
   }
-
-  // ── Act 3 handlers ────────────────────────────────────────────────
 
   function handleAct3Confirm() {
     if (!act3Revealed) {
@@ -152,14 +133,11 @@ export default function PastRitual() {
     }
   }
 
-  // ── Act 4 handlers ────────────────────────────────────────────────
-
   async function handleAct4Submit() {
     if (!questions?.act4 || act4Result) return
     const grade = gradeAnswer(act4Answer, questions.act4.correct_answer, questions.act4.accepted_variants || [])
     const xp = grade.grade === 'wrong' ? 0 : XP.act4
-    const result = { correct: grade.grade !== 'wrong', grade: grade.grade, xp }
-    setAct4Result(result)
+    setAct4Result({ correct: grade.grade !== 'wrong', grade: grade.grade, xp })
   }
 
   async function handleAct4Continue() {
@@ -167,7 +145,7 @@ export default function PastRitual() {
     setStep('done')
   }
 
-  // ── Loading / error / already done ───────────────────────────────
+  // ── Loading ───────────────────────────────────────────────────────
 
   if (loading) {
     return (
@@ -194,20 +172,22 @@ export default function PastRitual() {
     )
   }
 
+  // ── Already done ──────────────────────────────────────────────────
+
   if (alreadyDone) {
     return (
       <div className="sd-wrap">
         <Header activePage="ritual" />
         <div style={{ padding: '40px var(--sd-px)', textAlign: 'center' }}>
-          <div style={{ fontFamily: "'Special Elite', serif", fontSize: 10, color: 'var(--sd-muted)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 8 }}>
+          <div style={{ fontFamily: "'Special Elite', serif", fontSize: 9, color: 'var(--sd-muted)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 8 }}>
             {formatDate(date)}
           </div>
-          <div style={{ fontFamily: "'Creepster', cursive", fontSize: 30, color: 'var(--sd-cream)', marginBottom: 16 }}>
+          <div style={{ fontFamily: "'Creepster', cursive", fontSize: 30, color: 'var(--sd-cream)', marginBottom: 20 }}>
             Already completed.
           </div>
           <div style={{
-            background: 'var(--sd-card)', border: '1px solid var(--sd-border)',
-            borderRadius: 14, padding: '24px', marginBottom: 24,
+            borderRadius: 14, border: '1px solid rgba(192,21,42,0.3)',
+            background: 'rgba(192,21,42,0.07)', padding: '24px', marginBottom: 24,
           }}>
             <div style={{ fontFamily: "'Creepster', cursive", fontSize: 56, color: 'var(--sd-red)', lineHeight: 1 }}>{doneXP}</div>
             <div style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-muted)', marginTop: 4 }}>xp earned</div>
@@ -227,50 +207,87 @@ export default function PastRitual() {
   if (step === 'done') {
     const total = xpByAct.act1 + xpByAct.act2 + xpByAct.act3 + act4XP
     const ACTS_META = [
-      { label: 'Act I — Scene of the Crime',   xp: xpByAct.act1, max: XP.act1 },
-      { label: 'Act II — The Inquisition',      xp: xpByAct.act2, max: XP.act2perQ * 5 },
-      { label: 'Act III — Speak of the Devil',  xp: xpByAct.act3, max: XP.act3 },
-      { label: 'Act IV — Final Reckoning',      xp: act4XP,       max: XP.act4 },
+      { label: 'Scene of the Crime',  badge: 'ACT I',   xp: xpByAct.act1,  max: XP.act1 },
+      { label: 'The Inquisition',     badge: 'ACT II',  xp: xpByAct.act2,  max: XP.act2perQ * 5 },
+      { label: 'Speak of the Devil',  badge: 'ACT III', xp: xpByAct.act3,  max: XP.act3 },
+      { label: 'Final Reckoning',     badge: 'ACT IV',  xp: act4XP,        max: XP.act4 },
     ]
     return (
       <div className="sd-wrap">
         <Header activePage="ritual" />
-        <div style={{ padding: '32px var(--sd-px) 24px', textAlign: 'center' }}>
-          <div style={{ fontFamily: "'Special Elite', serif", fontSize: 10, color: 'var(--sd-muted)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 8 }}>
+
+        <div style={{
+          textAlign: 'center',
+          padding: '32px var(--sd-px) 24px',
+          background: 'linear-gradient(180deg, rgba(192,21,42,0.1) 0%, transparent 100%)',
+          borderBottom: '0.5px solid var(--sd-border)',
+        }}>
+          <div style={{ fontFamily: "'Special Elite', serif", fontSize: 9, color: 'var(--sd-red)', textTransform: 'uppercase', letterSpacing: '0.16em', marginBottom: 8 }}>
             {formatDate(date)} · Backfill
           </div>
-          <div style={{ fontFamily: "'Creepster', cursive", fontSize: 32, color: 'var(--sd-cream)' }}>
+          <div style={{ fontFamily: "'Creepster', cursive", fontSize: 36, color: 'var(--sd-cream)', lineHeight: 1.05 }}>
             Ritual complete.
           </div>
-          <div style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-muted)', marginTop: 4 }}>
+          <div style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-muted)', marginTop: 6, fontStyle: 'italic' }}>
             50% XP for past rituals.
           </div>
         </div>
 
-        <div style={{ margin: '0 var(--sd-px) 20px', background: 'var(--sd-card)', border: '1px solid var(--sd-border)', borderRadius: 16, padding: '20px' }}>
-          <div style={{ fontFamily: "'Creepster', cursive", fontSize: 64, color: 'var(--sd-red)', lineHeight: 1 }}>{total}</div>
-          <div style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-muted)', marginTop: 4 }}>experience points</div>
-        </div>
-
-        <div style={{ paddingBottom: 16 }}>
-          <div className="sd-section-label">Breakdown</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, padding: '0 var(--sd-px)' }}>
-            {ACTS_META.map(({ label, xp, max }) => (
-              <div key={label} style={{
-                background: 'var(--sd-card)', border: '1px solid var(--sd-border)',
-                borderRadius: 10, padding: '10px 14px',
-                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-              }}>
-                <span style={{ fontFamily: "'Special Elite', serif", fontSize: 10, color: 'var(--sd-muted)' }}>{label}</span>
-                <span style={{ fontFamily: "'Creepster', cursive", fontSize: 16, color: xp === 0 ? 'var(--sd-muted)' : xp >= max ? '#7cc48a' : '#d4a04a' }}>
-                  {xp} / {max} xp
-                </span>
-              </div>
-            ))}
+        <div style={{ padding: '20px var(--sd-px) 0' }}>
+          <div style={{
+            borderRadius: 16, padding: '22px 20px 18px',
+            border: '1px solid rgba(192,21,42,0.35)',
+            background: 'linear-gradient(135deg, rgba(255,255,255,0.02) 0%, rgba(192,21,42,0.05) 100%)',
+          }}>
+            <div style={{ fontFamily: "'Special Elite', serif", fontSize: 9, color: 'var(--sd-muted)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 6 }}>
+              XP earned
+            </div>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+              <div style={{ fontFamily: "'Creepster', cursive", fontSize: 72, color: 'var(--sd-red)', lineHeight: 1 }}>{total}</div>
+              <div style={{ fontFamily: "'Special Elite', serif", fontSize: 12, color: 'var(--sd-muted)' }}>xp</div>
+            </div>
           </div>
         </div>
 
-        <div style={{ padding: '0 var(--sd-px) 20px' }}>
+        <div style={{ padding: '20px var(--sd-px) 0' }}>
+          <div style={{ fontFamily: "'Special Elite', serif", fontSize: 9, color: 'var(--sd-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>
+            Act breakdown
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+            {ACTS_META.map(({ label, badge, xp, max }) => {
+              const full = xp >= max
+              const partial = xp > 0 && !full
+              const accentColor = full ? '#2d6640' : partial ? '#7a5a1a' : 'rgba(255,255,255,0.1)'
+              const borderColor = full ? 'rgba(45,102,64,0.25)' : partial ? 'rgba(180,120,20,0.25)' : 'rgba(255,255,255,0.06)'
+              const xpColor = full ? '#7cc48a' : partial ? '#d4a04a' : 'var(--sd-muted)'
+              return (
+                <div key={label} style={{
+                  borderRadius: 11,
+                  borderTop: `1px solid ${borderColor}`,
+                  borderRight: `1px solid ${borderColor}`,
+                  borderBottom: `1px solid ${borderColor}`,
+                  borderLeft: `3px solid ${accentColor}`,
+                  background: full ? 'rgba(45,102,64,0.04)' : partial ? 'rgba(180,120,20,0.04)' : 'rgba(255,255,255,0.015)',
+                  padding: '12px 14px',
+                  display: 'flex', alignItems: 'center', gap: 12,
+                }}>
+                  <div style={{ width: 42, flexShrink: 0 }}>
+                    <div style={{ fontFamily: "'Creepster', cursive", fontSize: 11, color: xpColor, letterSpacing: 1 }}>{badge}</div>
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontFamily: "'Teko', sans-serif", fontSize: 17, color: 'var(--sd-cream)', lineHeight: 1.1 }}>{label}</div>
+                  </div>
+                  <div style={{ flexShrink: 0 }}>
+                    <span style={{ fontFamily: "'Teko', sans-serif", fontSize: 18, color: xpColor }}>{xp}</span>
+                    <span style={{ fontFamily: "'Special Elite', serif", fontSize: 9, color: 'var(--sd-muted)' }}> / {max} xp</span>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
+        <div style={{ padding: '20px var(--sd-px) 28px' }}>
           <button onClick={() => navigate('/history')} style={backBtnStyle}>← Back to history</button>
         </div>
         <BottomNav activePage="ritual" />
@@ -278,7 +295,7 @@ export default function PastRitual() {
     )
   }
 
-  // ── Shared wrapper ────────────────────────────────────────────────
+  // ── Active ritual wrapper ─────────────────────────────────────────
 
   const stepNum = { act1: 1, act2: 2, act3: 3, act4: 4 }[step]
 
@@ -287,7 +304,6 @@ export default function PastRitual() {
       <Header activePage="ritual" />
       <ProgressBar currentAct={stepNum} />
 
-      {/* Backfill banner */}
       <div style={{
         margin: '10px var(--sd-px) 0',
         background: 'rgba(192,21,42,0.07)', border: '0.5px solid var(--sd-border)',
@@ -314,7 +330,6 @@ export default function PastRitual() {
             maxXP={XP.act1}
           />
         )}
-
         {step === 'act2' && questions.act2?.length > 0 && (
           <Act2View
             q={questions.act2[act2Idx]}
@@ -327,7 +342,6 @@ export default function PastRitual() {
             xpPerQ={XP.act2perQ}
           />
         )}
-
         {step === 'act3' && questions.act3 && (
           <Act3View
             q={questions.act3}
@@ -338,7 +352,6 @@ export default function PastRitual() {
             maxXP={XP.act3}
           />
         )}
-
         {step === 'act4' && questions.act4 && (
           <Act4View
             q={questions.act4}
@@ -357,9 +370,26 @@ export default function PastRitual() {
   )
 }
 
-// ── Sub-components ────────────────────────────────────────────────
+// ── Sub-components ────────────────────────────────────────────────────────
 
 function Act1View({ q, answer, setAnswer, result, onSubmit, onContinue, maxXP }) {
+  const inputRef = useRef(null)
+
+  useEffect(() => {
+    if (!result) inputRef.current?.focus()
+  }, [result])
+
+  useEffect(() => {
+    if (!result) return
+    function onKey(e) {
+      if (e.target.tagName === 'INPUT') return
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onContinue() }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [result])
+
   return (
     <>
       <div className="sd-act-header">
@@ -380,11 +410,29 @@ function Act1View({ q, answer, setAnswer, result, onSubmit, onContinue, maxXP })
       <div style={{ fontFamily: "'Special Elite', serif", fontSize: 12, color: 'var(--sd-muted)', textAlign: 'center', padding: '0 var(--sd-px) 12px' }}>
         What horror film is this scene from?
       </div>
-      <input className="sd-input" value={answer} onChange={e => !result && setAnswer(e.target.value)} placeholder="Type your answer…" disabled={!!result} style={{ opacity: result ? 0.6 : 1 }} />
+      <input
+        ref={inputRef}
+        className="sd-input"
+        value={answer}
+        onChange={e => !result && setAnswer(e.target.value)}
+        onKeyDown={e => { if (e.key === 'Enter' && !result && answer.trim()) onSubmit() }}
+        placeholder="Type your answer…"
+        disabled={!!result}
+        style={{ opacity: result ? 0.6 : 1 }}
+      />
       {result && (
-        <div style={{ margin: '10px var(--sd-px) 4px', background: result.correct ? 'rgba(45,102,64,0.2)' : 'rgba(90,18,18,0.2)', border: `1px solid ${result.correct ? 'rgba(45,102,64,0.4)' : 'rgba(192,21,42,0.3)'}`, borderRadius: 12, padding: '14px 16px' }}>
-          <div style={{ fontFamily: "'Creepster', cursive", fontSize: 20, color: result.correct ? '#7cc48a' : '#e24b4a', marginBottom: 2 }}>{result.correct ? 'Correct.' : 'Wrong.'}</div>
-          <div style={{ fontFamily: "'Creepster', cursive", fontSize: 26, color: result.correct ? '#7cc48a' : '#e24b4a' }}>+{result.xp} xp</div>
+        <div style={{
+          margin: '10px var(--sd-px) 4px',
+          background: result.correct ? 'rgba(45,102,64,0.15)' : 'rgba(90,18,18,0.2)',
+          border: `1px solid ${result.correct ? 'rgba(45,102,64,0.4)' : 'rgba(192,21,42,0.3)'}`,
+          borderRadius: 12, padding: '14px 16px',
+        }}>
+          <div style={{ fontFamily: "'Creepster', cursive", fontSize: 20, color: result.correct ? '#7cc48a' : '#e24b4a', marginBottom: 2 }}>
+            {result.correct ? 'Correct.' : 'Wrong.'}
+          </div>
+          <div style={{ fontFamily: "'Creepster', cursive", fontSize: 26, color: result.correct ? '#7cc48a' : '#e24b4a' }}>
+            +{result.xp} xp
+          </div>
           <div style={{ borderTop: '0.5px solid rgba(255,255,255,0.08)', marginTop: 10, paddingTop: 8 }}>
             <div style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-cream)' }}>{q.correct_answer}</div>
             {q.decade && <div style={{ fontFamily: "'Special Elite', serif", fontSize: 9, color: 'var(--sd-muted)', marginTop: 2 }}>{q.decade}</div>}
@@ -402,15 +450,40 @@ function Act1View({ q, answer, setAnswer, result, onSubmit, onContinue, maxXP })
 }
 
 function Act2View({ q, qIndex, selected, setSelected, revealed, onConfirm, isLast, xpPerQ }) {
+  const containerRef = useRef(null)
+  const options = q.options || []
   const isCorrect = revealed && selected === q.correct_answer
+
+  useEffect(() => {
+    containerRef.current?.focus()
+  }, [qIndex])
+
+  useEffect(() => {
+    function onKey(e) {
+      const letterIdx = { a: 0, b: 1, c: 2, d: 3 }[e.key.toLowerCase()]
+      if (letterIdx !== undefined && !revealed && options[letterIdx] !== undefined) {
+        setSelected(options[letterIdx])
+        return
+      }
+      if ((e.key === 'Enter' || e.key === ' ') && (selected || revealed)) {
+        e.preventDefault()
+        onConfirm()
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [revealed, selected, options])
+
   function getOptionClass(opt) {
     if (!revealed) return selected === opt ? 'sd-option selected' : 'sd-option'
     if (opt === q.correct_answer) return 'sd-option correct'
     if (opt === selected && !isCorrect) return 'sd-option wrong'
     return 'sd-option disabled'
   }
+
   return (
-    <>
+    <div ref={containerRef} tabIndex={-1} style={{ outline: 'none' }}>
       <div className="sd-act-header">
         <span className="sd-act-badge">ACT II</span>
         <span className="sd-act-title">The Inquisition</span>
@@ -419,14 +492,16 @@ function Act2View({ q, qIndex, selected, setSelected, revealed, onConfirm, isLas
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 var(--sd-px) 12px' }}>
         <span style={{ fontFamily: "'Special Elite', serif", fontSize: 10, color: 'var(--sd-muted)' }}>Question {qIndex + 1} of 5</span>
         <div style={{ display: 'flex', gap: 6 }}>
-          {[0,1,2,3,4].map(i => <div key={i} style={{ width: 7, height: 7, borderRadius: '50%', background: i < qIndex ? '#2d6640' : i === qIndex ? 'var(--sd-red)' : 'rgba(255,255,255,0.08)' }} />)}
+          {[0,1,2,3,4].map(i => (
+            <div key={i} style={{ width: 7, height: 7, borderRadius: '50%', background: i < qIndex ? '#2d6640' : i === qIndex ? 'var(--sd-red)' : 'rgba(255,255,255,0.08)' }} />
+          ))}
         </div>
       </div>
-      <div style={{ margin: '0 var(--sd-px) 14px', background: 'var(--sd-card)', borderRadius: 12, padding: '16px', border: '1px solid var(--sd-border)', minHeight: 90 }}>
+      <div style={{ margin: '0 var(--sd-px) 14px', background: 'rgba(255,255,255,0.02)', borderRadius: 12, padding: '16px', border: '1px solid rgba(255,255,255,0.07)', minHeight: 90 }}>
         <div style={{ fontFamily: "'Special Elite', serif", fontSize: 14, color: 'var(--sd-cream)', lineHeight: 1.6 }}>{q.question}</div>
       </div>
       <div className="sd-options">
-        {(q.options || []).map((opt, i) => (
+        {options.map((opt, i) => (
           <button key={i} className={getOptionClass(opt)} onClick={() => !revealed && setSelected(opt)}>
             <span className="sd-option-letter">{LETTERS[i]}</span>
             <span className="sd-option-text">{opt}</span>
@@ -445,31 +520,87 @@ function Act2View({ q, qIndex, selected, setSelected, revealed, onConfirm, isLas
           {!revealed ? 'Confirm' : isLast ? 'Continue to Act III' : 'Next question'}
         </button>
       </div>
-    </>
+    </div>
   )
 }
 
 function Act3View({ q, selected, setSelected, revealed, onConfirm, maxXP }) {
+  const containerRef = useRef(null)
+  const options = q.options || []
   const isCorrect = revealed && selected === q.correct_answer
+
+  useEffect(() => {
+    containerRef.current?.focus()
+  }, [])
+
+  useEffect(() => {
+    function onKey(e) {
+      const letterIdx = { a: 0, b: 1, c: 2, d: 3 }[e.key.toLowerCase()]
+      if (letterIdx !== undefined && !revealed && options[letterIdx] !== undefined) {
+        setSelected(options[letterIdx])
+        return
+      }
+      if ((e.key === 'Enter' || e.key === ' ') && (selected || revealed)) {
+        e.preventDefault()
+        onConfirm()
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [revealed, selected, options])
+
   function getOptionClass(opt) {
     if (!revealed) return selected === opt ? 'sd-option selected' : 'sd-option'
     if (opt === q.correct_answer) return 'sd-option correct'
     if (opt === selected && !isCorrect) return 'sd-option wrong'
     return 'sd-option disabled'
   }
+
   return (
-    <>
+    <div ref={containerRef} tabIndex={-1} style={{ outline: 'none' }}>
       <div className="sd-act-header">
         <span className="sd-act-badge">ACT III</span>
         <span className="sd-act-title">Speak of the Devil</span>
         <span className="sd-xp-pill">{maxXP} xp</span>
       </div>
-      <div style={{ margin: '0 var(--sd-px) 14px', background: 'var(--sd-card)', borderRadius: 12, padding: '20px', border: '1px solid var(--sd-border)' }}>
-        <div style={{ fontFamily: "'Special Elite', serif", fontSize: 9, color: 'var(--sd-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>Identify the film</div>
-        <div style={{ fontFamily: "'Special Elite', serif", fontSize: 15, color: 'var(--sd-cream)', lineHeight: 1.7, fontStyle: 'italic' }}>"{q.question}"</div>
+
+      {/* Quote card — matches ActThree.jsx styling */}
+      <div style={{
+        margin: '4px var(--sd-px) 14px',
+        background: 'rgba(255,255,255,0.02)',
+        borderRadius: 14,
+        border: '1px solid rgba(255,255,255,0.07)',
+        borderLeft: '3px solid var(--sd-red)',
+        padding: '20px 18px 16px',
+        position: 'relative', overflow: 'hidden',
+      }}>
+        <div style={{
+          position: 'absolute', top: -10, left: 8,
+          fontFamily: "'Creepster', cursive", fontSize: 80,
+          color: 'rgba(192, 21, 42, 0.15)', lineHeight: 1,
+          userSelect: 'none', pointerEvents: 'none',
+        }}>"</div>
+        <div style={{
+          fontFamily: "'Special Elite', serif", fontSize: 15,
+          color: 'var(--sd-cream)', fontStyle: 'italic', lineHeight: 1.75,
+          position: 'relative', zIndex: 1,
+        }}>
+          {q.quote || q.question}
+        </div>
+        {q.attribution && (
+          <div style={{ fontFamily: "'Special Elite', serif", fontSize: 10, color: 'var(--sd-muted)', marginTop: 12 }}>
+            — {q.attribution}
+          </div>
+        )}
       </div>
+
+      <div style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-muted)', textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '0 var(--sd-px) 14px' }}>
+        Which horror film is this quote from?
+      </div>
+
       <div className="sd-options">
-        {(q.options || []).map((opt, i) => (
+        {options.map((opt, i) => (
           <button key={i} className={getOptionClass(opt)} onClick={() => !revealed && setSelected(opt)}>
             <span className="sd-option-letter">{LETTERS[i]}</span>
             <span className="sd-option-text">{opt}</span>
@@ -480,7 +611,7 @@ function Act3View({ q, selected, setSelected, revealed, onConfirm, maxXP }) {
       </div>
       {revealed && (
         <div className={`sd-feedback ${isCorrect ? 'correct' : 'wrong'}`}>
-          {isCorrect ? `+${maxXP} xp — ${q.explanation || 'Correct!'}` : q.explanation || 'Not quite.'}
+          {isCorrect ? `+${maxXP} xp — ${q.explanation || 'Correct!'}` : q.explanation || 'Not this time.'}
         </div>
       )}
       <div style={{ padding: '14px var(--sd-px) 0' }}>
@@ -488,12 +619,29 @@ function Act3View({ q, selected, setSelected, revealed, onConfirm, maxXP }) {
           {!revealed ? 'Confirm' : 'Continue to Act IV'}
         </button>
       </div>
-    </>
+    </div>
   )
 }
 
 function Act4View({ q, answer, setAnswer, result, onSubmit, onContinue, maxXP }) {
+  const inputRef = useRef(null)
   const gradeColor = { exact: '#7cc48a', close: '#d4a04a', partial: '#d4a04a', wrong: '#e24b4a' }
+
+  useEffect(() => {
+    if (!result) inputRef.current?.focus()
+  }, [result])
+
+  useEffect(() => {
+    if (!result) return
+    function onKey(e) {
+      if (e.target.tagName === 'INPUT') return
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onContinue() }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [result])
+
   return (
     <>
       <div className="sd-act-header">
@@ -501,15 +649,37 @@ function Act4View({ q, answer, setAnswer, result, onSubmit, onContinue, maxXP })
         <span className="sd-act-title">Final Reckoning</span>
         <span className="sd-xp-pill">{maxXP} xp</span>
       </div>
-      <div style={{ margin: '0 var(--sd-px) 14px', background: 'var(--sd-card)', borderRadius: 12, padding: '16px', border: '1px solid var(--sd-border)' }}>
+      <div style={{ margin: '0 var(--sd-px) 14px', background: 'rgba(255,255,255,0.02)', borderRadius: 12, padding: '16px', border: '1px solid rgba(255,255,255,0.07)' }}>
         <div style={{ fontFamily: "'Special Elite', serif", fontSize: 14, color: 'var(--sd-cream)', lineHeight: 1.6 }}>{q.question}</div>
       </div>
-      <input className="sd-input" value={answer} onChange={e => !result && setAnswer(e.target.value)} placeholder="Your answer…" disabled={!!result} style={{ opacity: result ? 0.6 : 1 }} />
+      <input
+        ref={inputRef}
+        className="sd-input"
+        value={answer}
+        onChange={e => !result && setAnswer(e.target.value)}
+        onKeyDown={e => { if (e.key === 'Enter' && !result && answer.trim()) onSubmit() }}
+        placeholder="Your answer…"
+        disabled={!!result}
+        style={{ opacity: result ? 0.6 : 1 }}
+      />
       {result && (
-        <div style={{ margin: '10px var(--sd-px) 4px', background: result.correct ? 'rgba(45,102,64,0.15)' : 'rgba(90,18,18,0.15)', border: `1px solid ${result.correct ? 'rgba(45,102,64,0.35)' : 'rgba(192,21,42,0.3)'}`, borderRadius: 12, padding: '14px 16px' }}>
-          <div style={{ fontFamily: "'Creepster', cursive", fontSize: 16, color: gradeColor[result.grade] || '#e24b4a', textTransform: 'capitalize', marginBottom: 2 }}>{result.grade}</div>
-          <div style={{ fontFamily: "'Creepster', cursive", fontSize: 26, color: gradeColor[result.grade] || '#e24b4a' }}>+{result.xp} xp</div>
-          {!result.correct && <div style={{ fontFamily: "'Special Elite', serif", fontSize: 10, color: 'var(--sd-muted)', marginTop: 6 }}>Answer: {q.correct_answer}</div>}
+        <div style={{
+          margin: '10px var(--sd-px) 4px',
+          background: result.correct ? 'rgba(45,102,64,0.15)' : 'rgba(90,18,18,0.15)',
+          border: `1px solid ${result.correct ? 'rgba(45,102,64,0.35)' : 'rgba(192,21,42,0.3)'}`,
+          borderRadius: 12, padding: '14px 16px',
+        }}>
+          <div style={{ fontFamily: "'Creepster', cursive", fontSize: 16, color: gradeColor[result.grade] || '#e24b4a', textTransform: 'capitalize', marginBottom: 2 }}>
+            {result.grade}
+          </div>
+          <div style={{ fontFamily: "'Creepster', cursive", fontSize: 26, color: gradeColor[result.grade] || '#e24b4a' }}>
+            +{result.xp} xp
+          </div>
+          {!result.correct && (
+            <div style={{ fontFamily: "'Special Elite', serif", fontSize: 10, color: 'var(--sd-muted)', marginTop: 6 }}>
+              Answer: {q.correct_answer}
+            </div>
+          )}
         </div>
       )}
       <div style={{ padding: '10px 0 6px' }}>
@@ -522,7 +692,8 @@ function Act4View({ q, answer, setAnswer, result, onSubmit, onContinue, maxXP })
 }
 
 const backBtnStyle = {
-  background: 'none', border: '1px solid var(--sd-border)', borderRadius: 10,
-  padding: '11px 24px', cursor: 'pointer',
+  width: '100%', background: 'none',
+  border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10,
+  padding: '13px', cursor: 'pointer',
   fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-cream-dim)',
 }
