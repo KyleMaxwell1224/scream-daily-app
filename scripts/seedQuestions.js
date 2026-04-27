@@ -1,13 +1,15 @@
 /**
- * Seed Act 1 (Scene of the Crime) and Act 4 (Final Reckoning) questions.
+ * Seed all four acts.
  *
  * Usage:
- *   node scripts/seedQuestions.js
+ *   node scripts/seedQuestions.js           # seed everything
+ *   node scripts/seedQuestions.js --acts 1  # seed only act 1
+ *   node scripts/seedQuestions.js --acts 2,3,4
  *
- * Requires in .env (or set as env vars):
+ * Requires in .env:
  *   SUPABASE_URL
  *   SUPABASE_SERVICE_KEY   (service role key — bypasses RLS)
- *   TMDB_TOKEN             (v4 read-access token)
+ *   TMDB_TOKEN             (v4 read-access token, needed for act 1 only)
  */
 
 import { createClient } from '@supabase/supabase-js'
@@ -17,7 +19,6 @@ import { dirname, join } from 'path'
 
 const __dir = dirname(fileURLToPath(import.meta.url))
 
-// Load .env manually (no dotenv dependency needed)
 function loadEnv() {
   try {
     const raw = readFileSync(join(__dir, '../.env'), 'utf8')
@@ -29,221 +30,311 @@ function loadEnv() {
 }
 loadEnv()
 
-const SUPABASE_URL    = process.env.SUPABASE_URL    || process.env.VITE_SUPABASE_URL
-const SUPABASE_KEY    = process.env.SUPABASE_SERVICE_KEY || process.env.VITE_SUPABASE_ANON_KEY
-const TMDB_TOKEN      = process.env.TMDB_TOKEN
+const SUPABASE_URL = process.env.SUPABASE_URL    || process.env.VITE_SUPABASE_URL
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.VITE_SUPABASE_ANON_KEY
+const TMDB_TOKEN   = process.env.TMDB_TOKEN
 
 if (!SUPABASE_URL || !SUPABASE_KEY) { console.error('Missing Supabase credentials'); process.exit(1) }
-if (!TMDB_TOKEN)                    { console.error('Missing TMDB_TOKEN'); process.exit(1) }
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY)
 
-// ---------------------------------------------------------------------------
-// ACT 1 FILMS
-// Each entry: { title, year, director, subgenre, decade, variants }
-// ---------------------------------------------------------------------------
+// Parse --acts flag  (supports --acts 2,3,4 or --acts=2,3,4)
+const actsIdx = process.argv.findIndex(a => a === '--acts' || a.startsWith('--acts='))
+let ACTS = [1, 2, 3, 4]
+if (actsIdx !== -1) {
+  const raw = process.argv[actsIdx].includes('=')
+    ? process.argv[actsIdx].split('=')[1]
+    : process.argv[actsIdx + 1]
+  ACTS = (raw || '').split(',').map(Number).filter(Boolean)
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ACT 1 — Scene of the Crime (identify film from backdrop image)
+// ─────────────────────────────────────────────────────────────────────────────
 const ACT1_FILMS = [
-  { title: 'The Shining',                  year: 1980, director: 'Stanley Kubrick',    subgenre: 'psychological', decade: '1980s', variants: ['Shining'] },
-  { title: 'Halloween',                    year: 1978, director: 'John Carpenter',     subgenre: 'slasher',       decade: '1970s', variants: [] },
-  { title: 'A Nightmare on Elm Street',    year: 1984, director: 'Wes Craven',         subgenre: 'slasher',       decade: '1980s', variants: ['Nightmare on Elm Street', 'A Nightmare on Elm St'] },
-  { title: 'Scream',                       year: 1996, director: 'Wes Craven',         subgenre: 'slasher',       decade: '1990s', variants: [] },
-  { title: 'The Silence of the Lambs',     year: 1991, director: 'Jonathan Demme',     subgenre: 'psychological', decade: '1990s', variants: ['Silence of the Lambs'] },
-  { title: 'Hereditary',                   year: 2018, director: 'Ari Aster',          subgenre: 'supernatural',  decade: '2010s', variants: [] },
-  { title: 'Get Out',                      year: 2017, director: 'Jordan Peele',       subgenre: 'psychological', decade: '2010s', variants: [] },
-  { title: 'It',                           year: 2017, director: 'Andy Muschietti',    subgenre: 'supernatural',  decade: '2010s', variants: ['It Chapter One', 'It (2017)'] },
-  { title: 'The Conjuring',                year: 2013, director: 'James Wan',          subgenre: 'supernatural',  decade: '2010s', variants: ['Conjuring'] },
-  { title: 'Midsommar',                    year: 2019, director: 'Ari Aster',          subgenre: 'folk horror',   decade: '2010s', variants: [] },
-  { title: 'The Witch',                    year: 2015, director: 'Robert Eggers',      subgenre: 'folk horror',   decade: '2010s', variants: ['The VVitch', 'VVitch'] },
-  { title: 'The Exorcist',                 year: 1973, director: 'William Friedkin',   subgenre: 'supernatural',  decade: '1970s', variants: ['Exorcist'] },
-  { title: 'Psycho',                       year: 1960, director: 'Alfred Hitchcock',   subgenre: 'psychological', decade: '1960s', variants: [] },
-  { title: 'The Texas Chain Saw Massacre', year: 1974, director: 'Tobe Hooper',        subgenre: 'slasher',       decade: '1970s', variants: ['Texas Chain Saw Massacre', 'The Texas Chainsaw Massacre', 'Texas Chainsaw Massacre'] },
-  { title: 'Alien',                        year: 1979, director: 'Ridley Scott',       subgenre: 'sci-fi horror', decade: '1970s', variants: [] },
-  { title: 'The Thing',                    year: 1982, director: 'John Carpenter',     subgenre: 'sci-fi horror', decade: '1980s', variants: ['The Thing (1982)'] },
-  { title: 'Carrie',                       year: 1976, director: 'Brian De Palma',     subgenre: 'supernatural',  decade: '1970s', variants: [] },
-  { title: 'Jaws',                         year: 1975, director: 'Steven Spielberg',   subgenre: 'creature',      decade: '1970s', variants: [] },
-  { title: 'The Blair Witch Project',      year: 1999, director: 'Daniel Myrick',      subgenre: 'found footage', decade: '1990s', variants: ['Blair Witch Project', 'Blair Witch'] },
-  { title: 'Saw',                          year: 2004, director: 'James Wan',          subgenre: 'torture horror',decade: '2000s', variants: ['Saw (2004)'] },
-  { title: 'The Ring',                     year: 2002, director: 'Gore Verbinski',     subgenre: 'supernatural',  decade: '2000s', variants: ['Ring'] },
-  { title: '28 Days Later',                year: 2002, director: 'Danny Boyle',        subgenre: 'zombie',        decade: '2000s', variants: ['28 Days Later...'] },
-  { title: 'Rosemary\'s Baby',             year: 1968, director: 'Roman Polanski',     subgenre: 'supernatural',  decade: '1960s', variants: ["Rosemary's Baby"] },
-  { title: 'Suspiria',                     year: 1977, director: 'Dario Argento',      subgenre: 'supernatural',  decade: '1970s', variants: [] },
-  { title: 'Evil Dead II',                 year: 1987, director: 'Sam Raimi',          subgenre: 'splatter',      decade: '1980s', variants: ['Evil Dead 2', 'Evil Dead II: Dead by Dawn'] },
-  { title: 'Misery',                       year: 1990, director: 'Rob Reiner',         subgenre: 'psychological', decade: '1990s', variants: [] },
-  { title: 'Us',                           year: 2019, director: 'Jordan Peele',       subgenre: 'psychological', decade: '2010s', variants: [] },
-  { title: 'Annihilation',                 year: 2018, director: 'Alex Garland',       subgenre: 'sci-fi horror', decade: '2010s', variants: [] },
-  { title: 'Friday the 13th',              year: 1980, director: 'Sean S. Cunningham', subgenre: 'slasher',       decade: '1980s', variants: ['Friday the 13th (1980)'] },
-  { title: 'Paranormal Activity',          year: 2007, director: 'Oren Peli',          subgenre: 'found footage', decade: '2000s', variants: [] },
+  // --- Original batch ---
+  { title: 'The Shining',                  year: 1980, director: 'Stanley Kubrick',      subgenre: 'psychological', decade: '1980s', variants: ['Shining'] },
+  { title: 'Halloween',                    year: 1978, director: 'John Carpenter',        subgenre: 'slasher',       decade: '1970s', variants: [] },
+  { title: 'A Nightmare on Elm Street',    year: 1984, director: 'Wes Craven',            subgenre: 'slasher',       decade: '1980s', variants: ['Nightmare on Elm Street', 'A Nightmare on Elm St'] },
+  { title: 'Scream',                       year: 1996, director: 'Wes Craven',            subgenre: 'slasher',       decade: '1990s', variants: [] },
+  { title: 'The Silence of the Lambs',     year: 1991, director: 'Jonathan Demme',        subgenre: 'psychological', decade: '1990s', variants: ['Silence of the Lambs'] },
+  { title: 'Hereditary',                   year: 2018, director: 'Ari Aster',             subgenre: 'supernatural',  decade: '2010s', variants: [] },
+  { title: 'Get Out',                      year: 2017, director: 'Jordan Peele',          subgenre: 'psychological', decade: '2010s', variants: [] },
+  { title: 'It',                           year: 2017, director: 'Andy Muschietti',       subgenre: 'supernatural',  decade: '2010s', variants: ['It Chapter One', 'It (2017)'] },
+  { title: 'The Conjuring',                year: 2013, director: 'James Wan',             subgenre: 'supernatural',  decade: '2010s', variants: ['Conjuring'] },
+  { title: 'Midsommar',                    year: 2019, director: 'Ari Aster',             subgenre: 'folk horror',   decade: '2010s', variants: [] },
+  { title: 'The Witch',                    year: 2015, director: 'Robert Eggers',         subgenre: 'folk horror',   decade: '2010s', variants: ['The VVitch', 'VVitch'] },
+  { title: 'The Exorcist',                 year: 1973, director: 'William Friedkin',      subgenre: 'supernatural',  decade: '1970s', variants: ['Exorcist'] },
+  { title: 'Psycho',                       year: 1960, director: 'Alfred Hitchcock',      subgenre: 'psychological', decade: '1960s', variants: [] },
+  { title: 'The Texas Chain Saw Massacre', year: 1974, director: 'Tobe Hooper',           subgenre: 'slasher',       decade: '1970s', variants: ['Texas Chain Saw Massacre', 'The Texas Chainsaw Massacre', 'Texas Chainsaw Massacre'] },
+  { title: 'Alien',                        year: 1979, director: 'Ridley Scott',          subgenre: 'sci-fi horror', decade: '1970s', variants: [] },
+  { title: 'The Thing',                    year: 1982, director: 'John Carpenter',        subgenre: 'sci-fi horror', decade: '1980s', variants: ['The Thing (1982)'] },
+  { title: 'Carrie',                       year: 1976, director: 'Brian De Palma',        subgenre: 'supernatural',  decade: '1970s', variants: [] },
+  { title: 'Jaws',                         year: 1975, director: 'Steven Spielberg',      subgenre: 'creature',      decade: '1970s', variants: [] },
+  { title: 'The Blair Witch Project',      year: 1999, director: 'Daniel Myrick',         subgenre: 'found footage', decade: '1990s', variants: ['Blair Witch Project', 'Blair Witch'] },
+  { title: 'Saw',                          year: 2004, director: 'James Wan',             subgenre: 'torture horror',decade: '2000s', variants: ['Saw (2004)'] },
+  { title: 'The Ring',                     year: 2002, director: 'Gore Verbinski',        subgenre: 'supernatural',  decade: '2000s', variants: ['Ring'] },
+  { title: '28 Days Later',                year: 2002, director: 'Danny Boyle',           subgenre: 'zombie',        decade: '2000s', variants: ['28 Days Later...'] },
+  { title: "Rosemary's Baby",              year: 1968, director: 'Roman Polanski',        subgenre: 'supernatural',  decade: '1960s', variants: ["Rosemary's Baby"] },
+  { title: 'Suspiria',                     year: 1977, director: 'Dario Argento',         subgenre: 'supernatural',  decade: '1970s', variants: [] },
+  { title: 'Evil Dead II',                 year: 1987, director: 'Sam Raimi',             subgenre: 'splatter',      decade: '1980s', variants: ['Evil Dead 2', 'Evil Dead II: Dead by Dawn'] },
+  { title: 'Misery',                       year: 1990, director: 'Rob Reiner',            subgenre: 'psychological', decade: '1990s', variants: [] },
+  { title: 'Us',                           year: 2019, director: 'Jordan Peele',          subgenre: 'psychological', decade: '2010s', variants: [] },
+  { title: 'Annihilation',                 year: 2018, director: 'Alex Garland',          subgenre: 'sci-fi horror', decade: '2010s', variants: [] },
+  { title: 'Friday the 13th',              year: 1980, director: 'Sean S. Cunningham',    subgenre: 'slasher',       decade: '1980s', variants: ['Friday the 13th (1980)'] },
+  { title: 'Paranormal Activity',          year: 2007, director: 'Oren Peli',             subgenre: 'found footage', decade: '2000s', variants: [] },
+  // --- Additional batch ---
+  { title: 'Poltergeist',                  year: 1982, director: 'Tobe Hooper',           subgenre: 'supernatural',  decade: '1980s', variants: [] },
+  { title: 'An American Werewolf in London', year: 1981, director: 'John Landis',         subgenre: 'creature',      decade: '1980s', variants: ['American Werewolf in London'] },
+  { title: 'Hellraiser',                   year: 1987, director: 'Clive Barker',          subgenre: 'supernatural',  decade: '1980s', variants: [] },
+  { title: "Child's Play",                 year: 1988, director: 'Tom Holland',           subgenre: 'slasher',       decade: '1980s', variants: ['Childs Play'] },
+  { title: 'Pet Sematary',                 year: 1989, director: 'Mary Lambert',          subgenre: 'supernatural',  decade: '1980s', variants: ['Pet Cemetery'] },
+  { title: 'Candyman',                     year: 1992, director: 'Bernard Rose',          subgenre: 'supernatural',  decade: '1990s', variants: [] },
+  { title: 'The Sixth Sense',              year: 1999, director: 'M. Night Shyamalan',    subgenre: 'psychological', decade: '1990s', variants: ['Sixth Sense'] },
+  { title: 'The Others',                   year: 2001, director: 'Alejandro Amenábar',    subgenre: 'supernatural',  decade: '2000s', variants: ['Others'] },
+  { title: 'Insidious',                    year: 2010, director: 'James Wan',             subgenre: 'supernatural',  decade: '2010s', variants: [] },
+  { title: 'The Cabin in the Woods',       year: 2011, director: 'Drew Goddard',          subgenre: 'meta-horror',   decade: '2010s', variants: ['Cabin in the Woods'] },
+  { title: 'Sinister',                     year: 2012, director: 'Scott Derrickson',      subgenre: 'supernatural',  decade: '2010s', variants: [] },
+  { title: 'The Babadook',                 year: 2014, director: 'Jennifer Kent',         subgenre: 'psychological', decade: '2010s', variants: ['Babadook'] },
+  { title: 'It Follows',                   year: 2014, director: 'David Robert Mitchell', subgenre: 'supernatural',  decade: '2010s', variants: [] },
+  { title: 'Don\'t Breathe',               year: 2016, director: 'Fede Álvarez',          subgenre: 'thriller',      decade: '2010s', variants: ["Don't Breathe"] },
+  { title: 'Split',                        year: 2016, director: 'M. Night Shyamalan',    subgenre: 'psychological', decade: '2010s', variants: [] },
+  { title: 'A Quiet Place',                year: 2018, director: 'John Krasinski',        subgenre: 'creature',      decade: '2010s', variants: ['Quiet Place'] },
+  { title: 'Doctor Sleep',                 year: 2019, director: 'Mike Flanagan',         subgenre: 'supernatural',  decade: '2010s', variants: [] },
+  { title: 'The Invisible Man',            year: 2020, director: 'Leigh Whannell',        subgenre: 'thriller',      decade: '2020s', variants: ['Invisible Man'] },
+  { title: 'Malignant',                    year: 2021, director: 'James Wan',             subgenre: 'supernatural',  decade: '2020s', variants: [] },
+  { title: 'The Black Phone',              year: 2021, director: 'Scott Derrickson',      subgenre: 'supernatural',  decade: '2020s', variants: ['Black Phone'] },
+  { title: 'Barbarian',                    year: 2022, director: 'Zach Cregger',          subgenre: 'thriller',      decade: '2020s', variants: [] },
+  { title: 'Smile',                        year: 2022, director: 'Parker Finn',           subgenre: 'supernatural',  decade: '2020s', variants: [] },
+  { title: 'Talk to Me',                   year: 2022, director: 'Danny Philippou',       subgenre: 'supernatural',  decade: '2020s', variants: [] },
+  { title: 'Drag Me to Hell',              year: 2009, director: 'Sam Raimi',             subgenre: 'supernatural',  decade: '2000s', variants: [] },
+  { title: 'The Ritual',                   year: 2017, director: 'David Bruckner',        subgenre: 'folk horror',   decade: '2010s', variants: [] },
+  { title: 'Nope',                         year: 2022, director: 'Jordan Peele',          subgenre: 'sci-fi horror', decade: '2020s', variants: [] },
+  { title: 'Night of the Living Dead',     year: 1968, director: 'George A. Romero',      subgenre: 'zombie',        decade: '1960s', variants: ['Night of the Living Dead (1968)'] },
+  { title: 'The Omen',                     year: 1976, director: 'Richard Donner',        subgenre: 'supernatural',  decade: '1970s', variants: [] },
+  { title: 'Dawn of the Dead',             year: 1978, director: 'George A. Romero',      subgenre: 'zombie',        decade: '1970s', variants: ['Dawn of the Dead (1978)'] },
+  { title: 'Videodrome',                   year: 1983, director: 'David Cronenberg',      subgenre: 'body horror',   decade: '1980s', variants: [] },
+  { title: 'The Fly',                      year: 1986, director: 'David Cronenberg',      subgenre: 'body horror',   decade: '1980s', variants: [] },
+  { title: 'Oculus',                       year: 2013, director: 'Mike Flanagan',         subgenre: 'supernatural',  decade: '2010s', variants: [] },
+  { title: 'Train to Busan',               year: 2016, director: 'Yeon Sang-ho',          subgenre: 'zombie',        decade: '2010s', variants: ['Busanhaeng'] },
+  { title: 'Ringu',                        year: 1998, director: 'Hideo Nakata',          subgenre: 'supernatural',  decade: '1990s', variants: ['Ring', 'The Ring (Japanese)'] },
+  { title: 'M3GAN',                        year: 2022, director: 'Gerard Johnstone',      subgenre: 'sci-fi horror', decade: '2020s', variants: ['Megan'] },
+  { title: 'Evil Dead Rise',               year: 2023, director: 'Lee Cronin',            subgenre: 'splatter',      decade: '2020s', variants: [] },
 ]
 
-// ---------------------------------------------------------------------------
-// ACT 4 QUESTIONS (open-answer trivia)
-// ---------------------------------------------------------------------------
+// ─────────────────────────────────────────────────────────────────────────────
+// ACT 2 — The Interrogation (5 multiple-choice trivia per day)
+// options[]: 4 choices; correct_answer is the right one (must appear in options)
+// ─────────────────────────────────────────────────────────────────────────────
+const ACT2_QUESTIONS = [
+  // Directors
+  { question: 'Who directed The Shining (1980)?', correct_answer: 'Stanley Kubrick', options: ['Stanley Kubrick', 'John Carpenter', 'Wes Craven', 'Tobe Hooper'], explanation: 'Stanley Kubrick adapted Stephen King\'s 1977 novel, famously making several changes King disliked.', film: 'The Shining', subgenre: 'psychological', decade: '1980s', difficulty: 'easy' },
+  { question: 'Who directed The Exorcist (1973)?', correct_answer: 'William Friedkin', options: ['Roman Polanski', 'William Friedkin', 'Brian De Palma', 'Wes Craven'], explanation: 'William Friedkin won the Directors Guild Award for The Exorcist, which was the first horror film nominated for Best Picture at the Oscars.', film: 'The Exorcist', subgenre: 'supernatural', decade: '1970s', difficulty: 'easy' },
+  { question: 'Who directed Hereditary (2018)?', correct_answer: 'Ari Aster', options: ['Jordan Peele', 'Robert Eggers', 'Ari Aster', 'Mike Flanagan'], explanation: 'Hereditary was Ari Aster\'s feature debut. He followed it with Midsommar (2019).', film: 'Hereditary', subgenre: 'supernatural', decade: '2010s', difficulty: 'easy' },
+  { question: 'Who directed The Witch (2015)?', correct_answer: 'Robert Eggers', options: ['Ari Aster', 'Robert Eggers', 'Jennifer Kent', 'David Robert Mitchell'], explanation: 'Robert Eggers\' debut film was shot in 17th-century English and largely lit by natural light and candles.', film: 'The Witch', subgenre: 'folk horror', decade: '2010s', difficulty: 'medium' },
+  { question: 'Who directed Get Out (2017)?', correct_answer: 'Jordan Peele', options: ['Spike Lee', 'Jordan Peele', 'Ari Aster', 'James Wan'], explanation: 'Jordan Peele wrote and directed Get Out, winning the Academy Award for Best Original Screenplay.', film: 'Get Out', subgenre: 'psychological', decade: '2010s', difficulty: 'easy' },
+  { question: 'Who directed Alien (1979)?', correct_answer: 'Ridley Scott', options: ['James Cameron', 'Ridley Scott', 'David Fincher', 'Dan O\'Bannon'], explanation: 'Ridley Scott directed Alien; James Cameron directed its sequel, Aliens (1986).', film: 'Alien', subgenre: 'sci-fi horror', decade: '1970s', difficulty: 'easy' },
+  { question: 'Who directed Hellraiser (1987)?', correct_answer: 'Clive Barker', options: ['Wes Craven', 'John Carpenter', 'Clive Barker', 'Sam Raimi'], explanation: 'Clive Barker adapted his own novella "The Hellbound Heart" for the screen. It was his directorial debut.', film: 'Hellraiser', subgenre: 'supernatural', decade: '1980s', difficulty: 'medium' },
+  { question: 'Who directed The Babadook (2014)?', correct_answer: 'Jennifer Kent', options: ['Jennifer Kent', 'Leigh Whannell', 'James Wan', 'Mike Flanagan'], explanation: 'Jennifer Kent\'s debut feature became a landmark of psychological horror and is widely read as a metaphor for grief and depression.', film: 'The Babadook', subgenre: 'psychological', decade: '2010s', difficulty: 'medium' },
+  { question: 'Who directed Midsommar (2019)?', correct_answer: 'Ari Aster', options: ['Robert Eggers', 'Ari Aster', 'Jordan Peele', 'Alex Garland'], explanation: 'Ari Aster\'s second film, shot almost entirely in daylight, subverts horror conventions by placing dread in broad sunlight.', film: 'Midsommar', subgenre: 'folk horror', decade: '2010s', difficulty: 'easy' },
+  { question: 'Who directed Annihilation (2018)?', correct_answer: 'Alex Garland', options: ['Denis Villeneuve', 'Alex Garland', 'Jonathan Glazer', 'Gareth Evans'], explanation: 'Alex Garland adapted Jeff VanderMeer\'s novel. Garland stated he was adapting his memory of the book rather than re-reading it.', film: 'Annihilation', subgenre: 'sci-fi horror', decade: '2010s', difficulty: 'medium' },
+
+  // Actors / cast
+  { question: 'Who plays Ripley in the Alien franchise?', correct_answer: 'Sigourney Weaver', options: ['Sigourney Weaver', 'Linda Hamilton', 'Jamie Lee Curtis', 'Jodie Foster'], explanation: 'Sigourney Weaver\'s Ellen Ripley is frequently cited as one of cinema\'s greatest action heroes.', film: 'Alien', subgenre: 'sci-fi horror', decade: '1970s', difficulty: 'easy' },
+  { question: 'Who plays Annie Wilkes in Misery (1990)?', correct_answer: 'Kathy Bates', options: ['Kathy Bates', 'Glenn Close', 'Meryl Streep', 'Jodie Foster'], explanation: 'Kathy Bates won the Academy Award for Best Actress for her role as the obsessive fan Annie Wilkes.', film: 'Misery', subgenre: 'psychological', decade: '1990s', difficulty: 'easy' },
+  { question: 'Who plays Ash Williams in the Evil Dead series?', correct_answer: 'Bruce Campbell', options: ['Bruce Campbell', 'Robert Englund', 'Tom Savini', 'Greg Nicotero'], explanation: 'Bruce Campbell\'s deadpan performance as Ash became a cult classic, spawning a TV sequel series, Ash vs Evil Dead.', film: 'Evil Dead II', subgenre: 'splatter', decade: '1980s', difficulty: 'easy' },
+  { question: 'Who plays Hannibal Lecter in The Silence of the Lambs (1991)?', correct_answer: 'Anthony Hopkins', options: ['Anthony Hopkins', 'Anthony Perkins', 'Brian Cox', 'Mads Mikkelsen'], explanation: 'Anthony Hopkins won the Best Actor Oscar for his role, despite appearing on screen for only about 16 minutes.', film: 'The Silence of the Lambs', subgenre: 'psychological', decade: '1990s', difficulty: 'easy' },
+  { question: 'Who plays Ghostface in the original Scream (1996)?', correct_answer: 'Billy Loomis and Stu Macher', options: ['Billy Loomis and Stu Macher', 'Randy Meeks and Billy Loomis', 'Stu Macher and Cotton Weary', 'Billy Loomis alone'], explanation: 'The killers are revealed to be Billy Loomis (Skeet Ulrich) and Stu Macher (Matthew Lillard), working together.', film: 'Scream', subgenre: 'slasher', decade: '1990s', difficulty: 'medium' },
+  { question: 'Who plays Laurie Strode in Halloween (1978)?', correct_answer: 'Jamie Lee Curtis', options: ['Jamie Lee Curtis', 'P.J. Soles', 'Nancy Loomis', 'Danielle Harris'], explanation: 'Halloween was Jamie Lee Curtis\'s film debut, establishing her as the archetypal "Final Girl."', film: 'Halloween', subgenre: 'slasher', decade: '1970s', difficulty: 'easy' },
+  { question: 'Who plays the supernatural entity Pennywise in It (2017)?', correct_answer: 'Bill Skarsgård', options: ['Tim Curry', 'Bill Skarsgård', 'Andy Muschietti', 'Jeremy Ray Taylor'], explanation: 'Bill Skarsgård played Pennywise in the 2017 adaptation. Tim Curry played the clown in the 1990 miniseries.', film: 'It', subgenre: 'supernatural', decade: '2010s', difficulty: 'easy' },
+  { question: 'Who plays Chris Washington in Get Out (2017)?', correct_answer: 'Daniel Kaluuya', options: ['Daniel Kaluuya', 'Lakeith Stanfield', 'Brian Tyree Henry', 'Aldis Hodge'], explanation: 'Daniel Kaluuya received an Academy Award nomination for his portrayal of Chris, and later won for Judas and the Black Messiah.', film: 'Get Out', subgenre: 'psychological', decade: '2010s', difficulty: 'easy' },
+  { question: 'Who plays R.J. MacReady in The Thing (1982)?', correct_answer: 'Kurt Russell', options: ['Kurt Russell', 'Keith David', 'Wilford Brimley', 'Donald Moffat'], explanation: 'Kurt Russell starred as MacReady, the helicopter pilot protagonist, reuniting with director John Carpenter after Escape from New York.', film: 'The Thing', subgenre: 'sci-fi horror', decade: '1980s', difficulty: 'medium' },
+  { question: 'What role does Jack Nicholson play in The Shining (1980)?', correct_answer: 'Jack Torrance', options: ['Jack Torrance', 'John Torrance', 'Jim Grady', 'Dick Hallorann'], explanation: 'Jack Nicholson plays Jack Torrance, the writer who descends into madness while serving as winter caretaker of the Overlook Hotel.', film: 'The Shining', subgenre: 'psychological', decade: '1980s', difficulty: 'easy' },
+
+  // Iconic facts / lore
+  { question: 'What does Michael Myers wear as a mask in Halloween (1978)?', correct_answer: 'A modified William Shatner mask', options: ['A modified William Shatner mask', 'A store-bought skull mask', 'A hockey mask', 'A hand-carved wooden mask'], explanation: 'The production bought a Captain Kirk mask, painted it white, reshaped the eye holes, and teased out the hair to create Michael\'s iconic look.', film: 'Halloween', subgenre: 'slasher', decade: '1970s', difficulty: 'medium' },
+  { question: 'In Friday the 13th (1980), who is the real killer?', correct_answer: 'Pamela Voorhees', options: ['Pamela Voorhees', 'Jason Voorhees', 'Ralph the Crazy Ralph', 'Ned Rubinstein'], explanation: 'In the original film, Mrs. Voorhees is the killer, avenging Jason\'s drowning. Jason himself doesn\'t kill until the sequels.', film: 'Friday the 13th', subgenre: 'slasher', decade: '1980s', difficulty: 'medium' },
+  { question: 'What is the summer camp called in Friday the 13th?', correct_answer: 'Camp Crystal Lake', options: ['Camp Crystal Lake', 'Camp Silverlake', 'Camp Pinewood', 'Camp Redwood'], explanation: 'Camp Crystal Lake is the fictional New Jersey summer camp at the centre of the Friday the 13th franchise.', film: 'Friday the 13th', subgenre: 'slasher', decade: '1980s', difficulty: 'easy' },
+  { question: 'In The Exorcist (1973), what actress plays the possessed Regan MacNeil?', correct_answer: 'Linda Blair', options: ['Linda Blair', 'Sissy Spacek', 'Patty Duke', 'Jodie Foster'], explanation: 'Linda Blair was 13 during filming. She received an Academy Award nomination for Best Supporting Actress.', film: 'The Exorcist', subgenre: 'supernatural', decade: '1970s', difficulty: 'easy' },
+  { question: 'In Carrie (1976), what is poured on Carrie at the prom?', correct_answer: "Pig's blood", options: ["Pig's blood", 'Cow blood', 'Red paint', 'Corn syrup'], explanation: 'A bucket of pig\'s blood is rigged above the stage and tipped on Carrie after she is crowned prom queen, triggering her telekinetic rampage.', film: 'Carrie', subgenre: 'supernatural', decade: '1970s', difficulty: 'easy' },
+  { question: 'In The Ring (2002), how many days does the viewer have after watching the cursed tape?', correct_answer: '7', options: ['7', '3', '13', '10'], explanation: 'The curse gives the viewer seven days — announced by a phone call immediately after watching the tape.', film: 'The Ring', subgenre: 'supernatural', decade: '2000s', difficulty: 'easy' },
+  { question: 'In Saw (2004), what is Jigsaw\'s real name?', correct_answer: 'John Kramer', options: ['John Kramer', 'John Carroll', 'Daniel Matthews', 'Mark Hoffman'], explanation: 'John Kramer is a civil engineer diagnosed with terminal cancer who builds traps to force his victims to "appreciate life."', film: 'Saw', subgenre: 'torture horror', decade: '2000s', difficulty: 'medium' },
+  { question: 'In The Silence of the Lambs, what does Buffalo Bill want to make from his victims?', correct_answer: 'A suit of skin', options: ['A suit of skin', 'A trophy collection', 'A mask', 'A coat'], explanation: 'Buffalo Bill kidnaps and murders larger women, using their skin to construct a "woman suit" he intends to wear.', film: 'The Silence of the Lambs', subgenre: 'psychological', decade: '1990s', difficulty: 'medium' },
+  { question: 'What is the name of the doll in Child\'s Play (1988)?', correct_answer: "Chucky", options: ["Chucky", "Tommy", "Buddy", "Billy"], explanation: 'Chucky is a Good Guy doll whose body is inhabited by the soul of serial killer Charles Lee Ray, voiced by Brad Dourif.', film: "Child's Play", subgenre: 'slasher', decade: '1980s', difficulty: 'easy' },
+  { question: 'In Halloween (1978), what is the name of Michael Myers\'s psychiatrist?', correct_answer: 'Dr. Sam Loomis', options: ['Dr. Sam Loomis', 'Dr. Terence Wynn', 'Dr. Philip Challis', 'Dr. Daniel Challis'], explanation: 'Dr. Loomis, played by Donald Pleasence, obsessively pursues Michael Myers, believing him to be pure evil.', film: 'Halloween', subgenre: 'slasher', decade: '1970s', difficulty: 'medium' },
+  { question: 'What virus causes the outbreak in 28 Days Later (2002)?', correct_answer: 'The Rage virus', options: ['The Rage virus', 'The Crimson virus', 'The Fury pathogen', 'Solanum'], explanation: 'The Rage virus spreads through bodily fluids, transforming victims into frenzied, violent hosts within seconds.', film: '28 Days Later', subgenre: 'zombie', decade: '2000s', difficulty: 'medium' },
+  { question: 'What is Freddy Krueger\'s signature weapon?', correct_answer: 'A bladed glove', options: ['A bladed glove', 'A kitchen knife', 'A machete', 'Razor wire'], explanation: 'Freddy wears a glove with razor blades on the fingers that he crafted himself, allowing him to slash victims in their dreams.', film: 'A Nightmare on Elm Street', subgenre: 'slasher', decade: '1980s', difficulty: 'easy' },
+  { question: 'In A Nightmare on Elm Street (1984), on what street did Freddy Krueger burn the children?', correct_answer: 'Elm Street', options: ['Elm Street', 'Maple Street', 'Oak Street', 'Pine Street'], explanation: 'Freddy was burned alive by the parents of Springwood on Elm Street, giving the franchise its name.', film: 'A Nightmare on Elm Street', subgenre: 'slasher', decade: '1980s', difficulty: 'medium' },
+  { question: 'In Hereditary (2018), what art medium does Annie Graham work in?', correct_answer: 'Miniature model-making', options: ['Miniature model-making', 'Oil painting', 'Sculpture', 'Collage'], explanation: 'Annie creates detailed miniature dioramas depicting her family\'s trauma, which eerily foreshadow events in the film.', film: 'Hereditary', subgenre: 'supernatural', decade: '2010s', difficulty: 'hard' },
+  { question: 'In The Conjuring (2013), what is the name of the Warren\'s most famous possessed doll?', correct_answer: 'Annabelle', options: ['Annabelle', 'Penelope', 'Elsa', 'Clara'], explanation: 'The real Annabelle doll — a Raggedy Ann doll, not a porcelain doll as depicted in the films — is kept locked in a case at the Warren Occult Museum.', film: 'The Conjuring', subgenre: 'supernatural', decade: '2010s', difficulty: 'easy' },
+  { question: 'In It (2017), what do the Losers Club pour into the sewer to weaken Pennywise?', correct_answer: 'Their own blood', options: ['Their own blood', 'Holy water', 'Battery acid', 'Silver powder'], explanation: 'The Losers use a blood oath to unite and weaken Pennywise, exploiting his weakness to belief and willpower.', film: 'It', subgenre: 'supernatural', decade: '2010s', difficulty: 'hard' },
+
+  // Franchise / sequel facts
+  { question: 'How many sequels did the original Scream (1996) directly spawn?', correct_answer: '4 official sequels', options: ['4 official sequels', '2 official sequels', '3 official sequels', '5 official sequels'], explanation: 'Scream was followed by Scream 2 (1997), 3 (2000), 4 (2011), and the reboot-sequel Scream (2022) and Scream VI (2023).', film: 'Scream', subgenre: 'slasher', decade: '1990s', difficulty: 'hard' },
+  { question: 'Which studio produced the Saw franchise?', correct_answer: 'Lionsgate', options: ['Lionsgate', 'Blumhouse', 'New Line Cinema', 'Miramax'], explanation: 'Lionsgate acquired the Saw franchise and released the sequels annually from 2004 to 2010, making it one of the highest-grossing horror franchises.', film: 'Saw', subgenre: 'torture horror', decade: '2000s', difficulty: 'hard' },
+  { question: 'Which horror franchise features the Necronomicon Ex-Mortis?', correct_answer: 'Evil Dead', options: ['Evil Dead', 'Hellraiser', 'Phantasm', 'Re-Animator'], explanation: 'The Book of the Dead (Necronomicon Ex-Mortis) is the central artifact of Sam Raimi\'s Evil Dead franchise, first appearing in 1981.', film: 'Evil Dead II', subgenre: 'splatter', decade: '1980s', difficulty: 'medium' },
+  { question: 'In Aliens (1986), who is the Weyland-Yutani company representative?', correct_answer: 'Carter Burke', options: ['Carter Burke', 'Bishop', 'Gorman', 'Hudson'], explanation: 'Carter Burke, played by Paul Reiser, secretly plans to smuggle alien embryos back to Earth inside the colonists.', film: 'Alien', subgenre: 'sci-fi horror', decade: '1980s', difficulty: 'hard' },
+  { question: 'Which director created the Paranormal Activity franchise?', correct_answer: 'Oren Peli', options: ['Oren Peli', 'James Wan', 'Kevin Greutert', 'Christopher Landon'], explanation: 'Oren Peli shot the original Paranormal Activity for roughly $15,000 in his own house. It grossed nearly $200 million worldwide.', film: 'Paranormal Activity', subgenre: 'found footage', decade: '2000s', difficulty: 'hard' },
+
+  // Setting / production trivia
+  { question: 'Where was The Shining filmed?', correct_answer: 'Timberline Lodge and Elstree Studios', options: ['Timberline Lodge and Elstree Studios', 'The Overlook Hotel, Oregon', 'Stanley Hotel, Colorado', 'Universal Studios, California'], explanation: 'The exterior of the Overlook was Timberline Lodge, Oregon; the interiors were built at Elstree Studios in England. The Stanley Hotel inspired King\'s novel but wasn\'t used.', film: 'The Shining', subgenre: 'psychological', decade: '1980s', difficulty: 'hard' },
+  { question: 'In what country was The Witch (2015) primarily set?', correct_answer: 'Puritan New England', options: ['Puritan New England', 'Colonial Virginia', 'Early Scotland', 'Elizabethan England'], explanation: 'The film is set in a 1630s Puritan New England village. The script\'s dialogue was drawn from historical documents of the period.', film: 'The Witch', subgenre: 'folk horror', decade: '2010s', difficulty: 'medium' },
+  { question: 'Psycho (1960) was shot in what kind of film stock?', correct_answer: 'Black and white', options: ['Black and white', 'Technicolor', 'Kodachrome', 'Sepia'], explanation: 'Hitchcock chose black and white partly for budget reasons and partly to avoid the shock of Technicolor blood. It gave the film a newsreel-like quality.', film: 'Psycho', subgenre: 'psychological', decade: '1960s', difficulty: 'easy' },
+  { question: 'The Blair Witch Project (1999) was famously marketed as what?', correct_answer: 'Real found footage', options: ['Real found footage', 'A documentary sequel', 'A university film project', 'A live horror experience'], explanation: 'The filmmakers created a fictional mythology and marketed the film as genuinely recovered footage, leading many viewers to believe it was real.', film: 'The Blair Witch Project', subgenre: 'found footage', decade: '1990s', difficulty: 'easy' },
+  { question: 'What was the budget of The Blair Witch Project (1999)?', correct_answer: 'Around $60,000', options: ['Around $60,000', 'Around $500,000', 'Around $1 million', 'Around $5 million'], explanation: 'Made for roughly $60,000, The Blair Witch Project grossed nearly $250 million worldwide — one of the highest return-on-investment films ever made.', film: 'The Blair Witch Project', subgenre: 'found footage', decade: '1990s', difficulty: 'hard' },
+  { question: 'In Jaws (1975), why was the mechanical shark rarely shown on screen?', correct_answer: 'It kept malfunctioning', options: ['It kept malfunctioning', 'Spielberg wanted to build suspense', 'It looked too unrealistic', 'Budget cuts'], explanation: 'The mechanical shark was nicknamed "Bruce" after Spielberg\'s lawyer, and it constantly broke down in saltwater. The absence forced Spielberg to suggest the shark with music and POV shots.', film: 'Jaws', subgenre: 'creature', decade: '1970s', difficulty: 'medium' },
+  { question: 'What novel did Thomas Harris write that Silence of the Lambs is based on?', correct_answer: 'The Silence of the Lambs (1988)', options: ['The Silence of the Lambs (1988)', 'Red Dragon (1981)', 'Hannibal (1999)', 'Black Sunday (1975)'], explanation: 'Harris wrote the novel in 1988, following Red Dragon (1981) which introduced Hannibal Lecter.', film: 'The Silence of the Lambs', subgenre: 'psychological', decade: '1990s', difficulty: 'medium' },
+
+  // Monsters / creatures
+  { question: 'What is the weakness of the creatures in A Quiet Place (2018)?', correct_answer: 'High-pitched sound frequencies', options: ['High-pitched sound frequencies', 'Bright light', 'Water', 'Fire'], explanation: 'The creatures hunt by sound but are vulnerable to high-pitched feedback frequencies that overwhelm their sensitive hearing.', film: 'A Quiet Place', subgenre: 'creature', decade: '2010s', difficulty: 'medium' },
+  { question: 'In The Thing (1982), how does the alien replicate?', correct_answer: 'It perfectly imitates and absorbs other life forms', options: ['It perfectly imitates and absorbs other life forms', 'It lays eggs inside hosts', 'It releases spores', 'It rebuilds DNA through touch'], explanation: 'The Thing can perfectly imitate any organism it comes into contact with at a cellular level, making paranoia the film\'s greatest weapon.', film: 'The Thing', subgenre: 'sci-fi horror', decade: '1980s', difficulty: 'medium' },
+  { question: 'In Alien (1979), what stage of the alien life cycle attaches to a human face?', correct_answer: 'The facehugger', options: ['The facehugger', 'The chestburster', 'The xenomorph', 'The neomorph'], explanation: 'The facehugger implants an embryo by inserting an ovipositor down the victim\'s throat. The embryo then develops into a chestburster.', film: 'Alien', subgenre: 'sci-fi horror', decade: '1970s', difficulty: 'easy' },
+  { question: 'In Hereditary (2018), what is the name of the demon at the centre of the cult?', correct_answer: 'Paimon', options: ['Paimon', 'Moloch', 'Baphomet', 'Azazel'], explanation: 'Paimon is a demon from the Ars Goetia, depicted in the film as requiring a male vessel to manifest his full power.', film: 'Hereditary', subgenre: 'supernatural', decade: '2010s', difficulty: 'hard' },
+  { question: 'What does "Candyman" require you to say to summon him?', correct_answer: 'His name five times in a mirror', options: ['His name five times in a mirror', 'His name three times in a mirror', 'His name once in a dark room', 'His name backwards in a mirror'], explanation: 'Saying "Candyman" five times while looking in a mirror summons the hook-handed ghost — echoing the Bloody Mary legend.', film: 'Candyman', subgenre: 'supernatural', decade: '1990s', difficulty: 'medium' },
+
+  // Awards / cultural impact
+  { question: 'The Silence of the Lambs (1991) is one of three films to win all five major Academy Awards. What are those five categories?', correct_answer: 'Picture, Director, Actor, Actress, Screenplay', options: ['Picture, Director, Actor, Actress, Screenplay', 'Picture, Director, Actor, Actress, Cinematography', 'Picture, Director, Actress, Screenplay, Editing', 'Picture, Director, Actor, Score, Screenplay'], explanation: 'It\'s one of only three films to win the "Big Five": Best Picture, Director (Demme), Actor (Hopkins), Actress (Foster), and Adapted Screenplay.', film: 'The Silence of the Lambs', subgenre: 'psychological', decade: '1990s', difficulty: 'hard' },
+  { question: 'Get Out (2017) was the first horror film to win which Oscar?', correct_answer: 'Best Original Screenplay', options: ['Best Original Screenplay', 'Best Picture', 'Best Director', 'Best Actor'], explanation: 'Jordan Peele became the first Black writer to win Best Original Screenplay at the Academy Awards for Get Out.', film: 'Get Out', subgenre: 'psychological', decade: '2010s', difficulty: 'medium' },
+  { question: 'Psycho (1960) was the first American film to show what on screen?', correct_answer: 'A toilet flushing', options: ['A toilet flushing', 'A nude scene', 'A character dying on screen', 'Blood'], explanation: 'Hitchcock deliberately included a toilet flush, which was considered taboo at the time and was part of his strategy to shock audiences with rule-breaking.', film: 'Psycho', subgenre: 'psychological', decade: '1960s', difficulty: 'hard' },
+
+  // Subgenre / style
+  { question: 'Which subgenre does Midsommar (2019) primarily belong to?', correct_answer: 'Folk horror', options: ['Folk horror', 'Supernatural horror', 'Slasher', 'Psychological thriller'], explanation: 'Folk horror focuses on rural communities and ancient pagan traditions as the source of dread. Other examples include The Wicker Man (1973) and The Witch (2015).', film: 'Midsommar', subgenre: 'folk horror', decade: '2010s', difficulty: 'easy' },
+  { question: 'Found footage horror was popularised by which 1999 film?', correct_answer: 'The Blair Witch Project', options: ['The Blair Witch Project', 'Paranormal Activity', 'Cloverfield', 'Cannibal Holocaust'], explanation: 'While Cannibal Holocaust (1980) used the format first, The Blair Witch Project (1999) brought found footage to mainstream audiences.', film: 'The Blair Witch Project', subgenre: 'found footage', decade: '1990s', difficulty: 'medium' },
+  { question: 'Which of these films is considered the first "slasher" film?', correct_answer: 'Peeping Tom (1960)', options: ['Peeping Tom (1960)', 'Halloween (1978)', 'Psycho (1960)', 'Black Christmas (1974)'], explanation: 'Peeping Tom and Psycho both appeared in 1960 and are considered foundational slasher films, though Halloween defined the modern template.', film: 'Halloween', subgenre: 'slasher', decade: '1970s', difficulty: 'hard' },
+
+  // Score / music
+  { question: 'Who composed the iconic Halloween (1978) theme?', correct_answer: 'John Carpenter', options: ['John Carpenter', 'Bernard Herrmann', 'John Williams', 'Ennio Morricone'], explanation: 'John Carpenter composed the minimalist, 5/4-time Halloween theme himself in about an hour, tapping it out on piano for producer Irwin Yablans.', film: 'Halloween', subgenre: 'slasher', decade: '1970s', difficulty: 'medium' },
+  { question: 'Who composed the Psycho (1960) score, including the famous shower scene strings?', correct_answer: 'Bernard Herrmann', options: ['Bernard Herrmann', 'John Williams', 'Ennio Morricone', 'Jerry Goldsmith'], explanation: 'Bernard Herrmann\'s all-strings score defied Hitchcock\'s initial vision of a jazzier sound. The shower scene "Prelude" is one of cinema\'s most recognised pieces of music.', film: 'Psycho', subgenre: 'psychological', decade: '1960s', difficulty: 'medium' },
+  { question: 'Which composer scored Hereditary (2018), Midsommar (2019), and The Witch (2015)?', correct_answer: 'Colin Stetson scored Hereditary; Bobby Krlic scored Midsommar; Mark Korven scored The Witch', options: ['Colin Stetson scored Hereditary; Bobby Krlic scored Midsommar; Mark Korven scored The Witch', 'Arca scored all three', 'Jóhann Jóhannsson scored all three', 'Colin Stetson scored all three'], explanation: 'Each A24 horror film used a different experimental composer: Stetson\'s sax drones for Hereditary, Krlic\'s folk textures for Midsommar, and Korven\'s early instruments for The Witch.', film: 'Hereditary', subgenre: 'supernatural', decade: '2010s', difficulty: 'hard' },
+
+  // Twist / endings
+  { question: 'In The Sixth Sense (1999), what is the twist ending?', correct_answer: 'Malcolm Crowe has been dead the whole time', options: ['Malcolm Crowe has been dead the whole time', 'Cole is actually a ghost', 'Malcolm is Cole\'s father', 'The ghosts are hallucinations'], explanation: 'Dr. Malcolm Crowe was shot and killed in the opening scene; the entire film is his ghost not realising he\'s dead until Cole helps him.', film: 'The Sixth Sense', subgenre: 'psychological', decade: '1990s', difficulty: 'easy' },
+  { question: 'In Us (2019), what is the twist about Adelaide?', correct_answer: 'She is actually a Tethered who switched places with the real Adelaide as a child', options: ['She is actually a Tethered who switched places with the real Adelaide as a child', 'She created the Tethered as part of a government experiment', 'Red is her twin sister', 'She killed the original Adelaide as a teenager'], explanation: 'The film reveals Adelaide swapped places with her Tethered double Red in the Hall of Mirrors as a child — the "real" Adelaide has been underground all along.', film: 'Us', subgenre: 'psychological', decade: '2010s', difficulty: 'medium' },
+  { question: 'In Hereditary (2018), what happened to Charlie at the end of the second act?', correct_answer: 'She was decapitated by a telephone pole', options: ['She was decapitated by a telephone pole', 'She fell from a window', 'She drowned', 'She died by possession'], explanation: 'Peter swerves to avoid a dead deer on the road; Charlie leans out the window and is decapitated by a telephone pole — one of horror\'s most shocking sudden deaths.', film: 'Hereditary', subgenre: 'supernatural', decade: '2010s', difficulty: 'medium' },
+
+  // Remakes / adaptations
+  { question: 'Carrie (1976) is based on a novel by which author?', correct_answer: 'Stephen King', options: ['Stephen King', 'Dean Koontz', 'Shirley Jackson', 'Peter Straub'], explanation: 'Carrie was Stephen King\'s first published novel (1974). Brian De Palma\'s adaptation was King\'s first major Hollywood adaptation.', film: 'Carrie', subgenre: 'supernatural', decade: '1970s', difficulty: 'easy' },
+  { question: 'The Ring (2002) is a remake of which Japanese film?', correct_answer: 'Ringu (1998)', options: ['Ringu (1998)', 'Ju-On (2002)', 'Audition (1999)', 'Dark Water (2002)'], explanation: 'Gore Verbinski\'s The Ring is an Americanisation of Hideo Nakata\'s Ringu (1998), itself based on Kôji Suzuki\'s 1991 novel.', film: 'The Ring', subgenre: 'supernatural', decade: '2000s', difficulty: 'medium' },
+  { question: 'Which Stephen King novel is the basis for Misery (1990)?', correct_answer: 'Misery (1987)', options: ['Misery (1987)', 'Cujo (1981)', 'Dolores Claiborne (1992)', 'Gerald\'s Game (1992)'], explanation: 'King wrote Misery in 1987 as a metaphor for his own struggles with addiction — Annie Wilkes representing his demanding readership.', film: 'Misery', subgenre: 'psychological', decade: '1990s', difficulty: 'easy' },
+  { question: 'Rosemary\'s Baby (1968) is based on a novel by which author?', correct_answer: 'Ira Levin', options: ['Ira Levin', 'William Peter Blatty', 'Richard Matheson', 'Robert Bloch'], explanation: 'Ira Levin published the novel in 1967. Roman Polanski\'s adaptation is considered one of the most faithful novel-to-film adaptations in horror.', film: "Rosemary's Baby", subgenre: 'supernatural', decade: '1960s', difficulty: 'medium' },
+  { question: 'The Fly (1986) is based on a story by which author?', correct_answer: 'George Langelaan', options: ['George Langelaan', 'H.P. Lovecraft', 'Richard Matheson', 'Philip K. Dick'], explanation: 'George Langelaan published the original short story in Playboy magazine in 1957. David Cronenberg\'s version is a loose remake of the 1958 film.', film: 'The Fly', subgenre: 'body horror', decade: '1980s', difficulty: 'hard' },
+
+  // More lore / details
+  { question: 'In Rosemary\'s Baby (1968), what is the name of the Satanic cult leader neighbor?', correct_answer: 'Roman Castevet', options: ['Roman Castevet', 'Guy Woodhouse', 'Dr. Abraham Sapirstein', 'Hutch'], explanation: 'Roman Castevet, played by Sidney Blackmer, is the friendly elderly neighbor who is actually the leader of a Satanic coven.', film: "Rosemary's Baby", subgenre: 'supernatural', decade: '1960s', difficulty: 'hard' },
+  { question: 'In Alien (1979), what is the name of the android crew member?', correct_answer: 'Ash', options: ['Ash', 'Bishop', 'Call', 'David'], explanation: 'Ash, played by Ian Holm, is secretly a Weyland-Yutani android ordered to bring the alien back to Earth "at all costs."', film: 'Alien', subgenre: 'sci-fi horror', decade: '1970s', difficulty: 'medium' },
+  { question: 'In Get Out (2017), what is the name of the procedure used to place a white brain into a Black body?', correct_answer: 'The Coagula', options: ['The Coagula', 'The Sunken Place', 'The Transfer', 'The Binding'], explanation: 'The Coagula procedure was developed by Rose\'s neurosurgeon grandfather Roman Armitage, who transplants the brains of wealthy white buyers into Black victims.', film: 'Get Out', subgenre: 'psychological', decade: '2010s', difficulty: 'hard' },
+  { question: 'What year did Wes Craven direct both Scream and a new episode of a major anthology TV series?', correct_answer: '1996', options: ['1996', '1994', '1998', '2000'], explanation: 'Wes Craven released Scream in 1996, revitalising the slasher genre with its self-aware meta-commentary on horror conventions.', film: 'Scream', subgenre: 'slasher', decade: '1990s', difficulty: 'hard' },
+  { question: 'In The Conjuring (2013), which real-life paranormal investigators are the main characters based on?', correct_answer: 'Ed and Lorraine Warren', options: ['Ed and Lorraine Warren', 'Harry Price and Eileen Garret', 'Peter Underwood and Helen Duncan', 'Hans Holzer and Mary Gibson'], explanation: 'Ed and Lorraine Warren were real-life paranormal investigators who investigated the Perron family haunting in 1971, which The Conjuring dramatises.', film: 'The Conjuring', subgenre: 'supernatural', decade: '2010s', difficulty: 'easy' },
+  { question: 'In Poltergeist (1982), what draws the ghost towards the Freeling family?', correct_answer: 'Their house was built on a relocated cemetery', options: ['Their house was built on a relocated cemetery', 'A cursed television set', 'Their youngest daughter\'s psychic ability', 'An ancient Native American burial ground'], explanation: 'The developer moved only the headstones of a cemetery, not the bodies, when building the suburban development — the angry dead remain.', film: 'Poltergeist', subgenre: 'supernatural', decade: '1980s', difficulty: 'medium' },
+  { question: 'What is the name of the town in Scream (1996)?', correct_answer: 'Woodsboro', options: ['Woodsboro', 'Haddonfield', 'Springwood', 'Derry'], explanation: 'Woodsboro, California is the fictional small town setting of the Scream franchise. Haddonfield is Halloween, Springwood is Nightmare on Elm Street, Derry is It.', film: 'Scream', subgenre: 'slasher', decade: '1990s', difficulty: 'medium' },
+  { question: 'In Insidious (2010), what is the name of the realm the protagonist\'s son is trapped in?', correct_answer: 'The Further', options: ['The Further', 'The In-Between', 'The Astral Plane', 'The Shadow Realm'], explanation: 'The Further is a dark astral dimension inhabited by malevolent spirits who are drawn to the soul of young Dalton Lambert.', film: 'Insidious', subgenre: 'supernatural', decade: '2010s', difficulty: 'medium' },
+  { question: 'In The Cabin in the Woods (2011), who are revealed to be behind the horror scenarios?', correct_answer: 'Secret underground facility workers performing a ritual sacrifice', options: ['Secret underground facility workers performing a ritual sacrifice', 'Alien observers studying human behaviour', 'A government military program', 'Reality TV producers'], explanation: 'The Cabin in the Woods reveals that horror scenarios are engineered by a corporate facility to appease ancient gods, requiring specific archetypes to die in specific ways.', film: 'The Cabin in the Woods', subgenre: 'meta-horror', decade: '2010s', difficulty: 'medium' },
+  { question: 'In Sinister (2012), who is the supernatural entity at the centre of the film?', correct_answer: 'Bughuul', options: ['Bughuul', 'Mr. Boogie', 'The Pale Man', 'The Slender Man'], explanation: 'Bughuul is an ancient pagan deity known as "Mr. Boogie" who consumes the souls of children, using Super 8 films as a conduit.', film: 'Sinister', subgenre: 'supernatural', decade: '2010s', difficulty: 'hard' },
+  { question: 'What is the central supernatural concept behind It Follows (2014)?', correct_answer: 'An entity that passes through sexual contact and relentlessly pursues its victim', options: ['An entity that passes through sexual contact and relentlessly pursues its victim', 'A demon summoned by losing your virginity', 'A creature that follows you from birth to death', 'A ghost that haunts those who have committed crimes'], explanation: 'The "It" entity walks slowly towards its target and can look like anyone. It can only be passed on through sexual intercourse — and returns to the previous person if the current one dies.', film: 'It Follows', subgenre: 'supernatural', decade: '2010s', difficulty: 'easy' },
+  { question: 'What is unique about the filming of Don\'t Breathe (2016)?', correct_answer: 'Much of the film is set in complete darkness', options: ['Much of the film is set in complete darkness', 'It was shot entirely in a single take', 'It was filmed entirely underwater', 'The actors were never given a full script'], explanation: 'A large section of Don\'t Breathe takes place in total darkness, with the blind antagonist navigating by sound and touch while the protagonists fumble in the dark.', film: "Don't Breathe", subgenre: 'thriller', decade: '2010s', difficulty: 'medium' },
+  { question: 'In Barbarian (2022), what is hidden in the basement of the Airbnb rental?', correct_answer: 'A secret tunnel system leading to a subterranean lair', options: ['A secret tunnel system leading to a subterranean lair', 'A serial killer\'s trophy room', 'A doomsday bunker', 'A flooded basement with a creature'], explanation: 'Tess discovers a hidden door in the basement leading to a tunnel system and a disturbing underground space, revealing the house\'s true history.', film: 'Barbarian', subgenre: 'thriller', decade: '2020s', difficulty: 'easy' },
+  { question: 'In Smile (2022), what is the entity\'s method of spreading from victim to victim?', correct_answer: 'It forces the current victim to traumatise another person', options: ['It forces the current victim to traumatise another person', 'It spreads through smiling at others', 'It transfers through nightmares', 'It jumps to whoever sees the current victim die'], explanation: 'The entity forces the current victim to commit a violent act witnessed by another person, creating trauma that the entity then feeds on to transfer hosts.', film: 'Smile', subgenre: 'supernatural', decade: '2020s', difficulty: 'medium' },
+]
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ACT 3 — Speak of the Devil (identify the film from a famous quote)
+// question = the quote; correct_answer = film title; options = 4 film titles
+// ─────────────────────────────────────────────────────────────────────────────
+const ACT3_QUOTES = [
+  { question: '"Here\'s Johnny!"', correct_answer: 'The Shining', options: ['The Shining', 'Poltergeist', 'The Amityville Horror', 'Carrie'], explanation: 'Jack Torrance\'s iconic improvised line as he axes through the bathroom door in The Shining (1980).', film: 'The Shining', subgenre: 'psychological', decade: '1980s', difficulty: 'easy' },
+  { question: '"I see dead people."', correct_answer: 'The Sixth Sense', options: ['The Sixth Sense', 'Poltergeist', 'The Others', 'Insidious'], explanation: 'Cole Sear\'s whispered confession to Dr. Malcolm Crowe in The Sixth Sense (1999), one of cinema\'s most memorable lines.', film: 'The Sixth Sense', subgenre: 'psychological', decade: '1990s', difficulty: 'easy' },
+  { question: '"What\'s your favorite scary movie?"', correct_answer: 'Scream', options: ['Scream', 'Scary Movie', 'I Know What You Did Last Summer', 'Urban Legend'], explanation: 'Ghostface\'s opening question to Drew Barrymore\'s Casey Becker in Scream (1996), immediately establishing the film\'s meta-horror tone.', film: 'Scream', subgenre: 'slasher', decade: '1990s', difficulty: 'easy' },
+  { question: '"It rubs the lotion on its skin, or else it gets the hose again."', correct_answer: 'The Silence of the Lambs', options: ['The Silence of the Lambs', 'Se7en', 'Misery', 'Copycat'], explanation: 'Buffalo Bill\'s chilling command to Catherine Martin, who is trapped in his pit in The Silence of the Lambs (1991).', film: 'The Silence of the Lambs', subgenre: 'psychological', decade: '1990s', difficulty: 'easy' },
+  { question: '"I want to play a game."', correct_answer: 'Saw', options: ['Saw', 'Hostel', 'The Game', 'Cube'], explanation: 'Jigsaw\'s signature phrase in Saw (2004), spoken via a puppet or tape recording before revealing his elaborate traps.', film: 'Saw', subgenre: 'torture horror', decade: '2000s', difficulty: 'easy' },
+  { question: '"Be afraid. Be very afraid."', correct_answer: 'The Fly', options: ['The Fly', 'Alien', 'The Thing', 'Videodrome'], explanation: 'Veronica Quaife\'s warning in The Fly (1986), which became one of horror\'s most quoted lines and a pop-culture catchphrase.', film: 'The Fly', subgenre: 'body horror', decade: '1980s', difficulty: 'medium' },
+  { question: '"The power of Christ compels you!"', correct_answer: 'The Exorcist', options: ['The Exorcist', 'Rosemary\'s Baby', 'The Omen', 'Stigmata'], explanation: 'Father Damien Karras\'s desperate incantation during the exorcism of Regan MacNeil in The Exorcist (1973).', film: 'The Exorcist', subgenre: 'supernatural', decade: '1970s', difficulty: 'easy' },
+  { question: '"We all go a little mad sometimes."', correct_answer: 'Psycho', options: ['Psycho', 'The Shining', 'Misery', 'The Silence of the Lambs'], explanation: 'Norman Bates\'s unsettling rationalisation to Marion Crane during their parlour conversation in Psycho (1960).', film: 'Psycho', subgenre: 'psychological', decade: '1960s', difficulty: 'medium' },
+  { question: '"One, two, Freddy\'s coming for you. Three, four, better lock your door."', correct_answer: 'A Nightmare on Elm Street', options: ['A Nightmare on Elm Street', 'Halloween', 'Friday the 13th', 'Scream'], explanation: 'The children\'s jump-rope rhyme that opens A Nightmare on Elm Street (1984) and recurs throughout the franchise as an ominous leitmotif.', film: 'A Nightmare on Elm Street', subgenre: 'slasher', decade: '1980s', difficulty: 'medium' },
+  { question: '"I\'m your number one fan."', correct_answer: 'Misery', options: ['Misery', 'The Fan', 'Single White Female', 'Copycat'], explanation: 'Annie Wilkes\'s terrifyingly earnest declaration to the injured Paul Sheldon in Misery (1990), establishing her obsession immediately.', film: 'Misery', subgenre: 'psychological', decade: '1990s', difficulty: 'easy' },
+  { question: '"Kill her, Mommy! Kill her!"', correct_answer: 'Friday the 13th', options: ['Friday the 13th', 'Carrie', 'Halloween', 'Sleepaway Camp'], explanation: 'The voice of Jason in Mrs. Voorhees\'s head urges her to kill the camp counsellors she blames for his drowning in Friday the 13th (1980).', film: 'Friday the 13th', subgenre: 'slasher', decade: '1980s', difficulty: 'medium' },
+  { question: '"They\'re here."', correct_answer: 'Poltergeist', options: ['Poltergeist', 'Paranormal Activity', 'The Conjuring', 'Annabelle'], explanation: 'Young Carol Anne\'s famous two-word announcement as she sits in front of the static-filled television in Poltergeist (1982).', film: 'Poltergeist', subgenre: 'supernatural', decade: '1980s', difficulty: 'easy' },
+  { question: '"You\'re gonna need a bigger boat."', correct_answer: 'Jaws', options: ['Jaws', 'The Abyss', 'Deep Blue Sea', '47 Meters Down'], explanation: 'Chief Brody\'s understated reaction upon first seeing the full size of the great white shark in Jaws (1975). Steven Spielberg called it his favourite line in any of his films.', film: 'Jaws', subgenre: 'creature', decade: '1970s', difficulty: 'easy' },
+  { question: '"They\'re all gonna laugh at you!"', correct_answer: 'Carrie', options: ['Carrie', 'Hereditary', 'The Craft', 'Suspiria'], explanation: 'Margaret White\'s hysterical prediction to Carrie before the prom in Carrie (1976), tragically becoming a self-fulfilling prophecy.', film: 'Carrie', subgenre: 'supernatural', decade: '1970s', difficulty: 'medium' },
+  { question: '"Get away from her, you bitch!"', correct_answer: 'Aliens', options: ['Aliens', 'Alien', 'Alien 3', 'Predator'], explanation: 'Ellen Ripley\'s war cry as she climbs into the power loader to fight the Alien Queen in Aliens (1986), directed by James Cameron.', film: 'Alien', subgenre: 'sci-fi horror', decade: '1980s', difficulty: 'medium' },
+  { question: '"Sometimes... dead is better."', correct_answer: 'Pet Sematary', options: ['Pet Sematary', 'The Fog', 'The Reanimator', 'Flatliners'], explanation: 'Jud Crandall\'s grave warning to Louis Creed in Pet Sematary (1989), a warning that goes tragically unheeded.', film: 'Pet Sematary', subgenre: 'supernatural', decade: '1980s', difficulty: 'medium' },
+  { question: '"Long live the new flesh!"', correct_answer: 'Videodrome', options: ['Videodrome', 'eXistenZ', 'Society', 'The Fly'], explanation: 'Max Renn\'s final words in Videodrome (1983), directed by David Cronenberg — a darkly ironic statement of transformation and death.', film: 'Videodrome', subgenre: 'body horror', decade: '1980s', difficulty: 'hard' },
+  { question: '"I ate his liver with some fava beans and a nice Chianti."', correct_answer: 'The Silence of the Lambs', options: ['The Silence of the Lambs', 'Hannibal', 'Red Dragon', 'Manhunter'], explanation: 'Hannibal Lecter\'s chilling admission to Clarice Starling in The Silence of the Lambs (1991), delivered with a terrifying calm and an unsettling inhale.', film: 'The Silence of the Lambs', subgenre: 'psychological', decade: '1990s', difficulty: 'easy' },
+  { question: '"Do you believe in God, Father? Because I need someone to tell me that I\'m not crazy."', correct_answer: 'The Conjuring', options: ['The Conjuring', 'The Exorcist', 'Deliver Us from Evil', 'The Rite'], explanation: 'Carolyn Perron\'s plea to Ed Warren in The Conjuring (2013), marking the moment she accepts the supernatural explanation for her family\'s terror.', film: 'The Conjuring', subgenre: 'supernatural', decade: '2010s', difficulty: 'hard' },
+  { question: '"You\'re all gonna die out here."', correct_answer: 'The Texas Chain Saw Massacre', options: ['The Texas Chain Saw Massacre', 'The Hills Have Eyes', 'Deliverance', 'Wrong Turn'], explanation: 'The unhinged hitchhiker\'s ominous warning to the group in The Texas Chain Saw Massacre (1974) — foreshadowing the horror ahead.', film: 'The Texas Chain Saw Massacre', subgenre: 'slasher', decade: '1970s', difficulty: 'medium' },
+  { question: '"We accept her, one of us, one of us!"', correct_answer: 'Freaks', options: ['Freaks', 'The Hills Have Eyes', 'Sideshow', 'Carnival of Souls'], explanation: 'The carnival freaks\' chant when accepting a new member in Tod Browning\'s controversial Freaks (1932), later repurposed in popular culture countless times.', film: 'Freaks', subgenre: 'psychological', decade: '1930s', difficulty: 'hard' },
+  { question: '"Heeeelp me. Help me."', correct_answer: 'The Fly', options: ['The Fly', 'Them!', 'The Blob', 'The Wasp Woman'], explanation: 'The tiny, fly-headed human trapped in the spider\'s web cries for help at the end of the original The Fly (1958) — one of horror\'s most shocking endings.', film: 'The Fly', subgenre: 'sci-fi horror', decade: '1950s', difficulty: 'hard' },
+  { question: '"It\'s alive! It\'s alive!"', correct_answer: 'Frankenstein', options: ['Frankenstein', 'Re-Animator', 'Bride of Frankenstein', 'Young Frankenstein'], explanation: 'Henry Frankenstein\'s ecstatic cry as his monster awakens in Frankenstein (1931), directed by James Whale with Boris Karloff as the monster.', film: 'Frankenstein', subgenre: 'supernatural', decade: '1930s', difficulty: 'easy' },
+  { question: '"I see you\'ve been drinking."  "Yeah, Dutch courage."  "You\'re gonna need it."', correct_answer: 'Predator', options: ['Predator', 'Aliens', 'The Thing', 'Escape from New York'], explanation: 'The exchange between Dutch\'s crew before entering the jungle in Predator (1987), directed by John McTiernan, before they encounter the alien hunter.', film: 'Predator', subgenre: 'sci-fi horror', decade: '1980s', difficulty: 'hard' },
+  { question: '"Whatever you do... don\'t fall asleep."', correct_answer: 'A Nightmare on Elm Street', options: ['A Nightmare on Elm Street', 'Dreamscape', 'Sleepwalkers', 'Slumber Party Massacre'], explanation: 'Nancy Thompson\'s desperate warning to herself and others in A Nightmare on Elm Street (1984), knowing sleep means entering Freddy\'s domain.', film: 'A Nightmare on Elm Street', subgenre: 'slasher', decade: '1980s', difficulty: 'easy' },
+  { question: '"I\'m not going to hurt you. I\'m just going to bash your brains in."', correct_answer: 'The Shining', options: ['The Shining', 'American Psycho', 'Henry: Portrait of a Serial Killer', 'Psycho'], explanation: 'Jack Torrance\'s menacing "reassurance" to Wendy as he ascends the stairs with a baseball bat in The Shining (1980).', film: 'The Shining', subgenre: 'psychological', decade: '1980s', difficulty: 'medium' },
+  { question: '"The call is coming from inside the house."', correct_answer: 'Black Christmas', options: ['Black Christmas', 'When a Stranger Calls', 'Halloween', 'Scream'], explanation: 'The chilling revelation from the police in Black Christmas (1974), Bob Clark\'s proto-slasher that predated Halloween by four years.', film: 'Black Christmas', subgenre: 'slasher', decade: '1970s', difficulty: 'hard' },
+  { question: '"This is God."', correct_answer: 'Carrie', options: ['Carrie', 'The Omen', 'Stigmata', 'The Exorcist'], explanation: 'Carrie\'s mother Margaret\'s delusion, declaring herself to be God as she wields a knife against her daughter in the film\'s climax.', film: 'Carrie', subgenre: 'supernatural', decade: '1970s', difficulty: 'hard' },
+  { question: '"We don\'t scare easy."', correct_answer: 'The Cabin in the Woods', options: ['The Cabin in the Woods', 'The Evil Dead', 'Cabin Fever', 'Tucker and Dale vs. Evil'], explanation: 'One of the technicians in The Cabin in the Woods (2011) as the horror film archetypes begin making unexpected choices, subverting the genre\'s formula.', film: 'The Cabin in the Woods', subgenre: 'meta-horror', decade: '2010s', difficulty: 'hard' },
+  { question: '"I\'m the one who knocks."  Wait — wrong genre. Try this: "Do you want to see something really scary?"', correct_answer: 'Twilight Zone: The Movie', options: ['Twilight Zone: The Movie', 'Creepshow', 'Tales from the Crypt', 'Anthology'], explanation: 'Dan Aykroyd\'s famous opening dare to his passenger before transforming into a monster in Twilight Zone: The Movie (1983).', film: 'Twilight Zone: The Movie', subgenre: 'anthology', decade: '1980s', difficulty: 'hard' },
+  { question: '"Get out."', correct_answer: 'Get Out', options: ['Get Out', 'Us', 'The Purge', 'Escape Room'], explanation: 'Rose\'s mother Missy Armitage\'s cold command to Chris, the first clear signal that something is deeply wrong in Get Out (2017).', film: 'Get Out', subgenre: 'psychological', decade: '2010s', difficulty: 'easy' },
+  { question: '"I\'m your number one fan... hobbling."', correct_answer: 'Misery', options: ['Misery', 'The Fan', 'Single White Female', 'Fatal Attraction'], explanation: 'Annie Wilkes\'s disturbing concept of "hobbling" — using a sledgehammer on Paul\'s ankles so he can\'t escape — is introduced with chilling matter-of-factness in Misery (1990).', film: 'Misery', subgenre: 'psychological', decade: '1990s', difficulty: 'medium' },
+  { question: '"What we had was real."', correct_answer: 'Midsommar', options: ['Midsommar', 'Hereditary', 'The Wicker Man', 'The Ritual'], explanation: 'Dani\'s final acceptance and smile — surrounded by the burning May Queen ceremony — in Midsommar (2019), after the cult destroys Christian.', film: 'Midsommar', subgenre: 'folk horror', decade: '2010s', difficulty: 'hard' },
+  { question: '"Wouldst thou like to live deliciously?"', correct_answer: 'The Witch', options: ['The Witch', 'Midsommar', 'Suspiria', 'The Wicker Man'], explanation: 'Black Phillip\'s seductive offer to Thomasin in The Witch (2015), inviting her to abandon Puritan life and sign the Devil\'s book.', film: 'The Witch', subgenre: 'folk horror', decade: '2010s', difficulty: 'hard' },
+  { question: '"I want to play a game. So far in what seems to be your mundane and uneventful life, you\'ve made a series of mistakes."', correct_answer: 'Saw II', options: ['Saw II', 'Saw', 'Saw III', 'Saw IV'], explanation: 'Jigsaw\'s extended monologue in Saw II (2005), addressing Detective Matthews with his characteristic moral philosophy.', film: 'Saw', subgenre: 'torture horror', decade: '2000s', difficulty: 'hard' },
+  { question: '"He was my son. And he was a good boy."', correct_answer: 'Friday the 13th Part II', options: ['Friday the 13th Part II', 'Friday the 13th', 'Jason Goes to Hell', 'Friday the 13th Part III'], explanation: 'A survivor\'s reference to Jason Voorhees as a real person in Friday the 13th Part II (1981), establishing his tragic backstory.', film: 'Friday the 13th', subgenre: 'slasher', decade: '1980s', difficulty: 'hard' },
+  { question: '"Useless! Useless!"', correct_answer: 'Halloween III: Season of the Witch', options: ['Halloween III: Season of the Witch', 'Halloween', 'Halloween II', 'Halloween 4'], explanation: 'Conal Cochran\'s signature insult in Halloween III: Season of the Witch (1982), the divisive entry that had no Michael Myers.', film: 'Halloween', subgenre: 'slasher', decade: '1980s', difficulty: 'hard' },
+  { question: '"He\'s got a machete, Mom."  "Ronny, honey, don\'t look."', correct_answer: 'Friday the 13th', options: ['Friday the 13th', 'Sleepaway Camp', 'Halloween II', 'My Bloody Valentine'], explanation: 'A darkly comic exchange in Friday the 13th (1980) as an unsuspecting character encounters Jason\'s unstoppable approach.', film: 'Friday the 13th', subgenre: 'slasher', decade: '1980s', difficulty: 'hard' },
+  { question: '"Come out, come out, wherever you are."', correct_answer: 'Halloween H20', options: ['Halloween H20', 'Scream', 'I Know What You Did Last Summer', 'Halloween'], explanation: 'Laurie Strode\'s taunting challenge to Michael Myers in Halloween H20 (1998), subverting the Final Girl role by going on the offensive.', film: 'Halloween', subgenre: 'slasher', decade: '1990s', difficulty: 'hard' },
+  { question: '"You know what\'s scarier than a monster? A man."', correct_answer: 'The Black Phone', options: ['The Black Phone', 'Sinister', 'Prisoners', 'Zodiac'], explanation: 'A line that captures The Black Phone\'s (2021) central theme — that the human villain, The Grabber, is more terrifying than any supernatural threat.', film: 'The Black Phone', subgenre: 'supernatural', decade: '2020s', difficulty: 'hard' },
+  { question: '"I know what I saw."', correct_answer: 'Annihilation', options: ['Annihilation', 'Arrival', 'Under the Skin', 'Ex Machina'], explanation: 'Lena\'s defiant insistence about her experiences inside Area X in Annihilation (2018), the film\'s central question being what is real and what isn\'t.', film: 'Annihilation', subgenre: 'sci-fi horror', decade: '2010s', difficulty: 'hard' },
+]
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ACT 4 — Final Reckoning (open-answer trivia)
+// ─────────────────────────────────────────────────────────────────────────────
 const ACT4_QUESTIONS = [
-  {
-    film: 'The Shining',
-    question: 'In The Shining (1980), what is the number of the room that Jack Torrance is warned never to enter?',
-    correct_answer: '237',
-    accepted_variants: ['Room 237', 'room 237'],
-    explanation: 'Room 237 is the forbidden room at the Overlook Hotel. In Stephen King\'s novel it was Room 217 — Kubrick changed it at the request of the hotel used for filming.',
-    subgenre: 'psychological', decade: '1980s', difficulty: 'medium',
-  },
-  {
-    film: 'Halloween',
-    question: 'In Halloween (1978), what is the name of the fictional Illinois town where Michael Myers returns to kill?',
-    correct_answer: 'Haddonfield',
-    accepted_variants: ['Haddonfield, Illinois'],
-    explanation: 'Haddonfield, Illinois is named after Haddonfield, New Jersey — the hometown of co-writer Debra Hill.',
-    subgenre: 'slasher', decade: '1970s', difficulty: 'easy',
-  },
-  {
-    film: 'The Silence of the Lambs',
-    question: 'In The Silence of the Lambs (1991), what is Hannibal Lecter\'s professional title prior to his incarceration?',
-    correct_answer: 'Psychiatrist',
-    accepted_variants: ['psychiatrist', 'Dr. Lecter', 'doctor', 'physician'],
-    explanation: 'Hannibal Lecter was a respected forensic psychiatrist before his crimes were discovered. His credentials made his victims all the more trusting.',
-    subgenre: 'psychological', decade: '1990s', difficulty: 'medium',
-  },
-  {
-    film: 'Hereditary',
-    question: 'In Hereditary (2018), what is the name of the demon that the family unwittingly summons throughout the film?',
-    correct_answer: 'Paimon',
-    accepted_variants: ['King Paimon', 'paimon'],
-    explanation: 'Paimon is a demon from the Ars Goetia who requires a female host but is ultimately moved into Peter\'s body. The cult worships him to gain his power.',
-    subgenre: 'supernatural', decade: '2010s', difficulty: 'hard',
-  },
-  {
-    film: 'Get Out',
-    question: 'In Get Out (2017), what name is given to the hypnotic trance state that Rose\'s mother uses to control her victims?',
-    correct_answer: 'The Sunken Place',
-    accepted_variants: ['Sunken Place', 'the sunken place'],
-    explanation: 'The Sunken Place is a void-like state of paralysis induced via hypnosis — the victim is conscious but unable to control their body, imprisoned in their own mind.',
-    subgenre: 'psychological', decade: '2010s', difficulty: 'medium',
-  },
-  {
-    film: 'The Exorcist',
-    question: 'In The Exorcist (1973), what is the name of the demon possessing Regan MacNeil?',
-    correct_answer: 'Pazuzu',
-    accepted_variants: ['pazuzu'],
-    explanation: 'Pazuzu is an ancient Assyrian wind demon. Its statue is found by Father Merrin at a dig in Iraq in the film\'s opening, foreshadowing the possession.',
-    subgenre: 'supernatural', decade: '1970s', difficulty: 'hard',
-  },
-  {
-    film: 'Psycho',
-    question: 'In Psycho (1960), what is the name of the motel where Marion Crane meets Norman Bates?',
-    correct_answer: 'Bates Motel',
-    accepted_variants: ['the bates motel', 'bates'],
-    explanation: 'The Bates Motel sits off a bypassed highway, struggling for business — which is why Marion Crane\'s appearance seems like a gift to the lonely Norman.',
-    subgenre: 'psychological', decade: '1960s', difficulty: 'easy',
-  },
-  {
-    film: 'Alien',
-    question: 'In Alien (1979), what is the name of the corporate entity that secretly orders the Nostromo crew to investigate the distress signal?',
-    correct_answer: 'Weyland-Yutani',
-    accepted_variants: ['Weyland Yutani', 'the company', 'Wayland-Yutani'],
-    explanation: 'Weyland-Yutani — nicknamed "The Company" — views the alien organism as a potential biological weapon, prioritising it over the crew\'s survival.',
-    subgenre: 'sci-fi horror', decade: '1970s', difficulty: 'hard',
-  },
-  {
-    film: 'The Thing',
-    question: 'In The Thing (1982), what is the name of the Antarctic research station where the crew discovers the alien life form?',
-    correct_answer: 'Outpost 31',
-    accepted_variants: ['US Outpost 31', 'outpost 31', 'the outpost'],
-    explanation: 'The isolated US Outpost 31 becomes ground zero for the shape-shifting alien — the remoteness ensuring no rescue and no escape.',
-    subgenre: 'sci-fi horror', decade: '1980s', difficulty: 'hard',
-  },
-  {
-    film: 'Scream',
-    question: 'In Scream (1996), what is the name of the fictional town where the Ghostface murders take place?',
-    correct_answer: 'Woodsboro',
-    accepted_variants: ['woodsboro, california', 'woodsboro ca'],
-    explanation: 'Woodsboro, California is the fictional small town at the heart of the Scream franchise. Its mundane name contrasts sharply with the horrors that unfold there.',
-    subgenre: 'slasher', decade: '1990s', difficulty: 'easy',
-  },
-  {
-    film: 'Midsommar',
-    question: 'In Midsommar (2019), what is the name of the Swedish folk commune the characters visit?',
-    correct_answer: 'Hårga',
-    accepted_variants: ['Harga', 'hårga', 'harga'],
-    explanation: 'The Hårga commune holds a midsummer festival every 90 years. What appears to be a utopian celebration conceals ancient ritual sacrifice.',
-    subgenre: 'folk horror', decade: '2010s', difficulty: 'hard',
-  },
-  {
-    film: 'Carrie',
-    question: 'In Carrie (1976), what substance is dumped on Carrie at the prom, triggering her telekinetic rampage?',
-    correct_answer: 'Pig blood',
-    accepted_variants: ["pig's blood", 'blood', 'pigs blood'],
-    explanation: 'A bucket of pig blood rigged above the stage is tipped onto Carrie after she is crowned prom queen. It catalyses the most iconic scene in Brian De Palma\'s adaptation.',
-    subgenre: 'supernatural', decade: '1970s', difficulty: 'easy',
-  },
-  {
-    film: 'The Ring',
-    question: 'In The Ring (2002), how many days does the victim have to live after watching the cursed videotape?',
-    correct_answer: '7',
-    accepted_variants: ['seven', 'seven days', '7 days'],
-    explanation: 'The dying curse gives the viewer exactly seven days — announced by a phone call immediately after watching. The countdown drives the entire film\'s tension.',
-    subgenre: 'supernatural', decade: '2000s', difficulty: 'easy',
-  },
-  {
-    film: 'Saw',
-    question: 'In Saw (2004), what is the name of the serial killer who designs the elaborate death traps?',
-    correct_answer: 'Jigsaw',
-    accepted_variants: ['The Jigsaw Killer', 'John Kramer', 'jigsaw killer'],
-    explanation: 'John Kramer adopts the Jigsaw moniker because he cuts jigsaw-shaped pieces of flesh from victims he deems ungrateful for life.',
-    subgenre: 'torture horror', decade: '2000s', difficulty: 'easy',
-  },
-  {
-    film: 'The Blair Witch Project',
-    question: 'In The Blair Witch Project (1999), in what real-world Maryland town does the legend of the Blair Witch originate?',
-    correct_answer: 'Burkittsville',
-    accepted_variants: ['burkittsville, maryland'],
-    explanation: 'Burkittsville, Maryland — formerly Blair — is the real town used in the film\'s lore. The name Blair comes from the old name for the area.',
-    subgenre: 'found footage', decade: '1990s', difficulty: 'hard',
-  },
-  {
-    film: '28 Days Later',
-    question: 'In 28 Days Later (2002), what is the name of the virus that causes the infected to enter a violent rage?',
-    correct_answer: 'Rage',
-    accepted_variants: ['the rage virus', 'rage virus'],
-    explanation: 'The Rage virus spreads through blood and saliva, turning victims into frenzied, violent hosts within seconds — making it far faster-acting than traditional zombie lore.',
-    subgenre: 'zombie', decade: '2000s', difficulty: 'medium',
-  },
-  {
-    film: 'Hereditary',
-    question: 'In Hereditary (2018), what is the name of the mysterious woman who befriends Annie at a grief support group?',
-    correct_answer: 'Joan',
-    accepted_variants: ['joan'],
-    explanation: 'Joan is revealed to be a member of the Paimon cult who deliberately targets Annie\'s family, manipulating them into completing the ritual.',
-    subgenre: 'supernatural', decade: '2010s', difficulty: 'medium',
-  },
-  {
-    film: 'The Witch',
-    question: 'In The Witch (2015), what is the name of the family\'s black goat who is later revealed to be the Devil in disguise?',
-    correct_answer: 'Black Phillip',
-    accepted_variants: ['Black Philip', 'black phillip', 'black philip'],
-    explanation: 'Black Phillip speaks to Thomasin at the film\'s end, offering her his book to sign. His calm demeanour throughout masks his true nature as a manifestation of the Devil.',
-    subgenre: 'folk horror', decade: '2010s', difficulty: 'medium',
-  },
-  {
-    film: 'Misery',
-    question: 'In Misery (1990), what is the term that Annie Wilkes uses to describe Paul Sheldon\'s character who she believes was cheapened by his writing?',
-    correct_answer: 'Dirty bird',
-    accepted_variants: ['dirty bird', 'dirty-bird'],
-    explanation: 'Annie uses the eccentric phrase "dirty bird" as a substitute expletive throughout the film, a quirk that underscores her unhinged and unpredictable nature.',
-    subgenre: 'psychological', decade: '1990s', difficulty: 'hard',
-  },
-  {
-    film: 'Us',
-    question: 'In Us (2019), what are the shadowy underground doubles called?',
-    correct_answer: 'The Tethered',
-    accepted_variants: ['Tethered', 'the tethered'],
-    explanation: 'The Tethered are government-created shadow clones bound to their surface counterparts, forced to mirror their movements for years beneath the earth.',
-    subgenre: 'psychological', decade: '2010s', difficulty: 'medium',
-  },
+  // --- Original batch ---
+  { film: 'The Shining', question: 'In The Shining (1980), what is the number of the room that Jack Torrance is warned never to enter?', correct_answer: '237', accepted_variants: ['Room 237', 'room 237'], explanation: 'Room 237 is the forbidden room at the Overlook Hotel. In Stephen King\'s novel it was Room 217 — Kubrick changed it at the request of the hotel used for filming.', subgenre: 'psychological', decade: '1980s', difficulty: 'medium' },
+  { film: 'Halloween', question: 'In Halloween (1978), what is the name of the fictional Illinois town where Michael Myers returns to kill?', correct_answer: 'Haddonfield', accepted_variants: ['Haddonfield, Illinois'], explanation: 'Haddonfield, Illinois is named after Haddonfield, New Jersey — the hometown of co-writer Debra Hill.', subgenre: 'slasher', decade: '1970s', difficulty: 'easy' },
+  { film: 'The Silence of the Lambs', question: 'In The Silence of the Lambs (1991), what is Hannibal Lecter\'s professional title prior to his incarceration?', correct_answer: 'Psychiatrist', accepted_variants: ['psychiatrist', 'Dr. Lecter', 'doctor', 'physician'], explanation: 'Hannibal Lecter was a respected forensic psychiatrist before his crimes were discovered. His credentials made his victims all the more trusting.', subgenre: 'psychological', decade: '1990s', difficulty: 'medium' },
+  { film: 'Hereditary', question: 'In Hereditary (2018), what is the name of the demon that the family unwittingly summons throughout the film?', correct_answer: 'Paimon', accepted_variants: ['King Paimon', 'paimon'], explanation: 'Paimon is a demon from the Ars Goetia who requires a female host but is ultimately moved into Peter\'s body. The cult worships him to gain his power.', subgenre: 'supernatural', decade: '2010s', difficulty: 'hard' },
+  { film: 'Get Out', question: 'In Get Out (2017), what name is given to the hypnotic trance state that Rose\'s mother uses to control her victims?', correct_answer: 'The Sunken Place', accepted_variants: ['Sunken Place', 'the sunken place'], explanation: 'The Sunken Place is a void-like state of paralysis induced via hypnosis — the victim is conscious but unable to control their body, imprisoned in their own mind.', subgenre: 'psychological', decade: '2010s', difficulty: 'medium' },
+  { film: 'The Exorcist', question: 'In The Exorcist (1973), what is the name of the demon possessing Regan MacNeil?', correct_answer: 'Pazuzu', accepted_variants: ['pazuzu'], explanation: 'Pazuzu is an ancient Assyrian wind demon. Its statue is found by Father Merrin at a dig in Iraq in the film\'s opening, foreshadowing the possession.', subgenre: 'supernatural', decade: '1970s', difficulty: 'hard' },
+  { film: 'Psycho', question: 'In Psycho (1960), what is the name of the motel where Marion Crane meets Norman Bates?', correct_answer: 'Bates Motel', accepted_variants: ['the bates motel', 'bates'], explanation: 'The Bates Motel sits off a bypassed highway, struggling for business — which is why Marion Crane\'s appearance seems like a gift to the lonely Norman.', subgenre: 'psychological', decade: '1960s', difficulty: 'easy' },
+  { film: 'Alien', question: 'In Alien (1979), what is the name of the corporate entity that secretly orders the Nostromo crew to investigate the distress signal?', correct_answer: 'Weyland-Yutani', accepted_variants: ['Weyland Yutani', 'the company', 'Wayland-Yutani'], explanation: 'Weyland-Yutani — nicknamed "The Company" — views the alien organism as a potential biological weapon, prioritising it over the crew\'s survival.', subgenre: 'sci-fi horror', decade: '1970s', difficulty: 'hard' },
+  { film: 'The Thing', question: 'In The Thing (1982), what is the name of the Antarctic research station where the crew discovers the alien life form?', correct_answer: 'Outpost 31', accepted_variants: ['US Outpost 31', 'outpost 31', 'the outpost'], explanation: 'The isolated US Outpost 31 becomes ground zero for the shape-shifting alien — the remoteness ensuring no rescue and no escape.', subgenre: 'sci-fi horror', decade: '1980s', difficulty: 'hard' },
+  { film: 'Scream', question: 'In Scream (1996), what is the name of the fictional town where the Ghostface murders take place?', correct_answer: 'Woodsboro', accepted_variants: ['woodsboro, california', 'woodsboro ca'], explanation: 'Woodsboro, California is the fictional small town at the heart of the Scream franchise. Its mundane name contrasts sharply with the horrors that unfold there.', subgenre: 'slasher', decade: '1990s', difficulty: 'easy' },
+  { film: 'Midsommar', question: 'In Midsommar (2019), what is the name of the Swedish folk commune the characters visit?', correct_answer: 'Hårga', accepted_variants: ['Harga', 'hårga', 'harga'], explanation: 'The Hårga commune holds a midsummer festival every 90 years. What appears to be a utopian celebration conceals ancient ritual sacrifice.', subgenre: 'folk horror', decade: '2010s', difficulty: 'hard' },
+  { film: 'Carrie', question: 'In Carrie (1976), what substance is dumped on Carrie at the prom, triggering her telekinetic rampage?', correct_answer: 'Pig blood', accepted_variants: ["pig's blood", 'blood', 'pigs blood'], explanation: 'A bucket of pig blood rigged above the stage is tipped onto Carrie after she is crowned prom queen. It catalyses the most iconic scene in Brian De Palma\'s adaptation.', subgenre: 'supernatural', decade: '1970s', difficulty: 'easy' },
+  { film: 'The Ring', question: 'In The Ring (2002), how many days does the victim have to live after watching the cursed videotape?', correct_answer: '7', accepted_variants: ['seven', 'seven days', '7 days'], explanation: 'The dying curse gives the viewer exactly seven days — announced by a phone call immediately after watching. The countdown drives the entire film\'s tension.', subgenre: 'supernatural', decade: '2000s', difficulty: 'easy' },
+  { film: 'Saw', question: 'In Saw (2004), what is the name of the serial killer who designs the elaborate death traps?', correct_answer: 'Jigsaw', accepted_variants: ['The Jigsaw Killer', 'John Kramer', 'jigsaw killer'], explanation: 'John Kramer adopts the Jigsaw moniker because he cuts jigsaw-shaped pieces of flesh from victims he deems ungrateful for life.', subgenre: 'torture horror', decade: '2000s', difficulty: 'easy' },
+  { film: 'The Blair Witch Project', question: 'In The Blair Witch Project (1999), in what real-world Maryland town does the legend of the Blair Witch originate?', correct_answer: 'Burkittsville', accepted_variants: ['burkittsville, maryland'], explanation: 'Burkittsville, Maryland — formerly Blair — is the real town used in the film\'s lore. The name Blair comes from the old name for the area.', subgenre: 'found footage', decade: '1990s', difficulty: 'hard' },
+  { film: '28 Days Later', question: 'In 28 Days Later (2002), what is the name of the virus that causes the infected to enter a violent rage?', correct_answer: 'Rage', accepted_variants: ['the rage virus', 'rage virus'], explanation: 'The Rage virus spreads through blood and saliva, turning victims into frenzied, violent hosts within seconds — making it far faster-acting than traditional zombie lore.', subgenre: 'zombie', decade: '2000s', difficulty: 'medium' },
+  { film: 'Hereditary', question: 'In Hereditary (2018), what is the name of the mysterious woman who befriends Annie at a grief support group?', correct_answer: 'Joan', accepted_variants: ['joan'], explanation: 'Joan is revealed to be a member of the Paimon cult who deliberately targets Annie\'s family, manipulating them into completing the ritual.', subgenre: 'supernatural', decade: '2010s', difficulty: 'medium' },
+  { film: 'The Witch', question: 'In The Witch (2015), what is the name of the family\'s black goat who is later revealed to be the Devil in disguise?', correct_answer: 'Black Phillip', accepted_variants: ['Black Philip', 'black phillip', 'black philip'], explanation: 'Black Phillip speaks to Thomasin at the film\'s end, offering her his book to sign. His calm demeanour throughout masks his true nature as a manifestation of the Devil.', subgenre: 'folk horror', decade: '2010s', difficulty: 'medium' },
+  { film: 'Misery', question: 'In Misery (1990), what is the term that Annie Wilkes uses instead of swear words throughout the film?', correct_answer: 'Dirty bird', accepted_variants: ['dirty bird', 'dirty-bird'], explanation: 'Annie uses the eccentric phrase "dirty bird" as a substitute expletive throughout the film, a quirk that underscores her unhinged and unpredictable nature.', subgenre: 'psychological', decade: '1990s', difficulty: 'hard' },
+  { film: 'Us', question: 'In Us (2019), what are the shadowy underground doubles called?', correct_answer: 'The Tethered', accepted_variants: ['Tethered', 'the tethered'], explanation: 'The Tethered are government-created shadow clones bound to their surface counterparts, forced to mirror their movements for years beneath the earth.', subgenre: 'psychological', decade: '2010s', difficulty: 'medium' },
+  // --- Additional batch ---
+  { film: 'Friday the 13th', question: 'In Friday the 13th (1980), who is the killer?', correct_answer: 'Pamela Voorhees', accepted_variants: ['Mrs. Voorhees', 'mrs voorhees'], explanation: 'Pamela Voorhees blames the negligent counsellors for her son Jason\'s drowning. Jason himself doesn\'t kill until the sequel.', subgenre: 'slasher', decade: '1980s', difficulty: 'medium' },
+  { film: 'Jaws', question: 'In Jaws (1975), what is the name of the oceanographer played by Richard Dreyfuss?', correct_answer: 'Matt Hooper', accepted_variants: ['Hooper', 'matt hooper'], explanation: 'Matt Hooper is the shark expert from the Oceanographic Institute who joins Brody and Quint to hunt the great white shark.', subgenre: 'creature', decade: '1970s', difficulty: 'medium' },
+  { film: 'Poltergeist', question: 'In Poltergeist (1982), what is the name of the young daughter who communicates with the spirits through the TV?', correct_answer: 'Carol Anne', accepted_variants: ['carol anne freeling', 'carol anne'], explanation: 'Carol Anne Freeling, played by Heather O\'Rourke, is the youngest child who is pulled into the spirit world through her bedroom closet.', subgenre: 'supernatural', decade: '1980s', difficulty: 'medium' },
+  { film: 'The Omen', question: 'In The Omen (1976), what is the name of the child believed to be the Antichrist?', correct_answer: 'Damien', accepted_variants: ['damien thorn', 'Damien Thorn'], explanation: 'Damien Thorn, played by Harvey Spencer Stephens, is the young boy adopted by an American diplomat who is slowly revealed to be the son of Satan.', subgenre: 'supernatural', decade: '1970s', difficulty: 'easy' },
+  { film: "Rosemary's Baby", question: "In Rosemary's Baby (1968), what does Rosemary dream she is impregnated by?", correct_answer: 'The Devil', accepted_variants: ['satan', 'the devil', 'a demon'], explanation: 'Rosemary dreams she is raped by a monstrous figure — the Devil himself — as her Satanic neighbours and husband watch. The dream reveals the truth of her pregnancy.', subgenre: 'supernatural', decade: '1960s', difficulty: 'easy' },
+  { film: 'A Nightmare on Elm Street', question: 'In A Nightmare on Elm Street (1984), what was Freddy Krueger\'s crime before the parents burned him alive?', correct_answer: 'Child murder', accepted_variants: ['killing children', 'child murderer', 'he killed children', 'murdered children'], explanation: 'Freddy Krueger was the "Springwood Slasher," a child killer who was released on a technicality before the parents took justice into their own hands.', subgenre: 'slasher', decade: '1980s', difficulty: 'medium' },
+  { film: 'The Fly', question: 'In The Fly (1986), what is the name of Seth Brundle\'s teleportation device?', correct_answer: 'Telepod', accepted_variants: ['the telepod', 'telepods'], explanation: 'The Telepod is Seth Brundle\'s invention that disassembles matter and reassembles it elsewhere. A fly enters the pod with him, merging their DNA.', subgenre: 'body horror', decade: '1980s', difficulty: 'hard' },
+  { film: 'Annihilation', question: 'In Annihilation (2018), what is the name given to the mysterious zone where the laws of nature have broken down?', correct_answer: 'Area X', accepted_variants: ['The Shimmer', 'area x', 'the shimmer'], explanation: 'Area X is bordered by "the Shimmer" — a refraction of light that also bends radio signals, DNA, and reality itself. The Shimmer is the visible boundary.', subgenre: 'sci-fi horror', decade: '2010s', difficulty: 'medium' },
+  { film: 'The Conjuring', question: 'In The Conjuring (2013), what is the name of the Rhode Island farmhouse where the Perron family experiences paranormal activity?', correct_answer: 'Old Arnold Estate', accepted_variants: ['the arnold estate', 'arnold estate', 'perron farmhouse'], explanation: 'The Old Arnold Estate in Harrisville, Rhode Island was the real farmhouse where the Perron family lived from 1971 to 1980.', subgenre: 'supernatural', decade: '2010s', difficulty: 'hard' },
+  { film: 'Insidious', question: 'In Insidious (2010), what is the name of the demon with the red face who wants the boy\'s body?', correct_answer: 'The Red-Faced Demon', accepted_variants: ['red faced demon', 'the demon', 'lipstick face demon'], explanation: 'The Red-Faced (or Lipstick-Faced) Demon is the primary antagonist, a powerful entity that has been patiently waiting for Dalton to leave his body unguarded during astral projection.', subgenre: 'supernatural', decade: '2010s', difficulty: 'medium' },
+  { film: 'Candyman', question: 'In Candyman (1992), what is the Candyman\'s hook hand made from?', correct_answer: 'His own severed hand', accepted_variants: ['a hook replacing his severed hand', 'the hook replaces his hand'], explanation: 'Daniel Robitaille\'s painting hand was sawn off by a mob and replaced with a meat hook — one element of his prolonged torture before he was murdered.', subgenre: 'supernatural', decade: '1990s', difficulty: 'hard' },
+  { film: "Child's Play", question: "In Child's Play (1988), what is the name of the serial killer whose soul inhabits Chucky?", correct_answer: 'Charles Lee Ray', accepted_variants: ['charles ray', 'the lakeshore strangler'], explanation: 'Charles Lee Ray, also known as the Lakeshore Strangler, transfers his soul into a Good Guy doll before dying, voiced throughout the series by Brad Dourif.', subgenre: 'slasher', decade: '1980s', difficulty: 'medium' },
+  { film: 'Pet Sematary', question: 'In Pet Sematary (1989), what is buried in the Micmac burial ground that causes the dead to return?', correct_answer: 'The Creed family cat (Church)', accepted_variants: ['Church', 'the cat', 'their cat', 'a cat'], explanation: 'Louis first buries his daughter Ellie\'s cat Church in the Micmac burial ground; the cat returns changed — setting off the chain of events that leads to tragedy.', subgenre: 'supernatural', decade: '1980s', difficulty: 'medium' },
+  { film: 'Suspiria', question: 'In Suspiria (1977), what type of institution is the school at the centre of the film?', correct_answer: 'A ballet academy', accepted_variants: ['dance school', 'dance academy', 'ballet school'], explanation: 'The Tanz Dance Academy in Freiburg, Germany is secretly run by a coven of witches. The vibrant Technicolor photography and pounding Goblin score amplify the supernatural dread.', subgenre: 'supernatural', decade: '1970s', difficulty: 'medium' },
+  { film: 'Evil Dead II', question: 'In Evil Dead II (1987), what is the name of the demon being summoned by the Necronomicon?', correct_answer: 'Kandarian Demon', accepted_variants: ['kandarian', 'the kandarian'], explanation: 'The Kandarian Demon is the ancient evil entity unleashed by the reading of passages from the Necronomicon Ex-Mortis, possessing the dead and living alike.', subgenre: 'splatter', decade: '1980s', difficulty: 'hard' },
+  { film: 'The Babadook', question: 'In The Babadook (2014), what is the relationship between Amelia and the monster she cannot get rid of, metaphorically?', correct_answer: 'Grief', accepted_variants: ['depression', 'grief and depression', 'her grief over her husband'], explanation: 'The Babadook is widely interpreted as a metaphor for grief — specifically Amelia\'s unresolved mourning for her husband, who died the night her son was born.', subgenre: 'psychological', decade: '2010s', difficulty: 'medium' },
+  { film: 'It Follows', question: 'In It Follows (2014), how does the protagonist Jay receive the curse?', correct_answer: 'Through sexual intercourse', accepted_variants: ['sex', 'having sex', 'sleeping with someone'], explanation: 'Jay is infected after having sex with her date Hugh, who reveals the entity that now follows her — passed like an STI, transferred through sexual contact.', subgenre: 'supernatural', decade: '2010s', difficulty: 'easy' },
+  { film: 'The Invisible Man', question: 'In The Invisible Man (2020), how does Adrian Griffin achieve invisibility?', correct_answer: 'A suit of cameras that renders him optically invisible', accepted_variants: ['an invisibility suit', 'camera suit', 'optical invisibility suit'], explanation: 'Adrian, an optics engineer, creates a suit lined with cameras that project the image behind him, making him appear invisible.', subgenre: 'thriller', decade: '2020s', difficulty: 'medium' },
+  { film: 'Nope', question: 'In Nope (2022), what is the name of the alien creature that the siblings are trying to film?', correct_answer: 'Jean Jacket', accepted_variants: ['jean jacket'], explanation: 'OJ and Emerald Haywood name the alien predator "Jean Jacket." The creature disguises itself as a cloud while hunting prey on the California plains.', subgenre: 'sci-fi horror', decade: '2020s', difficulty: 'hard' },
+  { film: 'Barbarian', question: 'In Barbarian (2022), what disturbing history is eventually uncovered about the house and its original owner?', correct_answer: 'Decades of incestuous abuse and captive family members in the tunnels', accepted_variants: ['incest', 'inbreeding', 'Frank\'s victims in the tunnels', 'generational abuse'], explanation: 'The tunnels beneath the house were built by Frank, who imprisoned women and fathered children with them. The tunnel\'s monstrous inhabitant is a product of generational captivity.', subgenre: 'thriller', decade: '2020s', difficulty: 'medium' },
 ]
 
-// ---------------------------------------------------------------------------
-// TMDB helpers
-// ---------------------------------------------------------------------------
+// ─────────────────────────────────────────────────────────────────────────────
+// TMDB helpers (Act 1 only)
+// ─────────────────────────────────────────────────────────────────────────────
 async function tmdbGet(path) {
   const res = await fetch(`https://api.themoviedb.org/3${path}`, {
     headers: { Authorization: `Bearer ${TMDB_TOKEN}` },
@@ -256,7 +347,6 @@ async function getBestBackdrop(movieId) {
   const data = await tmdbGet(`/movie/${movieId}/images?include_image_language=en,null`)
   const backdrops = data.backdrops || []
   if (backdrops.length === 0) return null
-  // Prefer high-vote-average backdrops with English language
   const sorted = [...backdrops].sort((a, b) => b.vote_average - a.vote_average)
   return `https://image.tmdb.org/t/p/w1280${sorted[0].file_path}`
 }
@@ -265,93 +355,100 @@ async function findMovie(title, year) {
   const encoded = encodeURIComponent(title)
   const data = await tmdbGet(`/search/movie?query=${encoded}&year=${year}`)
   const results = data.results || []
-  // Prefer exact title match in same year ± 1
-  const match = results.find(r =>
-    Math.abs((r.release_date || '').slice(0, 4) - year) <= 1
-  )
+  const match = results.find(r => Math.abs((r.release_date || '').slice(0, 4) - year) <= 1)
   return match || results[0] || null
 }
 
-// ---------------------------------------------------------------------------
-// Main
-// ---------------------------------------------------------------------------
-async function main() {
-  console.log('--- Seeding Act 1 questions ---')
-
-  const act1Rows = []
+// ─────────────────────────────────────────────────────────────────────────────
+// Seeders
+// ─────────────────────────────────────────────────────────────────────────────
+async function seedAct1() {
+  if (!TMDB_TOKEN) { console.error('Missing TMDB_TOKEN — skipping act 1'); return }
+  console.log('\n--- Seeding Act 1 questions ---')
+  const rows = []
 
   for (const film of ACT1_FILMS) {
     process.stdout.write(`  ${film.title} (${film.year}) … `)
     try {
       const movie = await findMovie(film.title, film.year)
       if (!movie) { console.log('NOT FOUND on TMDB, skipping'); continue }
-
       const imageUrl = await getBestBackdrop(movie.id)
       if (!imageUrl) { console.log('no backdrop, skipping'); continue }
-
-      act1Rows.push({
-        act: 1,
-        difficulty: 'medium',
-        subgenre: film.subgenre,
-        decade: film.decade,
-        film: film.title,
-        question: `Identify this horror film from the still image.`,
-        options: [],
-        correct_answer: film.title,
-        accepted_variants: film.variants,
+      rows.push({
+        act: 1, difficulty: 'medium',
+        subgenre: film.subgenre, decade: film.decade, film: film.title,
+        question: 'Identify this horror film from the still image.',
+        options: [], correct_answer: film.title, accepted_variants: film.variants,
         explanation: `${film.title} (${film.year}), directed by ${film.director}.`,
-        image_url: imageUrl,
-        authored_by: film.director,
+        image_url: imageUrl, authored_by: film.director,
         attribution: `Directed by ${film.director}`,
       })
-      console.log(`✓ ${imageUrl.split('/').pop()}`)
+      console.log(`✓`)
     } catch (err) {
       console.log(`ERROR: ${err.message}`)
     }
-    // Be polite to TMDB rate limits
     await new Promise(r => setTimeout(r, 250))
   }
 
-  if (act1Rows.length > 0) {
-    console.log(`\nInserting ${act1Rows.length} act 1 rows…`)
-    const { error } = await supabase.from('questions').insert(act1Rows)
-    if (error) {
-      console.error('Insert error:', error.message)
-      if (error.message.includes('policy')) {
-        console.error('\n⚠ RLS blocked insert. Add SUPABASE_SERVICE_KEY= to .env and retry.')
-      }
-    } else {
-      console.log('✓ Act 1 inserted')
-    }
+  if (rows.length > 0) {
+    console.log(`Inserting ${rows.length} act 1 rows…`)
+    const { error } = await supabase.from('questions').insert(rows)
+    if (error) console.error('Insert error:', error.message)
+    else console.log('✓ Act 1 inserted')
   }
+}
 
-  console.log('\n--- Seeding Act 4 questions ---')
-
-  const act4Rows = ACT4_QUESTIONS.map(q => ({
-    act: 4,
-    difficulty: q.difficulty,
-    subgenre: q.subgenre,
-    decade: q.decade,
-    film: q.film,
-    question: q.question,
-    options: [],
-    correct_answer: q.correct_answer,
-    accepted_variants: q.accepted_variants,
-    explanation: q.explanation,
-    image_url: null,
-    authored_by: 'ai',
+async function seedAct2() {
+  console.log('\n--- Seeding Act 2 questions ---')
+  const rows = ACT2_QUESTIONS.map(q => ({
+    act: 2, difficulty: q.difficulty,
+    subgenre: q.subgenre, decade: q.decade, film: q.film,
+    question: q.question, options: q.options,
+    correct_answer: q.correct_answer, accepted_variants: [],
+    explanation: q.explanation, image_url: null, authored_by: 'ai',
   }))
+  const { error } = await supabase.from('questions').insert(rows)
+  if (error) console.error('Insert error:', error.message)
+  else console.log(`✓ ${rows.length} act 2 questions inserted`)
+}
 
-  const { error: e4 } = await supabase.from('questions').insert(act4Rows)
-  if (e4) {
-    console.error('Insert error:', e4.message)
-    if (e4.message.includes('policy')) {
-      console.error('\n⚠ RLS blocked insert. Add SUPABASE_SERVICE_KEY= to .env and retry.')
-    }
-  } else {
-    console.log(`✓ ${act4Rows.length} act 4 questions inserted`)
-  }
+async function seedAct3() {
+  console.log('\n--- Seeding Act 3 questions ---')
+  const rows = ACT3_QUOTES.map(q => ({
+    act: 3, difficulty: q.difficulty,
+    subgenre: q.subgenre, decade: q.decade, film: q.film,
+    question: q.question, options: q.options,
+    correct_answer: q.correct_answer, accepted_variants: [],
+    explanation: q.explanation, image_url: null, authored_by: 'ai',
+  }))
+  const { error } = await supabase.from('questions').insert(rows)
+  if (error) console.error('Insert error:', error.message)
+  else console.log(`✓ ${rows.length} act 3 questions inserted`)
+}
 
+async function seedAct4() {
+  console.log('\n--- Seeding Act 4 questions ---')
+  const rows = ACT4_QUESTIONS.map(q => ({
+    act: 4, difficulty: q.difficulty,
+    subgenre: q.subgenre, decade: q.decade, film: q.film,
+    question: q.question, options: [],
+    correct_answer: q.correct_answer, accepted_variants: q.accepted_variants,
+    explanation: q.explanation, image_url: null, authored_by: 'ai',
+  }))
+  const { error } = await supabase.from('questions').insert(rows)
+  if (error) console.error('Insert error:', error.message)
+  else console.log(`✓ ${rows.length} act 4 questions inserted`)
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Main
+// ─────────────────────────────────────────────────────────────────────────────
+async function main() {
+  console.log(`Seeding acts: ${ACTS.join(', ')}`)
+  if (ACTS.includes(1)) await seedAct1()
+  if (ACTS.includes(2)) await seedAct2()
+  if (ACTS.includes(3)) await seedAct3()
+  if (ACTS.includes(4)) await seedAct4()
   console.log('\nDone.')
 }
 
