@@ -19,7 +19,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Lint
         run: npm run lint
@@ -29,3 +29,14 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      # Deploy to production ONLY after every check above passes.
+      # Vercel's GitHub auto-deploy must be disabled in project settings
+      # (Settings → Git → turn off "Deploy on Push") so this step is the
+      # sole production deployment gate.
+      - name: Deploy to Vercel (production)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: npx vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
