@@ -8,10 +8,10 @@ import { getTodaysQuestions, getDayNumber } from '../utils/questions'
 import { getRankForXP, getNextRank } from '../utils/ranks'
 
 const ACTS = [
-  { num: 1, badge: 'ACT I',   name: 'Scene of the Crime', desc: 'Identify the film from a horror still.', xp: 25  },
-  { num: 2, badge: 'ACT II',  name: 'The Inquisition',    desc: '5 multiple choice trivia questions.',   xp: 50  },
-  { num: 3, badge: 'ACT III', name: 'Speak of the Devil', desc: 'Name the film from a famous quote.',    xp: 35  },
-  { num: 4, badge: 'ACT IV',  name: 'Final Reckoning',    desc: 'Open answer — no multiple choice.',     xp: 100 },
+  { num: 1, numeral: 'I',   badge: 'ACT I',   name: 'Scene of the Crime', desc: 'Identify the film from a horror still.', xp: 25  },
+  { num: 2, numeral: 'II',  badge: 'ACT II',  name: 'The Inquisition',    desc: '5 multiple choice trivia questions.',   xp: 50  },
+  { num: 3, numeral: 'III', badge: 'ACT III', name: 'Speak of the Devil', desc: 'Name the film from a famous quote.',    xp: 35  },
+  { num: 4, numeral: 'IV',  badge: 'ACT IV',  name: 'Final Reckoning',    desc: 'Open answer — no multiple choice.',     xp: 100 },
 ]
 
 const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
@@ -176,13 +176,29 @@ function ProfilePanel({ username, rank, displayXP, nextRank, xpBarFill, streak, 
   )
 }
 
+function SectionLabel({ children }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
+      <div style={{ flex: 1, height: '0.5px', background: 'rgba(255,255,255,0.07)' }} />
+      <span style={{
+        fontFamily: "'Creepster', cursive", fontSize: 13, color: 'var(--sd-muted)',
+        textTransform: 'uppercase', letterSpacing: '0.18em', whiteSpace: 'nowrap',
+      }}>{children}</span>
+      <div style={{ flex: 1, height: '0.5px', background: 'rgba(255,255,255,0.07)' }} />
+    </div>
+  )
+}
+
 function ActList({ completedActs, navigate }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-      {ACTS.map(({ num, badge, name, desc, xp }) => {
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      {ACTS.map(({ num, numeral, name, desc, xp }) => {
         const done = completedActs.includes(num)
         const accentColor = done ? '#2d6640' : 'var(--sd-red)'
-        const borderColor = done ? 'rgba(45,102,64,0.25)' : 'rgba(192,21,42,0.22)'
+        const borderColor = done ? 'rgba(45,102,64,0.22)' : 'rgba(192,21,42,0.2)'
+        const cardBg = done
+          ? 'linear-gradient(135deg, rgba(45,102,64,0.07) 0%, rgba(45,102,64,0.02) 100%)'
+          : 'linear-gradient(135deg, rgba(192,21,42,0.06) 0%, rgba(255,255,255,0.01) 100%)'
         return (
           <div
             key={num}
@@ -194,34 +210,45 @@ function ActList({ completedActs, navigate }) {
               borderRight: `1px solid ${borderColor}`,
               borderBottom: `1px solid ${borderColor}`,
               borderLeft: `3px solid ${accentColor}`,
-              background: done ? 'rgba(45,102,64,0.04)' : 'rgba(255,255,255,0.015)',
-              padding: '14px 16px',
+              background: cardBg,
+              padding: '14px 16px 14px 14px',
               display: 'flex', alignItems: 'center', gap: 14,
               cursor: done ? 'default' : 'pointer',
-              opacity: done ? 0.6 : 1,
+              opacity: done ? 0.55 : 1,
             }}
           >
-            <div style={{ width: 44, flexShrink: 0 }}>
+            {/* Roman numeral badge */}
+            <div style={{
+              width: 38, height: 38, borderRadius: 8, flexShrink: 0,
+              background: done ? 'rgba(45,102,64,0.15)' : 'rgba(192,21,42,0.12)',
+              border: `1px solid ${done ? 'rgba(45,102,64,0.3)' : 'rgba(192,21,42,0.3)'}`,
+              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+            }}>
               <div style={{
-                fontFamily: "'Creepster', cursive", fontSize: 12,
+                fontFamily: "'Creepster', cursive",
+                fontSize: numeral.length > 2 ? 14 : 18,
                 color: done ? '#3d8f55' : 'var(--sd-red)',
-                letterSpacing: 1, lineHeight: 1, textTransform: 'uppercase',
-              }}>
-                {badge}
-              </div>
+                lineHeight: 1,
+              }}>{numeral}</div>
+              <div style={{
+                fontFamily: "'Special Elite', serif", fontSize: 6,
+                color: done ? '#3d8f55' : 'rgba(192,21,42,0.7)',
+                letterSpacing: '0.06em', marginTop: 2,
+              }}>ACT</div>
             </div>
+
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontFamily: "'Teko', sans-serif", fontSize: 21, color: 'var(--sd-cream)', lineHeight: 1.1 }}>{name}</div>
-              <div style={{ fontFamily: "'Special Elite', serif", fontSize: 10, color: 'var(--sd-muted)', marginTop: 3 }}>{desc}</div>
+              <div style={{ fontFamily: "'Special Elite', serif", fontSize: 10, color: 'var(--sd-muted)', marginTop: 2 }}>{desc}</div>
             </div>
+
             {done ? <CheckIcon /> : (
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
                 <span style={{
-                  fontFamily: "'Special Elite', serif", fontSize: 10, color: 'var(--sd-cream-dim)',
-                  border: '0.5px solid rgba(192,21,42,0.3)', borderRadius: 20,
-                  padding: '3px 10px', background: 'rgba(192,21,42,0.06)',
-                }}>+{xp} xp</span>
-                <span style={{ color: 'var(--sd-muted)', fontSize: 16 }}>›</span>
+                  fontFamily: "'Creepster', cursive", fontSize: 14, color: 'var(--sd-red)',
+                }}>+{xp}</span>
+                <span style={{ fontFamily: "'Special Elite', serif", fontSize: 9, color: 'var(--sd-muted)' }}>xp</span>
+                <span style={{ color: 'rgba(192,21,42,0.6)', fontSize: 18, lineHeight: 1 }}>›</span>
               </div>
             )}
           </div>
@@ -336,21 +363,23 @@ export default function Home() {
   const weekDays = getWeekDays()
 
   return (
-    <div className="sd-wrap">
+    <div className="sd-wrap" style={{
+      background: 'radial-gradient(ellipse 100% 280px at 50% 0px, rgba(192,21,42,0.11) 0%, transparent 100%), var(--sd-black)',
+    }}>
       <Header activePage="ritual" />
 
       {/* Date bar */}
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12,
-        padding: '12px var(--sd-px)',
-        borderBottom: '0.5px solid var(--sd-border)',
-        background: 'rgba(9, 5, 5, 0.55)',
+        padding: '13px var(--sd-px)',
+        borderBottom: '0.5px solid rgba(255,255,255,0.06)',
+        background: 'rgba(192,21,42,0.04)',
       }}>
-        <span style={{ fontFamily: "'Special Elite', serif", fontSize: 14, color: 'var(--sd-cream-dim)', letterSpacing: '0.03em' }}>
+        <span style={{ fontFamily: "'Special Elite', serif", fontSize: 13, color: 'var(--sd-cream-dim)', letterSpacing: '0.03em' }}>
           {dateStr}
         </span>
-        <span style={{ width: 3, height: 3, borderRadius: '50%', background: 'rgba(192,21,42,0.5)', display: 'inline-block', flexShrink: 0 }} />
-        <span style={{ fontFamily: "'Creepster', cursive", fontSize: 17, color: 'var(--sd-red)', letterSpacing: 1 }}>
+        <span style={{ width: 3, height: 3, borderRadius: '50%', background: 'rgba(192,21,42,0.55)', display: 'inline-block', flexShrink: 0 }} />
+        <span style={{ fontFamily: "'Creepster', cursive", fontSize: 18, color: 'var(--sd-red)', letterSpacing: 1 }}>
           Day #{dayNum}
         </span>
       </div>
@@ -375,11 +404,7 @@ export default function Home() {
           </div>
 
           <div style={{ paddingTop: 22, paddingBottom: 10 }}>
-            <div style={{
-              fontFamily: "'Special Elite', serif", fontSize: 11,
-              textTransform: 'uppercase', letterSpacing: '0.14em',
-              color: 'var(--sd-muted)', marginBottom: 12,
-            }}>Today's ritual</div>
+            <SectionLabel>Today's ritual</SectionLabel>
             <ActList completedActs={completedActs} navigate={navigate} />
           </div>
 
@@ -395,16 +420,16 @@ export default function Home() {
 
           {pastAvail.length > 0 && (
             <div style={{ paddingBottom: 22 }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                <div style={{
-                  fontFamily: "'Special Elite', serif", fontSize: 11,
-                  textTransform: 'uppercase', letterSpacing: '0.14em', color: 'var(--sd-muted)',
-                }}>
-                  Past Rituals
-                </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
+                <div style={{ flex: 1, height: '0.5px', background: 'rgba(255,255,255,0.07)' }} />
+                <span style={{
+                  fontFamily: "'Creepster', cursive", fontSize: 13, color: 'var(--sd-muted)',
+                  textTransform: 'uppercase', letterSpacing: '0.18em', whiteSpace: 'nowrap',
+                }}>Past Rituals</span>
+                <div style={{ flex: 1, height: '0.5px', background: 'rgba(255,255,255,0.07)' }} />
                 <span
                   onClick={() => navigate('/history')}
-                  style={{ fontFamily: "'Special Elite', serif", fontSize: 10, color: 'var(--sd-red)', cursor: 'pointer' }}
+                  style={{ fontFamily: "'Special Elite', serif", fontSize: 10, color: 'var(--sd-red)', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}
                 >
                   See all →
                 </span>
