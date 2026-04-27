@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import Header from '../components/Header'
 import ProgressBar from '../components/ProgressBar'
 import BottomNav from '../components/BottomNav'
+import ActFourView from '../components/ActFourView'
 import useGameStore from '../store/useGameStore'
 import { supabase } from '../supabaseClient'
 import { gradeAnswer } from '../utils/questions'
@@ -136,8 +137,8 @@ export default function PastRitual() {
   async function handleAct4Submit() {
     if (!questions?.act4 || act4Result) return
     const grade = gradeAnswer(act4Answer, questions.act4.correct_answer, questions.act4.accepted_variants || [])
-    const xp = grade.grade === 'wrong' ? 0 : XP.act4
-    setAct4Result({ correct: grade.grade !== 'wrong', grade: grade.grade, xp })
+    const xp = Math.round(grade.xp * MULT)
+    setAct4Result({ grade: grade.grade, xp })
   }
 
   async function handleAct4Continue() {
@@ -353,14 +354,15 @@ export default function PastRitual() {
           />
         )}
         {step === 'act4' && questions.act4 && (
-          <Act4View
+          <ActFourView
             q={questions.act4}
             answer={act4Answer}
             setAnswer={setAct4Answer}
             result={act4Result}
             onSubmit={handleAct4Submit}
             onContinue={handleAct4Continue}
-            maxXP={XP.act4}
+            continueBtnLabel="Finish ritual"
+            xpScale={{ exact: XP.act4, close: Math.round(XP.act4 * 0.6), partial: Math.round(XP.act4 * 0.2) }}
           />
         )}
       </div>
@@ -623,73 +625,6 @@ function Act3View({ q, selected, setSelected, revealed, onConfirm, maxXP }) {
   )
 }
 
-function Act4View({ q, answer, setAnswer, result, onSubmit, onContinue, maxXP }) {
-  const inputRef = useRef(null)
-  const gradeColor = { exact: '#7cc48a', close: '#d4a04a', partial: '#d4a04a', wrong: '#e24b4a' }
-
-  useEffect(() => {
-    if (!result) inputRef.current?.focus()
-  }, [result])
-
-  useEffect(() => {
-    if (!result) return
-    function onKey(e) {
-      if (e.target.tagName === 'INPUT') return
-      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onContinue() }
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [result])
-
-  return (
-    <>
-      <div className="sd-act-header">
-        <span className="sd-act-badge">ACT IV</span>
-        <span className="sd-act-title">Final Reckoning</span>
-        <span className="sd-xp-pill">{maxXP} xp</span>
-      </div>
-      <div style={{ margin: '0 var(--sd-px) 14px', background: 'rgba(255,255,255,0.02)', borderRadius: 12, padding: '16px', border: '1px solid rgba(255,255,255,0.07)' }}>
-        <div style={{ fontFamily: "'Special Elite', serif", fontSize: 14, color: 'var(--sd-cream)', lineHeight: 1.6 }}>{q.question}</div>
-      </div>
-      <input
-        ref={inputRef}
-        className="sd-input"
-        value={answer}
-        onChange={e => !result && setAnswer(e.target.value)}
-        onKeyDown={e => { if (e.key === 'Enter' && !result && answer.trim()) onSubmit() }}
-        placeholder="Your answer…"
-        disabled={!!result}
-        style={{ opacity: result ? 0.6 : 1 }}
-      />
-      {result && (
-        <div style={{
-          margin: '10px var(--sd-px) 4px',
-          background: result.correct ? 'rgba(45,102,64,0.15)' : 'rgba(90,18,18,0.15)',
-          border: `1px solid ${result.correct ? 'rgba(45,102,64,0.35)' : 'rgba(192,21,42,0.3)'}`,
-          borderRadius: 12, padding: '14px 16px',
-        }}>
-          <div style={{ fontFamily: "'Creepster', cursive", fontSize: 16, color: gradeColor[result.grade] || '#e24b4a', textTransform: 'capitalize', marginBottom: 2 }}>
-            {result.grade}
-          </div>
-          <div style={{ fontFamily: "'Creepster', cursive", fontSize: 26, color: gradeColor[result.grade] || '#e24b4a' }}>
-            +{result.xp} xp
-          </div>
-          {!result.correct && (
-            <div style={{ fontFamily: "'Special Elite', serif", fontSize: 10, color: 'var(--sd-muted)', marginTop: 6 }}>
-              Answer: {q.correct_answer}
-            </div>
-          )}
-        </div>
-      )}
-      <div style={{ padding: '10px 0 6px' }}>
-        <button className="sd-cta-btn" onClick={result ? onContinue : onSubmit} disabled={!result && !answer.trim()}>
-          {result ? 'Finish ritual' : 'Submit'}
-        </button>
-      </div>
-    </>
-  )
-}
 
 const backBtnStyle = {
   width: '100%', background: 'none',
