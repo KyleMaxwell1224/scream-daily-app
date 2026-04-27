@@ -41,7 +41,7 @@ function CheckIcon() {
   )
 }
 
-function ProfilePanel({ username, rank, displayXP, nextRank, xpBarFill, streak, daysPlayed, weekDays, today, weekCompletions }) {
+function ProfilePanel({ username, rank, displayXP, nextRank, xpBarFill, streak, daysPlayed, weekDays, today, weekCompletions = new Set() }) {
   const displayName = username || 'Survivor'
   const initials = displayName.slice(0, 2).toUpperCase()
 
@@ -370,6 +370,7 @@ export default function Home() {
               daysPlayed={daysPlayed}
               weekDays={weekDays}
               today={today}
+              weekCompletions={weekCompletions}
             />
           </div>
 
