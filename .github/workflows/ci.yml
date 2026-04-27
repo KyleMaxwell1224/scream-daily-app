@@ -34,9 +34,12 @@ jobs:
       # Vercel's GitHub auto-deploy must be disabled in project settings
       # (Settings → Git → turn off "Deploy on Push") so this step is the
       # sole production deployment gate.
+      - name: Install Vercel CLI
+        run: npm install -g vercel@latest
+
       - name: Deploy to Vercel (production)
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: npx vercel deploy --prod --yes
+        run: vercel deploy --prod --yes --token "$VERCEL_TOKEN"
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
