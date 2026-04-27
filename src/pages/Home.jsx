@@ -179,12 +179,12 @@ function ProfilePanel({ username, rank, displayXP, nextRank, xpBarFill, streak, 
 function SectionLabel({ children }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
-      <div style={{ flex: 1, height: '0.5px', background: 'rgba(255,255,255,0.07)' }} />
+      <div style={{ flex: 1, height: '0.5px', background: 'rgba(192,21,42,0.25)' }} />
       <span style={{
-        fontFamily: "'Creepster', cursive", fontSize: 13, color: 'var(--sd-muted)',
+        fontFamily: "'Creepster', cursive", fontSize: 13, color: 'rgba(192,21,42,0.8)',
         textTransform: 'uppercase', letterSpacing: '0.18em', whiteSpace: 'nowrap',
       }}>{children}</span>
-      <div style={{ flex: 1, height: '0.5px', background: 'rgba(255,255,255,0.07)' }} />
+      <div style={{ flex: 1, height: '0.5px', background: 'rgba(192,21,42,0.25)' }} />
     </div>
   )
 }
@@ -194,11 +194,6 @@ function ActList({ completedActs, navigate }) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
       {ACTS.map(({ num, numeral, name, desc, xp }) => {
         const done = completedActs.includes(num)
-        const accentColor = done ? '#2d6640' : 'var(--sd-red)'
-        const borderColor = done ? 'rgba(45,102,64,0.22)' : 'rgba(192,21,42,0.2)'
-        const cardBg = done
-          ? 'linear-gradient(135deg, rgba(45,102,64,0.07) 0%, rgba(45,102,64,0.02) 100%)'
-          : 'linear-gradient(135deg, rgba(192,21,42,0.06) 0%, rgba(255,255,255,0.01) 100%)'
         return (
           <div
             key={num}
@@ -206,49 +201,51 @@ function ActList({ completedActs, navigate }) {
             className="sd-act-row"
             style={{
               borderRadius: 12,
-              borderTop: `1px solid ${borderColor}`,
-              borderRight: `1px solid ${borderColor}`,
-              borderBottom: `1px solid ${borderColor}`,
-              borderLeft: `3px solid ${accentColor}`,
-              background: cardBg,
-              padding: '14px 16px 14px 14px',
+              border: `1px solid ${done ? 'rgba(45,102,64,0.35)' : 'rgba(192,21,42,0.38)'}`,
+              borderLeft: `4px solid ${done ? '#2d6640' : 'var(--sd-red)'}`,
+              background: done
+                ? 'linear-gradient(135deg, rgba(45,102,64,0.14) 0%, rgba(24,15,15,0.9) 100%)'
+                : 'linear-gradient(135deg, rgba(192,21,42,0.13) 0%, rgba(24,15,15,0.9) 100%)',
+              boxShadow: done
+                ? '0 4px 20px rgba(0,0,0,0.55)'
+                : '0 4px 20px rgba(0,0,0,0.55), inset 0 1px 0 rgba(192,21,42,0.08)',
+              padding: '16px 16px 16px 14px',
               display: 'flex', alignItems: 'center', gap: 14,
               cursor: done ? 'default' : 'pointer',
-              opacity: done ? 0.55 : 1,
+              opacity: done ? 0.6 : 1,
             }}
           >
             {/* Roman numeral badge */}
             <div style={{
-              width: 38, height: 38, borderRadius: 8, flexShrink: 0,
-              background: done ? 'rgba(45,102,64,0.15)' : 'rgba(192,21,42,0.12)',
-              border: `1px solid ${done ? 'rgba(45,102,64,0.3)' : 'rgba(192,21,42,0.3)'}`,
+              width: 40, height: 40, borderRadius: 8, flexShrink: 0,
+              background: done ? 'rgba(45,102,64,0.25)' : 'rgba(192,21,42,0.2)',
+              border: `1.5px solid ${done ? 'rgba(45,102,64,0.5)' : 'rgba(192,21,42,0.55)'}`,
               display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+              boxShadow: done ? 'none' : '0 0 10px rgba(192,21,42,0.12)',
             }}>
               <div style={{
                 fontFamily: "'Creepster', cursive",
-                fontSize: numeral.length > 2 ? 14 : 18,
-                color: done ? '#3d8f55' : 'var(--sd-red)',
+                fontSize: numeral.length > 2 ? 15 : 20,
+                color: done ? '#5db87a' : '#e83550',
                 lineHeight: 1,
               }}>{numeral}</div>
               <div style={{
                 fontFamily: "'Special Elite', serif", fontSize: 6,
-                color: done ? '#3d8f55' : 'rgba(192,21,42,0.7)',
+                color: done ? 'rgba(93,184,122,0.7)' : 'rgba(232,53,80,0.7)',
                 letterSpacing: '0.06em', marginTop: 2,
               }}>ACT</div>
             </div>
 
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontFamily: "'Teko', sans-serif", fontSize: 21, color: 'var(--sd-cream)', lineHeight: 1.1 }}>{name}</div>
-              <div style={{ fontFamily: "'Special Elite', serif", fontSize: 10, color: 'var(--sd-muted)', marginTop: 2 }}>{desc}</div>
+              <div style={{ fontFamily: "'Teko', sans-serif", fontSize: 22, color: done ? 'var(--sd-cream-dim)' : 'var(--sd-cream)', lineHeight: 1.1 }}>{name}</div>
+              <div style={{ fontFamily: "'Special Elite', serif", fontSize: 10, color: done ? 'var(--sd-muted)' : '#9a8a8a', marginTop: 2 }}>{desc}</div>
             </div>
 
             {done ? <CheckIcon /> : (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-                <span style={{
-                  fontFamily: "'Creepster', cursive", fontSize: 14, color: 'var(--sd-red)',
-                }}>+{xp}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                <span style={{ fontFamily: "'Creepster', cursive", fontSize: 17, color: '#e83550', lineHeight: 1 }}>+{xp}</span>
                 <span style={{ fontFamily: "'Special Elite', serif", fontSize: 9, color: 'var(--sd-muted)' }}>xp</span>
-                <span style={{ color: 'rgba(192,21,42,0.6)', fontSize: 18, lineHeight: 1 }}>›</span>
+                <span style={{ color: 'rgba(232,53,80,0.7)', fontSize: 20, lineHeight: 1 }}>›</span>
               </div>
             )}
           </div>
@@ -364,7 +361,7 @@ export default function Home() {
 
   return (
     <div className="sd-wrap" style={{
-      background: 'radial-gradient(ellipse 100% 280px at 50% 0px, rgba(192,21,42,0.11) 0%, transparent 100%), var(--sd-black)',
+      background: 'radial-gradient(ellipse 100% 340px at 50% 0px, rgba(192,21,42,0.22) 0%, transparent 100%), var(--sd-black)',
     }}>
       <Header activePage="ritual" />
 
@@ -444,15 +441,16 @@ export default function Home() {
                       onClick={() => !done && navigate(`/past/${dateStr}`)}
                       style={{
                         borderRadius: 12,
-                        borderTop: `1px solid ${done ? 'rgba(45,102,64,0.2)' : 'rgba(192,21,42,0.18)'}`,
-                        borderRight: `1px solid ${done ? 'rgba(45,102,64,0.2)' : 'rgba(192,21,42,0.18)'}`,
-                        borderBottom: `1px solid ${done ? 'rgba(45,102,64,0.2)' : 'rgba(192,21,42,0.18)'}`,
-                        borderLeft: `3px solid ${done ? '#2d6640' : 'rgba(192,21,42,0.35)'}`,
-                        background: done ? 'rgba(45,102,64,0.04)' : 'rgba(255,255,255,0.015)',
-                        padding: '13px 16px',
+                        border: `1px solid ${done ? 'rgba(45,102,64,0.32)' : 'rgba(192,21,42,0.35)'}`,
+                        borderLeft: `4px solid ${done ? '#2d6640' : 'var(--sd-red)'}`,
+                        background: done
+                          ? 'linear-gradient(135deg, rgba(45,102,64,0.12) 0%, rgba(24,15,15,0.9) 100%)'
+                          : 'linear-gradient(135deg, rgba(192,21,42,0.11) 0%, rgba(24,15,15,0.9) 100%)',
+                        boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
+                        padding: '13px 16px 13px 14px',
                         display: 'flex', alignItems: 'center', gap: 14,
                         cursor: done ? 'default' : 'pointer',
-                        opacity: done ? 0.65 : 1,
+                        opacity: done ? 0.6 : 1,
                       }}
                     >
                       <div style={{ flex: 1, minWidth: 0 }}>
