@@ -90,7 +90,7 @@ export default function Leaderboard() {
                     {displayName}
                     {isMe && (
                       <span style={{
-                        fontFamily: "'Special Elite', serif", fontSize: 8,
+                        fontFamily: "'Special Elite', serif", fontSize: 11,
                         color: 'var(--sd-red)', border: '0.5px solid rgba(192,21,42,0.4)',
                         borderRadius: 20, padding: '1px 6px', marginLeft: 6,
                         textTransform: 'uppercase', verticalAlign: 'middle',
@@ -99,14 +99,14 @@ export default function Leaderboard() {
                   </div>
                   {row.favorite_slasher ? (
                     <div style={{
-                      fontFamily: "'Special Elite', serif", fontSize: 9,
+                      fontFamily: "'Special Elite', serif", fontSize: 11,
                       color: 'var(--sd-muted)', marginTop: 1,
                     }}>
                       {row.favorite_slasher}
                     </div>
                   ) : (
                     <div style={{
-                      fontFamily: "'Special Elite', serif", fontSize: 9,
+                      fontFamily: "'Special Elite', serif", fontSize: 11,
                       color: rank.color, marginTop: 1, opacity: 0.7,
                     }}>
                       {rank.name}
@@ -122,10 +122,10 @@ export default function Leaderboard() {
                     lineHeight: 1,
                   }}>
                     {row.user_xp.toLocaleString()}
-                    <span style={{ fontFamily: "'Special Elite', serif", fontSize: 9, color: 'var(--sd-muted)', marginLeft: 3 }}>xp</span>
+                    <span style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-muted)', marginLeft: 3 }}>xp</span>
                   </div>
                   {row.streak > 0 && (
-                    <div style={{ fontFamily: "'Special Elite', serif", fontSize: 9, color: 'var(--sd-muted)', marginTop: 2 }}>
+                    <div style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-muted)', marginTop: 2 }}>
                       {row.streak}🔥
                     </div>
                   )}

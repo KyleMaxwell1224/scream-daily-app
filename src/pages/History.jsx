@@ -90,16 +90,16 @@ export default function History() {
             <div style={{ fontFamily: "'Creepster', cursive", fontSize: 17, color: 'var(--sd-cream)' }}>
               Today
             </div>
-            <div style={{ fontFamily: "'Special Elite', serif", fontSize: 9, color: 'var(--sd-muted)', marginTop: 1 }}>
+            <div style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-muted)', marginTop: 1 }}>
               {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
             </div>
           </div>
           {todayDone ? (
             <div style={{ textAlign: 'right' }}>
               <div style={{ fontFamily: "'Teko', sans-serif", fontSize: 18, color: '#7cc48a' }}>
-                {todayXP} <span style={{ fontFamily: "'Special Elite', serif", fontSize: 9, color: 'var(--sd-muted)' }}>xp</span>
+                {todayXP} <span style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-muted)' }}>xp</span>
               </div>
-              <div style={{ fontFamily: "'Special Elite', serif", fontSize: 9, color: '#2d6640' }}>complete</div>
+              <div style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: '#2d6640' }}>complete</div>
             </div>
           ) : (
             <button
@@ -142,7 +142,7 @@ export default function History() {
                 <div style={{ fontFamily: "'Creepster', cursive", fontSize: 17, color: done ? 'var(--sd-cream-dim)' : 'var(--sd-cream)' }}>
                   {formatDate(dateStr)}
                 </div>
-                <div style={{ fontFamily: "'Special Elite', serif", fontSize: 9, color: 'var(--sd-muted)', marginTop: 1 }}>
+                <div style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-muted)', marginTop: 1 }}>
                   {entry?.is_backfill ? 'Backfill · 50% xp' : dateStr}
                 </div>
               </div>
@@ -150,9 +150,9 @@ export default function History() {
               {done ? (
                 <div style={{ textAlign: 'right' }}>
                   <div style={{ fontFamily: "'Teko', sans-serif", fontSize: 18, color: '#7cc48a' }}>
-                    {entry.xp_earned} <span style={{ fontFamily: "'Special Elite', serif", fontSize: 9, color: 'var(--sd-muted)' }}>xp</span>
+                    {entry.xp_earned} <span style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-muted)' }}>xp</span>
                   </div>
-                  <div style={{ fontFamily: "'Special Elite', serif", fontSize: 9, color: '#2d6640' }}>complete</div>
+                  <div style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: '#2d6640' }}>complete</div>
                 </div>
               ) : (
                 <button

@@ -124,7 +124,7 @@ export default function ActOne() {
           </div>
         </div>
         <div style={{
-          fontFamily: "'Special Elite', serif", fontSize: 9,
+          fontFamily: "'Special Elite', serif", fontSize: 11,
           color: 'var(--sd-muted)', textAlign: 'center', marginTop: 6,
         }}>
           Day #{dayNum} · Identify this film
@@ -144,7 +144,7 @@ export default function ActOne() {
               opacity: usedClues[key] ? 0.5 : 1,
             }}
           >
-            <div style={{ fontFamily: "'Special Elite', serif", fontSize: 9, color: 'var(--sd-cream-dim)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            <div style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-cream-dim)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
               {label}
             </div>
             {usedClues[key] ? (
@@ -152,7 +152,7 @@ export default function ActOne() {
                 {revealedClues[key]}
               </div>
             ) : (
-              <div style={{ fontFamily: "'Special Elite', serif", fontSize: 9, color: 'var(--sd-red)', marginTop: 2 }}>
+              <div style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-red)', marginTop: 2 }}>
                 −{penalty} xp
               </div>
             )}
@@ -196,8 +196,8 @@ export default function ActOne() {
           {q && (
             <div style={{ borderTop: '0.5px solid rgba(255,255,255,0.08)', marginTop: 10, paddingTop: 8 }}>
               <div style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-cream)' }}>{q.correct_answer}</div>
-              {q.decade && <div style={{ fontFamily: "'Special Elite', serif", fontSize: 9, color: 'var(--sd-muted)', marginTop: 2 }}>{q.decade}</div>}
-              {q.authored_by && <div style={{ fontFamily: "'Special Elite', serif", fontSize: 9, color: 'var(--sd-muted)' }}>Dir. {q.authored_by}</div>}
+              {q.decade && <div style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-muted)', marginTop: 2 }}>{q.decade}</div>}
+              {q.authored_by && <div style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-muted)' }}>Dir. {q.authored_by}</div>}
             </div>
           )}
         </div>

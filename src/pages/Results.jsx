@@ -71,7 +71,7 @@ export default function Results() {
         borderBottom: '0.5px solid var(--sd-border)',
       }}>
         <div style={{
-          fontFamily: "'Special Elite', serif", fontSize: 9, color: 'var(--sd-red)',
+          fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-red)',
           textTransform: 'uppercase', letterSpacing: '0.16em', marginBottom: 10,
         }}>
           Day #{dayNum} complete
@@ -93,7 +93,7 @@ export default function Results() {
           padding: '22px 20px 18px',
         }}>
           <div style={{
-            fontFamily: "'Special Elite', serif", fontSize: 9, color: 'var(--sd-muted)',
+            fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-muted)',
             textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 6,
           }}>
             XP earned today
@@ -125,7 +125,7 @@ export default function Results() {
             }} />
           </div>
           <div style={{
-            fontFamily: "'Special Elite', serif", fontSize: 9, color: 'var(--sd-muted)', marginTop: 7,
+            fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-muted)', marginTop: 7,
             display: 'flex', justifyContent: 'space-between',
           }}>
             <span>{userXP} XP before today</span>
@@ -146,7 +146,7 @@ export default function Results() {
           }}>
             <div style={{ flex: 1 }}>
               <div style={{
-                fontFamily: "'Special Elite', serif", fontSize: 9, color: rank.color,
+                fontFamily: "'Special Elite', serif", fontSize: 11, color: rank.color,
                 textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 4,
               }}>
                 Rank up
@@ -169,7 +169,7 @@ export default function Results() {
       {/* Act breakdown */}
       <div style={{ padding: '20px var(--sd-px) 0' }}>
         <div style={{
-          fontFamily: "'Special Elite', serif", fontSize: 9, color: 'var(--sd-muted)',
+          fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-muted)',
           textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10,
         }}>
           Act breakdown
@@ -209,7 +209,7 @@ export default function Results() {
                 </div>
                 <div style={{ textAlign: 'right', flexShrink: 0 }}>
                   <span style={{ fontFamily: "'Teko', sans-serif", fontSize: 18, color: xpColor, lineHeight: 1 }}>{earned}</span>
-                  <span style={{ fontFamily: "'Special Elite', serif", fontSize: 9, color: 'var(--sd-muted)' }}> / {max} xp</span>
+                  <span style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-muted)' }}> / {max} xp</span>
                 </div>
               </div>
             )

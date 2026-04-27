@@ -180,7 +180,7 @@ export default function PastRitual() {
       <div className="sd-wrap">
         <Header activePage="ritual" />
         <div style={{ padding: '40px var(--sd-px)', textAlign: 'center' }}>
-          <div style={{ fontFamily: "'Special Elite', serif", fontSize: 9, color: 'var(--sd-muted)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 8 }}>
+          <div style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-muted)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 8 }}>
             {formatDate(date)}
           </div>
           <div style={{ fontFamily: "'Creepster', cursive", fontSize: 30, color: 'var(--sd-cream)', marginBottom: 20 }}>
@@ -223,7 +223,7 @@ export default function PastRitual() {
           background: 'linear-gradient(180deg, rgba(192,21,42,0.1) 0%, transparent 100%)',
           borderBottom: '0.5px solid var(--sd-border)',
         }}>
-          <div style={{ fontFamily: "'Special Elite', serif", fontSize: 9, color: 'var(--sd-red)', textTransform: 'uppercase', letterSpacing: '0.16em', marginBottom: 8 }}>
+          <div style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-red)', textTransform: 'uppercase', letterSpacing: '0.16em', marginBottom: 8 }}>
             {formatDate(date)} · Backfill
           </div>
           <div style={{ fontFamily: "'Creepster', cursive", fontSize: 36, color: 'var(--sd-cream)', lineHeight: 1.05 }}>
@@ -240,7 +240,7 @@ export default function PastRitual() {
             border: '1px solid rgba(192,21,42,0.35)',
             background: 'linear-gradient(135deg, rgba(255,255,255,0.02) 0%, rgba(192,21,42,0.05) 100%)',
           }}>
-            <div style={{ fontFamily: "'Special Elite', serif", fontSize: 9, color: 'var(--sd-muted)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 6 }}>
+            <div style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-muted)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 6 }}>
               XP earned
             </div>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
@@ -251,7 +251,7 @@ export default function PastRitual() {
         </div>
 
         <div style={{ padding: '20px var(--sd-px) 0' }}>
-          <div style={{ fontFamily: "'Special Elite', serif", fontSize: 9, color: 'var(--sd-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>
+          <div style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>
             Act breakdown
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
@@ -280,7 +280,7 @@ export default function PastRitual() {
                   </div>
                   <div style={{ flexShrink: 0 }}>
                     <span style={{ fontFamily: "'Teko', sans-serif", fontSize: 18, color: xpColor }}>{xp}</span>
-                    <span style={{ fontFamily: "'Special Elite', serif", fontSize: 9, color: 'var(--sd-muted)' }}> / {max} xp</span>
+                    <span style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-muted)' }}> / {max} xp</span>
                   </div>
                 </div>
               )
@@ -311,10 +311,10 @@ export default function PastRitual() {
         borderRadius: 8, padding: '6px 12px',
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
       }}>
-        <span style={{ fontFamily: "'Special Elite', serif", fontSize: 9, color: 'var(--sd-muted)' }}>
+        <span style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-muted)' }}>
           {formatDate(date)} · 50% XP
         </span>
-        <span style={{ fontFamily: "'Special Elite', serif", fontSize: 9, color: 'var(--sd-red)' }}>
+        <span style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-red)' }}>
           {totalSoFar} xp
         </span>
       </div>
@@ -437,8 +437,8 @@ function Act1View({ q, answer, setAnswer, result, onSubmit, onContinue, maxXP })
           </div>
           <div style={{ borderTop: '0.5px solid rgba(255,255,255,0.08)', marginTop: 10, paddingTop: 8 }}>
             <div style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-cream)' }}>{q.correct_answer}</div>
-            {q.decade && <div style={{ fontFamily: "'Special Elite', serif", fontSize: 9, color: 'var(--sd-muted)', marginTop: 2 }}>{q.decade}</div>}
-            {q.authored_by && <div style={{ fontFamily: "'Special Elite', serif", fontSize: 9, color: 'var(--sd-muted)' }}>Dir. {q.authored_by}</div>}
+            {q.decade && <div style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-muted)', marginTop: 2 }}>{q.decade}</div>}
+            {q.authored_by && <div style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-muted)' }}>Dir. {q.authored_by}</div>}
           </div>
         </div>
       )}

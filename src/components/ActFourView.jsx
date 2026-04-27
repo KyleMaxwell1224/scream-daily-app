@@ -76,7 +76,7 @@ export default function ActFourView({
         animation: result ? 'none' : 'pulse-border 3s ease-in-out infinite',
         border: '1px solid var(--sd-border)',
       }}>
-        <div style={{ fontFamily: "'Special Elite', serif", fontSize: 9, color: 'var(--sd-red)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>
+        <div style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-red)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>
           The brutal question
         </div>
         <div style={{ fontFamily: "'Special Elite', serif", fontSize: 14, color: 'var(--sd-cream)', lineHeight: 1.6 }}>
@@ -96,7 +96,7 @@ export default function ActFourView({
             background: bg, border: `1px solid ${border}`, borderRadius: 8,
           }}>
             <div style={{ fontFamily: "'Creepster', cursive", fontSize: 16, color }}>{val}</div>
-            <div style={{ fontFamily: "'Special Elite', serif", fontSize: 8, color: 'var(--sd-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</div>
+            <div style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</div>
           </div>
         ))}
       </div>

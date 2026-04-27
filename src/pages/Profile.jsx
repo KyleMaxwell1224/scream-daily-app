@@ -412,7 +412,7 @@ export default function Profile() {
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, marginTop: 10 }}>
           {memberSince && (
-            <span style={{ fontFamily: "'Special Elite', serif", fontSize: 9, color: 'var(--sd-muted)' }}>
+            <span style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-muted)' }}>
               Since {memberSince}
             </span>
           )}
@@ -421,7 +421,7 @@ export default function Profile() {
             style={{
               background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.14)',
               borderRadius: 6, padding: '5px 14px', cursor: 'pointer',
-              fontFamily: "'Special Elite', serif", fontSize: 9, color: 'var(--sd-cream-dim)',
+              fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-cream-dim)',
             }}
           >
             Edit profile
@@ -513,7 +513,7 @@ export default function Profile() {
             </div>
             <div style={{ textAlign: 'right' }}>
               <div style={{ fontFamily: "'Teko', sans-serif", fontSize: 30, color: 'var(--sd-cream)', lineHeight: 1 }}>{displayXP}</div>
-              <div style={{ fontFamily: "'Special Elite', serif", fontSize: 8, color: 'var(--sd-muted)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>total xp</div>
+              <div style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-muted)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>total xp</div>
             </div>
           </div>
           <div style={{ height: 6, background: 'rgba(255,255,255,0.07)', borderRadius: 3, overflow: 'hidden' }}>
@@ -522,7 +522,7 @@ export default function Profile() {
               background: rank.color, borderRadius: 3,
             }} />
           </div>
-          <div style={{ fontFamily: "'Special Elite', serif", fontSize: 9, color: 'var(--sd-muted)', marginTop: 7 }}>
+          <div style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-muted)', marginTop: 7 }}>
             {nextRank ? `${nextRank.minXP - displayXP} XP until ${nextRank.name}` : 'Max rank achieved'}
           </div>
         </div>
@@ -542,7 +542,7 @@ export default function Profile() {
           }}>
             <div style={{ fontFamily: "'Teko', sans-serif", fontSize: 36, color: 'var(--sd-cream)', lineHeight: 1 }}>{value}</div>
             <div style={{
-              fontFamily: "'Special Elite', serif", fontSize: 9, color: 'var(--sd-muted)',
+              fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-muted)',
               textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: 5,
             }}>{label}</div>
           </div>
@@ -552,7 +552,7 @@ export default function Profile() {
       {/* ── Settings ──────────────────────────────────────── */}
       <div style={{ padding: '20px var(--sd-px) 0' }}>
         <div style={{
-          fontFamily: "'Special Elite', serif", fontSize: 9, color: 'var(--sd-muted)',
+          fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-muted)',
           textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10,
         }}>
           Settings
@@ -583,7 +583,7 @@ export default function Profile() {
       {/* ── Rank ladder ───────────────────────────────────── */}
       <div style={{ padding: '20px var(--sd-px) 0' }}>
         <div style={{
-          fontFamily: "'Special Elite', serif", fontSize: 9, color: 'var(--sd-muted)',
+          fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-muted)',
           textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10,
         }}>
           Rank ladder
@@ -603,11 +603,11 @@ export default function Profile() {
                 <div style={{ width: 8, height: 8, borderRadius: '50%', background: r.color, flexShrink: 0 }} />
                 <div style={{ flex: 1 }}>
                   <div style={{ fontFamily: "'Creepster', cursive", fontSize: 15, color: r.color }}>{r.name}</div>
-                  <div style={{ fontFamily: "'Special Elite', serif", fontSize: 9, color: 'var(--sd-muted)' }}>{r.minXP} XP</div>
+                  <div style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-muted)' }}>{r.minXP} XP</div>
                 </div>
                 {isCurrent && (
                   <span style={{
-                    fontFamily: "'Special Elite', serif", fontSize: 8,
+                    fontFamily: "'Special Elite', serif", fontSize: 11,
                     color: r.color, border: `0.5px solid ${r.color}55`,
                     borderRadius: 20, padding: '2px 8px', textTransform: 'uppercase',
                   }}>you</span>

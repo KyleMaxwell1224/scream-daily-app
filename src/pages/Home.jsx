@@ -86,13 +86,13 @@ function ProfilePanel({ username, rank, displayXP, nextRank, xpBarFill, streak, 
             {rank.flavor}
           </span>
           <span style={{ fontFamily: "'Teko', sans-serif", fontSize: 20, color: 'var(--sd-cream)', lineHeight: 1, flexShrink: 0 }}>
-            {displayXP}<span style={{ fontFamily: "'Special Elite', serif", fontSize: 9, color: 'var(--sd-muted)', marginLeft: 3 }}>xp</span>
+            {displayXP}<span style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-muted)', marginLeft: 3 }}>xp</span>
           </span>
         </div>
         <div style={{ height: 4, background: 'rgba(255,255,255,0.07)', borderRadius: 2, overflow: 'hidden', marginBottom: 6 }}>
           <div style={{ width: `${xpBarFill}%`, height: '100%', background: rank.color, borderRadius: 2 }} />
         </div>
-        <div style={{ fontFamily: "'Special Elite', serif", fontSize: 9, color: 'var(--sd-muted)' }}>
+        <div style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-muted)' }}>
           {nextRank ? `${nextRank.minXP - displayXP} XP to ${nextRank.name}` : 'Max rank achieved'}
         </div>
       </div>
@@ -109,7 +109,7 @@ function ProfilePanel({ username, rank, displayXP, nextRank, xpBarFill, streak, 
           }}>
             <div style={{ fontFamily: "'Teko', sans-serif", fontSize: 34, color: 'var(--sd-cream)', lineHeight: 1 }}>{value}</div>
             <div style={{
-              fontFamily: "'Special Elite', serif", fontSize: 9, color: 'var(--sd-muted)',
+              fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-muted)',
               textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: 4,
             }}>{label}</div>
           </div>
@@ -119,7 +119,7 @@ function ProfilePanel({ username, rank, displayXP, nextRank, xpBarFill, streak, 
       {/* Week calendar */}
       <div style={{ padding: '14px 20px 18px' }}>
         <div style={{
-          fontFamily: "'Special Elite', serif", fontSize: 9, color: 'var(--sd-muted)',
+          fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-muted)',
           textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 10,
         }}>
           This week
@@ -158,7 +158,7 @@ function ProfilePanel({ username, rank, displayXP, nextRank, xpBarFill, streak, 
                 background: bg,
               }}>
                 <div style={{
-                  fontFamily: "'Special Elite', serif", fontSize: 9,
+                  fontFamily: "'Special Elite', serif", fontSize: 11,
                   textTransform: 'uppercase', color: labelColor,
                 }}>
                   {DAY_LABELS[i]}
@@ -230,7 +230,7 @@ function ActList({ completedActs, navigate }) {
                 lineHeight: 1,
               }}>{numeral}</div>
               <div style={{
-                fontFamily: "'Special Elite', serif", fontSize: 6,
+                fontFamily: "'Special Elite', serif", fontSize: 10,
                 color: done ? 'rgba(93,184,122,0.7)' : 'rgba(232,53,80,0.7)',
                 letterSpacing: '0.06em', marginTop: 2,
               }}>ACT</div>
@@ -244,7 +244,7 @@ function ActList({ completedActs, navigate }) {
             {done ? <CheckIcon /> : (
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
                 <span style={{ fontFamily: "'Creepster', cursive", fontSize: 17, color: '#e83550', lineHeight: 1 }}>+{xp}</span>
-                <span style={{ fontFamily: "'Special Elite', serif", fontSize: 9, color: 'var(--sd-muted)' }}>xp</span>
+                <span style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-muted)' }}>xp</span>
                 <span style={{ color: 'rgba(232,53,80,0.7)', fontSize: 20, lineHeight: 1 }}>›</span>
               </div>
             )}
