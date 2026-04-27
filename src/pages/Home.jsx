@@ -291,31 +291,23 @@ export default function Home() {
 
   useEffect(() => {
     async function loadPast() {
-      const cutoff = new Date()
-      cutoff.setDate(cutoff.getDate() - 7)
-      const cutoffStr = cutoff.toISOString().slice(0, 10)
+      // Fetch all used_on dates (just the date field — small payload) for day count + preview
+      const { data: allRows } = await supabase
+        .from('questions').select('used_on')
+        .lte('used_on', todayStr).not('used_on', 'is', null)
 
-      const [{ data: qRows }, { data: allRows }] = await Promise.all([
-        supabase.from('questions').select('used_on')
-          .gte('used_on', cutoffStr).lt('used_on', todayStr).not('used_on', 'is', null),
-        supabase.from('questions').select('used_on')
-          .lte('used_on', todayStr).not('used_on', 'is', null),
-      ])
+      const allDates = [...new Set((allRows || []).map(r => r.used_on))].sort((a, b) => b.localeCompare(a))
+      const pastDates = allDates.filter(d => d < todayStr)
 
-      const dates = [...new Set((qRows || []).map(r => r.used_on))]
-        .sort((a, b) => b.localeCompare(a))
-        .slice(0, 3)
-      setPastAvail(dates)
+      setPastAvail(pastDates.slice(0, 3))
+      setDayNum(allDates.length)
 
-      const totalDays = new Set((allRows || []).map(r => r.used_on)).size
-      setDayNum(totalDays)
-
-      if (session?.user && dates.length) {
+      if (session?.user && pastDates.length) {
         const { data: logRows } = await supabase
           .from('ritual_log')
           .select('date, xp_earned')
           .eq('user_id', session.user.id)
-          .in('date', dates)
+          .in('date', pastDates.slice(0, 3))
         const byDate = Object.fromEntries((logRows || []).map(r => [r.date, r]))
         setPastLog(byDate)
       }

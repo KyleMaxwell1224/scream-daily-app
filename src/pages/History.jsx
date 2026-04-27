@@ -1,18 +1,17 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Header from '../components/Header'
 import BottomNav from '../components/BottomNav'
 import useGameStore from '../store/useGameStore'
 import { supabase } from '../supabaseClient'
 
+const PAGE_SIZE = 10
+
 function formatDate(dateStr) {
   const d = new Date(dateStr + 'T12:00:00')
-  const today = new Date().toISOString().slice(0, 10)
   const yesterday = new Date()
   yesterday.setDate(yesterday.getDate() - 1)
   const yesterdayStr = yesterday.toISOString().slice(0, 10)
-
-  if (dateStr === today) return 'Today'
   if (dateStr === yesterdayStr) return 'Yesterday'
   return d.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })
 }
@@ -21,47 +20,65 @@ export default function History() {
   const navigate = useNavigate()
   const { session, completedActs, xpEarned, ritualBanked, completedBackfills } = useGameStore()
 
-  const [log, setLog] = useState([])     // { date, xp_earned, is_backfill }[]
-  const [avail, setAvail] = useState([]) // date strings that have questions
+  const [log, setLog] = useState([])
+  const [avail, setAvail] = useState([])
+  const [cursor, setCursor] = useState(null)   // oldest date loaded so far
+  const [hasMore, setHasMore] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
 
   const today = new Date().toISOString().slice(0, 10)
   const todayDone = ritualBanked
   const todayXP = Object.values(xpEarned).reduce((s, v) => s + v, 0)
 
+  // Fetch PAGE_SIZE distinct past dates older than `before`
+  const fetchPage = useCallback(async (before) => {
+    // Fetch enough rows to get PAGE_SIZE distinct dates.
+    // 500 rows / ~10 questions per day ≈ 50 days — plenty of headroom.
+    const { data: qRows } = await supabase
+      .from('questions')
+      .select('used_on')
+      .lt('used_on', before)
+      .not('used_on', 'is', null)
+      .order('used_on', { ascending: false })
+      .limit(500)
+
+    const distinct = [...new Set((qRows || []).map(r => r.used_on))].sort((a, b) => b.localeCompare(a))
+    const page = distinct.slice(0, PAGE_SIZE)
+    return { page, hasMore: distinct.length > PAGE_SIZE }
+  }, [])
+
   useEffect(() => {
-    async function load() {
-      const cutoff = new Date()
-      cutoff.setDate(cutoff.getDate() - 7)
-      const cutoffStr = cutoff.toISOString().slice(0, 10)
+    async function init() {
+      const { page, hasMore: more } = await fetchPage(today)
+      setAvail(page)
+      setCursor(page.at(-1) ?? today)
+      setHasMore(more)
 
-      // Which past dates have questions
-      const { data: qRows } = await supabase
-        .from('questions')
-        .select('used_on')
-        .gte('used_on', cutoffStr)
-        .lt('used_on', today)
-        .not('used_on', 'is', null)
-
-      const uniqueDates = [...new Set((qRows || []).map(r => r.used_on))].sort((a, b) => b.localeCompare(a))
-      setAvail(uniqueDates)
-
-      // User's completion log
-      if (session?.user) {
+      if (session?.user && page.length) {
         const { data: logRows } = await supabase
           .from('ritual_log')
           .select('date, xp_earned, is_backfill')
           .eq('user_id', session.user.id)
-          .gte('date', cutoffStr)
           .order('date', { ascending: false })
         setLog(logRows || [])
       }
 
       setLoading(false)
     }
-    load()
+    init()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session?.user?.id])
+
+  async function loadMore() {
+    if (!cursor || loadingMore) return
+    setLoadingMore(true)
+    const { page, hasMore: more } = await fetchPage(cursor)
+    setAvail(prev => [...prev, ...page])
+    setCursor(page.at(-1) ?? cursor)
+    setHasMore(more)
+    setLoadingMore(false)
+  }
 
   const logByDate = Object.fromEntries(log.map(r => [r.date, r]))
 
@@ -107,7 +124,7 @@ export default function History() {
               style={{
                 background: 'var(--sd-red)', border: 'none', borderRadius: 8,
                 padding: '7px 16px', cursor: 'pointer',
-                fontFamily: "'Special Elite', serif", fontSize: 10, color: 'var(--sd-cream)',
+                fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-cream)',
               }}
             >
               {completedActs.length > 0 ? 'Resume' : 'Play'}
@@ -176,6 +193,24 @@ export default function History() {
             </div>
           )
         })}
+
+        {/* Load more */}
+        {hasMore && (
+          <button
+            onClick={loadMore}
+            disabled={loadingMore}
+            style={{
+              width: '100%', background: 'none',
+              border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10,
+              padding: '13px', cursor: loadingMore ? 'default' : 'pointer',
+              fontFamily: "'Special Elite', serif", fontSize: 12,
+              color: loadingMore ? 'var(--sd-muted)' : 'var(--sd-cream-dim)',
+            }}
+          >
+            {loadingMore ? 'Loading…' : 'Load more'}
+          </button>
+        )}
+
       </div>
 
       <BottomNav activePage="ritual" />
