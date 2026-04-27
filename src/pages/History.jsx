@@ -90,7 +90,7 @@ export default function History() {
             <div style={{ fontFamily: "'Creepster', cursive", fontSize: 17, color: 'var(--sd-cream)' }}>
               Today
             </div>
-            <div style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-muted)', marginTop: 1 }}>
+            <div style={{ fontFamily: "'Special Elite', serif", fontSize: 12, color: 'var(--sd-cream-dim)', marginTop: 5 }}>
               {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
             </div>
           </div>
@@ -148,7 +148,7 @@ export default function History() {
                 <div style={{ fontFamily: "'Creepster', cursive", fontSize: 17, color: done ? 'var(--sd-cream-dim)' : 'var(--sd-cream)' }}>
                   {formatDate(dateStr)}
                 </div>
-                <div style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-muted)', marginTop: 1 }}>
+                <div style={{ fontFamily: "'Special Elite', serif", fontSize: 12, color: 'var(--sd-cream-dim)', marginTop: 5 }}>
                   {done ? 'Past ritual · 50% XP' : 'Available to play'}
                 </div>
               </div>

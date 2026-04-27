@@ -4,7 +4,7 @@ import Header from '../components/Header'
 import BottomNav from '../components/BottomNav'
 import useGameStore from '../store/useGameStore'
 import { supabase } from '../supabaseClient'
-import { getTodaysQuestions, getDayNumber } from '../utils/questions'
+import { getTodaysQuestions } from '../utils/questions'
 import { getRankForXP, getNextRank } from '../utils/ranks'
 
 const ACTS = [
@@ -238,7 +238,7 @@ function ActList({ completedActs, navigate }) {
 
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontFamily: "'Teko', sans-serif", fontSize: 22, color: done ? 'var(--sd-cream-dim)' : 'var(--sd-cream)', lineHeight: 1.1 }}>{name}</div>
-              <div style={{ fontFamily: "'Special Elite', serif", fontSize: 10, color: done ? 'var(--sd-muted)' : '#9a8a8a', marginTop: 2 }}>{desc}</div>
+              <div style={{ fontFamily: "'Special Elite', serif", fontSize: 12, color: done ? 'var(--sd-muted)' : 'var(--sd-cream-dim)', marginTop: 4 }}>{desc}</div>
             </div>
 
             {done ? <CheckIcon /> : (
@@ -272,12 +272,12 @@ export default function Home() {
   const [pastAvail, setPastAvail] = useState([])
   const [pastLog, setPastLog] = useState({})
   const [weekCompletions, setWeekCompletions] = useState(new Set())
+  const [dayNum, setDayNum] = useState(null)
 
   const totalXP = Object.values(xpEarned).reduce((s, v) => s + v, 0)
   const displayXP = userXP + totalXP
   const rank = getRankForXP(displayXP)
   const nextRank = getNextRank(displayXP)
-  const dayNum = getDayNumber()
 
   const today = new Date()
   const todayStr = today.toISOString().slice(0, 10)
@@ -295,17 +295,20 @@ export default function Home() {
       cutoff.setDate(cutoff.getDate() - 7)
       const cutoffStr = cutoff.toISOString().slice(0, 10)
 
-      const { data: qRows } = await supabase
-        .from('questions')
-        .select('used_on')
-        .gte('used_on', cutoffStr)
-        .lt('used_on', todayStr)
-        .not('used_on', 'is', null)
+      const [{ data: qRows }, { data: allRows }] = await Promise.all([
+        supabase.from('questions').select('used_on')
+          .gte('used_on', cutoffStr).lt('used_on', todayStr).not('used_on', 'is', null),
+        supabase.from('questions').select('used_on')
+          .lte('used_on', todayStr).not('used_on', 'is', null),
+      ])
 
       const dates = [...new Set((qRows || []).map(r => r.used_on))]
         .sort((a, b) => b.localeCompare(a))
         .slice(0, 3)
       setPastAvail(dates)
+
+      const totalDays = new Set((allRows || []).map(r => r.used_on)).size
+      setDayNum(totalDays)
 
       if (session?.user && dates.length) {
         const { data: logRows } = await supabase
@@ -376,9 +379,11 @@ export default function Home() {
           {dateStr}
         </span>
         <span style={{ width: 3, height: 3, borderRadius: '50%', background: 'rgba(192,21,42,0.55)', display: 'inline-block', flexShrink: 0 }} />
-        <span style={{ fontFamily: "'Creepster', cursive", fontSize: 18, color: 'var(--sd-red)', letterSpacing: 1 }}>
-          Day #{dayNum}
-        </span>
+        {dayNum !== null && (
+          <span style={{ fontFamily: "'Creepster', cursive", fontSize: 18, color: 'var(--sd-red)', letterSpacing: 1 }}>
+            Day #{dayNum}
+          </span>
+        )}
       </div>
 
       <div className="sd-home-content">
@@ -457,7 +462,7 @@ export default function Home() {
                         <div style={{ fontFamily: "'Teko', sans-serif", fontSize: 20, color: done ? 'var(--sd-cream-dim)' : 'var(--sd-cream)', lineHeight: 1.1 }}>
                           {formatPastDate(dateStr)}
                         </div>
-                        <div style={{ fontFamily: "'Special Elite', serif", fontSize: 10, color: 'var(--sd-muted)', marginTop: 3 }}>
+                        <div style={{ fontFamily: "'Special Elite', serif", fontSize: 12, color: 'var(--sd-cream-dim)', marginTop: 5 }}>
                           {done ? 'Past ritual · 50% XP' : 'Available to play'}
                         </div>
                       </div>
