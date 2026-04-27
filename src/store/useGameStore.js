@@ -11,6 +11,21 @@ function yesterdayStr() {
   return d.toISOString().slice(0, 10)
 }
 
+const USER_RESET = {
+  userXP: 0,
+  streak: 0,
+  daysPlayed: 0,
+  lastPlayedDate: null,
+  lastCompletedDate: null,
+  username: '',
+  favoriteSlasher: '',
+  totalCorrect: 0,
+  totalAnswered: 0,
+  completedBackfills: {},
+  pastRitualProgress: {},
+  lastUserId: null,
+}
+
 const DAILY_RESET = {
   completedActs: [],
   xpEarned: { act1: 0, act2: 0, act3: 0, act4: 0 },
@@ -157,7 +172,13 @@ const useGameStore = create(
         return { pastRitualProgress: rest }
       }),
 
-      setSession: (session) => set({ session }),
+      setSession: (session) => set((state) => {
+        const newUserId = session?.user?.id ?? null
+        if (newUserId !== state.lastUserId) {
+          return { ...USER_RESET, ...DAILY_RESET, session, lastUserId: newUserId }
+        }
+        return { session }
+      }),
 
       // Called on every app mount — rolls over to a new day when needed
       checkNewDay: () => set((state) => {
