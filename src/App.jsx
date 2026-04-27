@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom'
 import Home from './pages/Home'
 import ActOne from './pages/ActOne'
 import ActTwo from './pages/ActTwo'
@@ -11,9 +11,33 @@ import Leaderboard from './pages/Leaderboard'
 import History from './pages/History'
 import PastRitual from './pages/PastRitual'
 import useGameStore from './store/useGameStore'
-import { pushStats, logRitual } from './utils/syncStats'
+import { supabase } from './supabaseClient'
+import { pushStats, pullStats, logRitual } from './utils/syncStats'
 
-export default function App() {
+// Handles auth state changes app-wide so OAuth redirects (which land on /)
+// always trigger setSession + pullStats regardless of which page is mounted.
+function AuthInit() {
+  const setSession = useGameStore((s) => s.setSession)
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      setSession(session)
+      if (session) {
+        await pullStats(session)
+        // Send new OAuth users (no username yet) straight to profile setup
+        const { username } = useGameStore.getState()
+        if (!username) navigate('/profile')
+      }
+    })
+    return () => subscription.unsubscribe()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  return null
+}
+
+function AppInner() {
   const checkNewDay = useGameStore((s) => s.checkNewDay)
   const ritualBanked = useGameStore((s) => s.ritualBanked)
   const completedActs = useGameStore((s) => s.completedActs)
@@ -44,19 +68,26 @@ export default function App() {
   }, [ritualBanked])
 
   return (
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="/act/1" element={<ActOne />} />
+      <Route path="/act/2" element={<ActTwo />} />
+      <Route path="/act/3" element={<ActThree />} />
+      <Route path="/act/4" element={<ActFour />} />
+      <Route path="/results" element={<Results />} />
+      <Route path="/profile" element={<Profile />} />
+      <Route path="/leaderboard" element={<Leaderboard />} />
+      <Route path="/history" element={<History />} />
+      <Route path="/past/:date" element={<PastRitual />} />
+    </Routes>
+  )
+}
+
+export default function App() {
+  return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/act/1" element={<ActOne />} />
-        <Route path="/act/2" element={<ActTwo />} />
-        <Route path="/act/3" element={<ActThree />} />
-        <Route path="/act/4" element={<ActFour />} />
-        <Route path="/results" element={<Results />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/leaderboard" element={<Leaderboard />} />
-        <Route path="/history" element={<History />} />
-        <Route path="/past/:date" element={<PastRitual />} />
-      </Routes>
+      <AuthInit />
+      <AppInner />
     </BrowserRouter>
   )
 }

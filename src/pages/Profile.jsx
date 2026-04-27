@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import Header from '../components/Header'
 import BottomNav from '../components/BottomNav'
 import useGameStore from '../store/useGameStore'
 import { supabase } from '../supabaseClient'
 import { RANKS, getRankForXP, getNextRank } from '../utils/ranks'
-import { pullStats, pushStats } from '../utils/syncStats'
+import { pushStats } from '../utils/syncStats'
 import { checkProfanity } from 'glin-profanity';
 
 const SLASHERS = [
@@ -56,17 +56,6 @@ export default function Profile() {
   const [saveError, setSaveError] = useState('')
   const [saving, setSaving] = useState(false)
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (data?.session) setSession(data.session)
-    })
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => {
-      setSession(s)
-      if (s) pullStats(s)
-    })
-    return () => subscription.unsubscribe()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
 
   function openEdit() {
     setEditUsername(username)
