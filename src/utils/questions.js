@@ -33,13 +33,23 @@ export function levenshtein(a, b) {
   return dp[m][n]
 }
 
+// Strip leading "the/a/an" so "Devil" matches "The Devil" exactly
+function stripArticle(s) {
+  return s.replace(/^(the|a|an)\s+/i, '')
+}
+
 export function gradeAnswer(userInput, correctAnswer, acceptedVariants = []) {
   const input = userInput.trim().toLowerCase()
   if (!input) return { grade: 'wrong', xp: 0 }
   const correct = correctAnswer.toLowerCase()
   const variants = acceptedVariants.map(v => v.toLowerCase())
 
+  const inputCore = stripArticle(input)
+  const correctCore = stripArticle(correct)
+
   if (input === correct || variants.includes(input)) return { grade: 'exact', xp: 100 }
+  if (inputCore && inputCore === correctCore) return { grade: 'exact', xp: 100 }
+  if (variants.some(v => stripArticle(v) === inputCore)) return { grade: 'exact', xp: 100 }
 
   const subLen = Math.max(4, Math.ceil(correct.length * 0.4))
   if (input.includes(correct) || (input.length >= subLen && correct.includes(input))) return { grade: 'close', xp: 60 }
