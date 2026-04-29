@@ -129,8 +129,11 @@ export default function PastRitual() {
       const xp = act3Selected === questions.act3?.correct_answer ? XP.act3 : 0
       setXpByAct(prev => ({ ...prev, act3: xp }))
       setAct3Revealed(true)
-    } else {
+    } else if (questions.act4) {
       setStep('act4')
+    } else {
+      // No act4 data for this date — finish after act3
+      finishRitual(0).then(() => setStep('done'))
     }
   }
 
@@ -159,13 +162,13 @@ export default function PastRitual() {
     )
   }
 
-  if (!questions || (!questions.act1 && !questions.act2?.length)) {
+  if (!questions || !questions.act1 || !questions.act2?.length || !questions.act3) {
     return (
       <div className="sd-wrap">
         <Header activePage="ritual" />
         <div style={{ padding: '40px var(--sd-px)', textAlign: 'center' }}>
           <div style={{ fontFamily: "'Creepster', cursive", fontSize: 22, color: 'var(--sd-cream)', marginBottom: 10 }}>No ritual found.</div>
-          <div style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-muted)', marginBottom: 24 }}>No questions exist for {date}.</div>
+          <div style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-muted)', marginBottom: 24 }}>Incomplete data for {date}.</div>
           <button onClick={() => navigate('/history')} style={backBtnStyle}>← Back to history</button>
         </div>
         <BottomNav activePage="ritual" />
@@ -211,7 +214,7 @@ export default function PastRitual() {
       { label: 'Scene of the Crime',  badge: 'ACT I',   xp: xpByAct.act1,  max: XP.act1 },
       { label: 'The Inquisition',     badge: 'ACT II',  xp: xpByAct.act2,  max: XP.act2perQ * 5 },
       { label: 'Speak of the Devil',  badge: 'ACT III', xp: xpByAct.act3,  max: XP.act3 },
-      { label: 'Final Reckoning',     badge: 'ACT IV',  xp: act4XP,        max: XP.act4 },
+      ...(questions.act4 ? [{ label: 'Final Reckoning', badge: 'ACT IV', xp: act4XP, max: XP.act4 }] : []),
     ]
     return (
       <div className="sd-wrap">
