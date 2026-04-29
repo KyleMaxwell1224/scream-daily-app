@@ -13,7 +13,7 @@ export default function Header({ activePage }) {
   return (
     <header className="sd-header">
       <div className="sd-header-inner">
-        <div className="sd-logo">SCREAM<span className="dot">.</span>DAILY</div>
+        <div className="sd-logo" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>SCREAM<span className="dot">.</span>DAILY</div>
         <nav className="sd-desktop-nav">
           {tabs.map(({ id, label, path, disabled }) => (
             <button
