@@ -651,3 +651,17 @@ body::after {
   0%, 100% { opacity: 1; }
   50%       { opacity: 0.5; }
 }
+
+@keyframes reveal-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes stamp-in {
+  0%   { opacity: 0; transform: scale(1.15); }
+  60%  { opacity: 1; transform: scale(0.97); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+.sd-result-reveal { animation: reveal-up 0.3s ease-out forwards; }
+.sd-stamp-in      { animation: stamp-in 0.28s ease-out forwards; }

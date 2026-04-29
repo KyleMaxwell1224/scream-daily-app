@@ -377,6 +377,8 @@ export default function PastRitual() {
 
 // ── Sub-components ────────────────────────────────────────────────────────
 
+const PAGE_BG = '#1e1111'
+
 function Act1View({ q, answer, setAnswer, result, onSubmit, onContinue, maxXP }) {
   const inputRef = useRef(null)
 
@@ -397,55 +399,114 @@ function Act1View({ q, answer, setAnswer, result, onSubmit, onContinue, maxXP })
 
   return (
     <>
-      <div className="sd-act-header">
-        <span className="sd-act-badge">ACT I</span>
-        <span className="sd-act-title">Scene of the Crime</span>
-        <span className="sd-xp-pill">{maxXP} xp</span>
-      </div>
-      <div style={{ padding: '0 var(--sd-px) 14px' }}>
-        <div style={{ position: 'relative', width: '100%', paddingTop: '56.25%', borderRadius: 12, overflow: 'hidden', border: '1px solid var(--sd-border)', background: '#1a0e0e' }}>
-          <div style={{ position: 'absolute', inset: 0 }}>
-            {q.image_url
-              ? <img src={q.image_url} alt="horror still" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              : <div style={{ width: '100%', height: '100%', background: '#1a0e0e' }} />
-            }
+      {/* ── Cinematic image block ── */}
+      <div style={{ position: 'relative', width: '100%', paddingTop: '62%', overflow: 'hidden', background: '#1a0e0e' }}>
+
+        <div style={{ position: 'absolute', inset: 0 }}>
+          {q.image_url
+            ? <img src={q.image_url} alt="horror still" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+            : <div style={{ width: '100%', height: '100%', background: '#1a0e0e' }} />
+          }
+        </div>
+
+        {/* Vignette */}
+        <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at center, transparent 35%, rgba(0,0,0,0.6) 100%)', pointerEvents: 'none' }} />
+        {/* Top scrim */}
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(14,8,8,0.82) 0%, transparent 38%)', pointerEvents: 'none' }} />
+        {/* Bottom bleed */}
+        <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(to top, ${PAGE_BG} 0%, transparent 42%)`, pointerEvents: 'none' }} />
+
+        {/* ACT I — top-left */}
+        <div style={{ position: 'absolute', top: 14, left: 16 }}>
+          <div style={{ fontFamily: "'Creepster', cursive", fontSize: 11, color: 'var(--sd-red)', letterSpacing: '0.18em', lineHeight: 1, textShadow: '0 0 12px rgba(192,21,42,0.7)' }}>
+            ACT I
+          </div>
+          <div style={{ fontFamily: "'Special Elite', serif", fontSize: 15, color: 'var(--sd-cream)', letterSpacing: '0.03em', lineHeight: 1.15, marginTop: 3, textShadow: '0 2px 8px rgba(0,0,0,0.9)' }}>
+            Scene of the Crime
           </div>
         </div>
+
+        {/* XP pill — top-right */}
+        <div style={{
+          position: 'absolute', top: 14, right: 16,
+          fontFamily: "'Special Elite', serif", fontSize: 10, color: 'var(--sd-cream-dim)',
+          border: '0.5px solid rgba(192,21,42,0.55)', borderRadius: 20,
+          padding: '3px 9px', background: 'rgba(0,0,0,0.55)',
+          backdropFilter: 'blur(6px)',
+        }}>
+          {maxXP} xp
+        </div>
       </div>
-      <div style={{ fontFamily: "'Special Elite', serif", fontSize: 12, color: 'var(--sd-muted)', textAlign: 'center', padding: '0 var(--sd-px) 12px' }}>
-        What horror film is this scene from?
+
+      {/* ── Question prompt ── */}
+      <div style={{ padding: '20px var(--sd-px) 16px', textAlign: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+          <div style={{ flex: 1, height: '0.5px', background: 'linear-gradient(to right, transparent, rgba(192,21,42,0.3))' }} />
+          <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'rgba(192,21,42,0.6)', boxShadow: '0 0 6px rgba(192,21,42,0.5)' }} />
+          <div style={{ flex: 1, height: '0.5px', background: 'linear-gradient(to left, transparent, rgba(192,21,42,0.3))' }} />
+        </div>
+        <div style={{ fontFamily: "'Special Elite', serif", fontSize: 13, color: 'var(--sd-muted)', letterSpacing: '0.05em', lineHeight: 1.7 }}>
+          What horror film is this scene from?
+        </div>
       </div>
+
+      {/* ── Input ── */}
       <input
         ref={inputRef}
         className="sd-input"
         value={answer}
         onChange={e => !result && setAnswer(e.target.value)}
         onKeyDown={e => { if (e.key === 'Enter' && !result && answer.trim()) onSubmit() }}
-        placeholder="Type your answer…"
+        placeholder="Name the film…"
         disabled={!!result}
-        style={{ opacity: result ? 0.6 : 1 }}
+        style={{
+          opacity: result ? 0.5 : 1,
+          fontSize: 20,
+          textAlign: 'center',
+          letterSpacing: '0.03em',
+          background: 'rgba(46,26,26,0.7)',
+        }}
       />
+
+      {/* ── Result reveal ── */}
       {result && (
-        <div style={{
-          margin: '10px var(--sd-px) 4px',
-          background: result.correct ? 'rgba(45,102,64,0.15)' : 'rgba(90,18,18,0.2)',
-          border: `1px solid ${result.correct ? 'rgba(45,102,64,0.4)' : 'rgba(192,21,42,0.3)'}`,
-          borderRadius: 12, padding: '14px 16px',
+        <div className="sd-result-reveal" style={{
+          margin: '12px var(--sd-px) 4px',
+          borderRadius: 14, overflow: 'hidden', position: 'relative',
+          background: result.correct
+            ? 'linear-gradient(135deg, rgba(42,122,71,0.22) 0%, rgba(42,122,71,0.06) 100%)'
+            : 'linear-gradient(135deg, rgba(192,21,42,0.18) 0%, rgba(90,18,18,0.07) 100%)',
+          border: `1px solid ${result.correct ? 'rgba(42,122,71,0.5)' : 'rgba(192,21,42,0.38)'}`,
+          padding: '18px 18px 14px',
         }}>
-          <div style={{ fontFamily: "'Creepster', cursive", fontSize: 20, color: result.correct ? '#7cc48a' : '#e24b4a', marginBottom: 2 }}>
+          <div style={{
+            position: 'absolute', top: -18, right: 8,
+            fontFamily: "'Creepster', cursive", fontSize: 110, lineHeight: 1,
+            color: result.correct ? 'rgba(74,171,106,0.07)' : 'rgba(192,21,42,0.07)',
+            userSelect: 'none', pointerEvents: 'none',
+          }}>
+            {result.correct ? '✓' : '✕'}
+          </div>
+          <div className="sd-stamp-in" style={{ fontFamily: "'Creepster', cursive", fontSize: 22, color: result.correct ? '#7cc48a' : '#e24b4a', lineHeight: 1 }}>
             {result.correct ? 'Correct.' : 'Wrong.'}
           </div>
-          <div style={{ fontFamily: "'Creepster', cursive", fontSize: 26, color: result.correct ? '#7cc48a' : '#e24b4a' }}>
+          <div style={{ fontFamily: "'Creepster', cursive", fontSize: 48, color: result.correct ? '#7cc48a' : '#e24b4a', lineHeight: 1, marginBottom: 10 }}>
             +{result.xp} xp
           </div>
-          <div style={{ borderTop: '0.5px solid rgba(255,255,255,0.08)', marginTop: 10, paddingTop: 8 }}>
-            <div style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-cream)' }}>{q.correct_answer}</div>
-            {q.decade && <div style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-muted)', marginTop: 2 }}>{q.decade}</div>}
-            {q.authored_by && <div style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-muted)' }}>Dir. {q.authored_by}</div>}
+          <div style={{ borderTop: '0.5px solid rgba(255,255,255,0.09)', paddingTop: 10 }}>
+            <div style={{ fontFamily: "'Creepster', cursive", fontSize: 22, color: 'var(--sd-cream)', lineHeight: 1.2 }}>
+              {q.correct_answer}
+            </div>
+            <div style={{ display: 'flex', gap: 14, marginTop: 4 }}>
+              {q.decade && <div style={{ fontFamily: "'Special Elite', serif", fontSize: 10, color: 'var(--sd-muted)' }}>{q.decade}</div>}
+              {q.authored_by && <div style={{ fontFamily: "'Special Elite', serif", fontSize: 10, color: 'var(--sd-muted)' }}>Dir. {q.authored_by}</div>}
+            </div>
           </div>
         </div>
       )}
-      <div style={{ padding: '10px 0 6px' }}>
+
+      {/* ── CTA ── */}
+      <div style={{ padding: '12px 0 6px' }}>
         <button className="sd-cta-btn" onClick={result ? onContinue : onSubmit} disabled={!result && !answer.trim()}>
           {result ? 'Continue' : 'Lock it in'}
         </button>
