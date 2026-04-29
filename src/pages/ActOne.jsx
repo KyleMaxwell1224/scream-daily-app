@@ -126,15 +126,26 @@ export default function ActOne() {
             {maxXP} xp
           </div>
 
-          {/* Day label — bottom left */}
+          {/* Day label + question — inside bottom gradient */}
           {!result && (
-            <div style={{
-              position: 'absolute', bottom: 14, left: 16,
-              fontFamily: "'Special Elite', serif", fontSize: 10,
-              color: 'rgba(242,230,212,0.45)', letterSpacing: '0.06em',
-            }}>
-              Day #{dayNum}
-            </div>
+            <>
+              <div style={{
+                position: 'absolute', bottom: 28, left: 0, right: 0,
+                textAlign: 'center',
+                fontFamily: "'Special Elite', serif", fontSize: 12,
+                color: 'rgba(242,230,212,0.75)', letterSpacing: '0.07em',
+                textShadow: '0 1px 6px rgba(0,0,0,0.9)',
+              }}>
+                What horror film is this scene from?
+              </div>
+              <div style={{
+                position: 'absolute', bottom: 10, left: 16,
+                fontFamily: "'Special Elite', serif", fontSize: 9,
+                color: 'rgba(242,230,212,0.3)', letterSpacing: '0.06em',
+              }}>
+                Day #{dayNum}
+              </div>
+            </>
           )}
 
           {/* ── Result overlay — frosted, image bleeds through ── */}
@@ -169,11 +180,11 @@ export default function ActOne() {
           )}
         </div>
 
-        {/* ── Collapsing container — animates away after answer ── */}
-        <div style={{ maxHeight: result ? 0 : '400px', overflow: 'hidden', transition: 'max-height 0.35s ease' }}>
+        {/* ── Collapsing container: clues + input ── */}
+        <div style={{ maxHeight: result ? 0 : '400px', overflow: 'hidden', transition: 'max-height 0.3s ease' }}>
 
           {/* Clue row */}
-          <div style={{ display: 'flex', gap: 6, padding: '8px var(--sd-px) 0' }}>
+          <div style={{ display: 'flex', gap: 6, padding: '8px var(--sd-px) 6px' }}>
             {CLUES.map(({ key, label, penalty }) => {
               const used = usedClues[key]
               return (
@@ -181,41 +192,22 @@ export default function ActOne() {
                   key={key}
                   onClick={() => revealClue(key)}
                   style={{
-                    flex: 1, textAlign: 'center',
-                    background: used ? 'rgba(255,255,255,0.02)' : 'rgba(192,21,42,0.06)',
-                    border: used ? '1px solid rgba(255,255,255,0.07)' : '1px dashed rgba(192,21,42,0.35)',
-                    borderRadius: 8, padding: '8px 4px',
+                    flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
+                    background: used ? 'rgba(255,255,255,0.025)' : 'rgba(192,21,42,0.07)',
+                    border: used ? '1px solid rgba(255,255,255,0.07)' : '1px dashed rgba(192,21,42,0.4)',
+                    borderRadius: 8, padding: '7px 6px',
                     cursor: used ? 'default' : 'pointer',
-                    transition: 'border-color 0.15s, background 0.15s',
                   }}
                 >
-                  <div style={{ fontFamily: "'Special Elite', serif", fontSize: 9, color: used ? 'var(--sd-muted)' : 'rgba(192,230,212,0.55)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                  <span style={{ fontFamily: "'Special Elite', serif", fontSize: 9, color: 'var(--sd-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
                     {label}
-                  </div>
-                  {used ? (
-                    <div style={{ fontFamily: "'Teko', sans-serif", fontSize: 14, color: 'var(--sd-cream)', marginTop: 2, lineHeight: 1.1 }}>
-                      {revealedClues[key]}
-                    </div>
-                  ) : (
-                    <div style={{ fontFamily: "'Creepster', cursive", fontSize: 13, color: 'var(--sd-red)', marginTop: 2 }}>
-                      −{penalty} xp
-                    </div>
-                  )}
+                  </span>
+                  <span style={{ fontFamily: used ? "'Teko', sans-serif" : "'Creepster', cursive", fontSize: used ? 13 : 11, color: used ? 'var(--sd-cream)' : 'var(--sd-red)', lineHeight: 1 }}>
+                    {used ? revealedClues[key] : `−${penalty}`}
+                  </span>
                 </button>
               )
             })}
-          </div>
-
-          {/* Question prompt */}
-          <div style={{ padding: '12px var(--sd-px) 10px', textAlign: 'center' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-              <div style={{ flex: 1, height: '0.5px', background: 'linear-gradient(to right, transparent, rgba(192,21,42,0.3))' }} />
-              <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'rgba(192,21,42,0.6)', boxShadow: '0 0 6px rgba(192,21,42,0.5)' }} />
-              <div style={{ flex: 1, height: '0.5px', background: 'linear-gradient(to left, transparent, rgba(192,21,42,0.3))' }} />
-            </div>
-            <div style={{ fontFamily: "'Special Elite', serif", fontSize: 13, color: 'var(--sd-muted)', letterSpacing: '0.05em', lineHeight: 1.7 }}>
-              What horror film is this scene from?
-            </div>
           </div>
 
           {/* Input */}
@@ -232,7 +224,7 @@ export default function ActOne() {
         </div>
 
         {/* ── CTA ── */}
-        <div style={{ padding: '12px 0 6px' }}>
+        <div style={{ padding: '8px 0 4px' }}>
           <button
             className="sd-cta-btn"
             onClick={result ? () => navigate('/act/2') : handleSubmit}

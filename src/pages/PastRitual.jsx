@@ -439,6 +439,19 @@ function Act1View({ q, answer, setAnswer, result, onSubmit, onContinue, maxXP })
           </div>
         )}
 
+        {/* Question text — inside bottom gradient zone */}
+        {!result && (
+          <div style={{
+            position: 'absolute', bottom: 28, left: 0, right: 0,
+            textAlign: 'center',
+            fontFamily: "'Special Elite', serif", fontSize: 12,
+            color: 'rgba(242,230,212,0.75)', letterSpacing: '0.07em',
+            textShadow: '0 1px 6px rgba(0,0,0,0.9)',
+          }}>
+            What horror film is this scene from?
+          </div>
+        )}
+
         {/* ── Result overlay — frosted, image bleeds through ── */}
         {result && (
           <div className="sd-result-reveal" style={{
@@ -472,18 +485,6 @@ function Act1View({ q, answer, setAnswer, result, onSubmit, onContinue, maxXP })
       {/* ── Collapsing container — animates away after answer ── */}
       <div style={{ maxHeight: result ? 0 : '400px', overflow: 'hidden', transition: 'max-height 0.35s ease' }}>
 
-        {/* Question prompt */}
-        <div style={{ padding: '12px var(--sd-px) 10px', textAlign: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-            <div style={{ flex: 1, height: '0.5px', background: 'linear-gradient(to right, transparent, rgba(192,21,42,0.3))' }} />
-            <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'rgba(192,21,42,0.6)', boxShadow: '0 0 6px rgba(192,21,42,0.5)' }} />
-            <div style={{ flex: 1, height: '0.5px', background: 'linear-gradient(to left, transparent, rgba(192,21,42,0.3))' }} />
-          </div>
-          <div style={{ fontFamily: "'Special Elite', serif", fontSize: 13, color: 'var(--sd-muted)', letterSpacing: '0.05em', lineHeight: 1.7 }}>
-            What horror film is this scene from?
-          </div>
-        </div>
-
         {/* Input */}
         <input
           ref={inputRef}
@@ -498,7 +499,7 @@ function Act1View({ q, answer, setAnswer, result, onSubmit, onContinue, maxXP })
       </div>
 
       {/* ── CTA ── */}
-      <div style={{ padding: '12px 0 6px' }}>
+      <div style={{ padding: '8px 0 4px' }}>
         <button className="sd-cta-btn" onClick={result ? onContinue : onSubmit} disabled={!result && !answer.trim()}>
           {result ? 'Continue' : 'Lock it in'}
         </button>
