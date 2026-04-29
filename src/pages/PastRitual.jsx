@@ -21,6 +21,11 @@ const XP = {
   act3:    Math.floor(35  * MULT), // 17
   act4:    Math.floor(100 * MULT), // 50
 }
+const CLUES = [
+  { key: 'year',     label: 'Year',      penalty: Math.floor(5 * MULT) },  // 2
+  { key: 'director', label: 'Director',  penalty: Math.floor(8 * MULT) },  // 4
+  { key: 'subgenre', label: 'Sub-genre', penalty: Math.floor(5 * MULT) },  // 2
+]
 const LETTERS = ['A', 'B', 'C', 'D']
 
 function formatDate(dateStr) {
@@ -56,7 +61,22 @@ export default function PastRitual() {
   const [act4Answer, setAct4Answer] = useState('')
   const [act4Result, setAct4Result] = useState(_saved?.act4Result ?? null)
   const [xpByAct, setXpByAct] = useState(_saved?.xpByAct ?? { act1: 0, act2: 0, act3: 0 })
+  const [act1UsedClues, setAct1UsedClues] = useState({})
+  const [act1RevealedClues, setAct1RevealedClues] = useState({})
   const bankedRef = useRef(false)
+
+  const act1PenaltyTotal = CLUES.filter(c => act1UsedClues[c.key]).reduce((s, c) => s + c.penalty, 0)
+  const act1MaxXP = Math.max(0, XP.act1 - act1PenaltyTotal)
+
+  function revealAct1Clue(key) {
+    if (act1UsedClues[key] || act1Result) return
+    setAct1UsedClues(prev => ({ ...prev, [key]: true }))
+    const q = questions?.act1
+    if (q) {
+      const val = key === 'year' ? q.decade : key === 'director' ? (q.authored_by || '—') : q.subgenre
+      setAct1RevealedClues(prev => ({ ...prev, [key]: val || '—' }))
+    }
+  }
 
   useEffect(() => {
     async function load() {
@@ -99,7 +119,7 @@ export default function PastRitual() {
   function handleAct1Submit() {
     if (!questions?.act1 || act1Result) return
     const grade = gradeAnswer(act1Answer, questions.act1.correct_answer, questions.act1.accepted_variants || [])
-    const xp = grade.grade === 'wrong' ? 0 : XP.act1
+    const xp = grade.grade === 'wrong' ? 0 : act1MaxXP
     setXpByAct(prev => ({ ...prev, act1: xp }))
     setAct1Result({ correct: grade.grade !== 'wrong', xp })
   }
@@ -332,7 +352,11 @@ export default function PastRitual() {
             result={act1Result}
             onSubmit={handleAct1Submit}
             onContinue={() => setStep('act2')}
-            maxXP={XP.act1}
+            maxXP={act1MaxXP}
+            clues={CLUES}
+            usedClues={act1UsedClues}
+            revealedClues={act1RevealedClues}
+            onRevealClue={revealAct1Clue}
           />
         )}
         {step === 'act2' && questions.act2?.length > 0 && (
