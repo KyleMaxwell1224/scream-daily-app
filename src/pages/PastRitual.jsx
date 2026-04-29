@@ -162,13 +162,13 @@ export default function PastRitual() {
     )
   }
 
-  if (!questions || !questions.act1 || !questions.act2?.length || !questions.act3) {
+  if (!questions || !questions.act1 || !questions.act2?.length) {
     return (
       <div className="sd-wrap">
         <Header activePage="ritual" />
         <div style={{ padding: '40px var(--sd-px)', textAlign: 'center' }}>
           <div style={{ fontFamily: "'Creepster', cursive", fontSize: 22, color: 'var(--sd-cream)', marginBottom: 10 }}>No ritual found.</div>
-          <div style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-muted)', marginBottom: 24 }}>Incomplete data for {date}.</div>
+          <div style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-muted)', marginBottom: 24 }}>No questions exist for {date}.</div>
           <button onClick={() => navigate('/history')} style={backBtnStyle}>← Back to history</button>
         </div>
         <BottomNav activePage="ritual" />
