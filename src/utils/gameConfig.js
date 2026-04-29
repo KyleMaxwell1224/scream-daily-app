@@ -15,6 +15,12 @@ export const ACT1_CLUES = [
   { key: 'subgenre', label: 'Sub-genre', penalty: 5 },
 ]
 
+export const ACT4_XP_SCALE = {
+  exact:   BASE_XP.act4,
+  close:   Math.round(BASE_XP.act4 * 0.6),
+  partial: Math.round(BASE_XP.act4 * 0.2),
+}
+
 export const ACTS = [
   { num: 1, key: 'act1', badge: 'ACT I',   numeral: 'I',   name: 'Scene of the Crime', desc: 'Identify the film from a horror still.',  maxXP: BASE_XP.act1            },
   { num: 2, key: 'act2', badge: 'ACT II',  numeral: 'II',  name: 'The Inquisition',    desc: '5 multiple choice trivia questions.',      maxXP: BASE_XP.act2perQ * 5    },

@@ -9,7 +9,7 @@ import useGameStore from '../store/useGameStore'
 import { supabase } from '../supabaseClient'
 import { gradeAnswer } from '../utils/questions'
 import { logRitual, pushStats } from '../utils/syncStats'
-import { PAST_RITUAL_MULT, BASE_XP, ACT1_CLUES, ACTS } from '../utils/gameConfig'
+import { PAST_RITUAL_MULT, BASE_XP, ACT1_CLUES, ACTS, ACT4_XP_SCALE } from '../utils/gameConfig'
 
 function getSaved(date) {
   return useGameStore.getState().pastRitualProgress[date] ?? null
@@ -385,7 +385,7 @@ export default function PastRitual() {
             onSubmit={handleAct4Submit}
             onContinue={handleAct4Continue}
             continueBtnLabel="Finish ritual"
-            xpScale={{ exact: XP.act4, close: Math.round(XP.act4 * 0.6), partial: Math.round(XP.act4 * 0.2) }}
+            xpScale={Object.fromEntries(Object.entries(ACT4_XP_SCALE).map(([k, v]) => [k, Math.floor(v * PAST_RITUAL_MULT)]))}
           />
         )}
       </div>

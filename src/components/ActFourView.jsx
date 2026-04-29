@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { ACT4_XP_SCALE } from '../utils/gameConfig'
 
 const GRADE_COLOR = {
   exact:   '#2d6640',
@@ -13,8 +14,6 @@ const GRADE_LABEL = {
   wrong: 'Wrong.',
 }
 
-// xpScale defaults match the live ritual (100/60/20).
-// Pass scaled values (e.g. 50/30/10) for past rituals.
 export default function ActFourView({
   q,
   answer,
@@ -24,7 +23,7 @@ export default function ActFourView({
   onContinue,
   onSkip,
   continueBtnLabel = 'See results',
-  xpScale = { exact: 100, close: 60, partial: 20 },
+  xpScale = ACT4_XP_SCALE,
 }) {
   const inputRef = useRef(null)
 

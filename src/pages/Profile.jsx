@@ -422,7 +422,7 @@ export default function Profile() {
       {editing && (
         <div style={{ padding: '14px var(--sd-px) 0' }}>
           <div style={{
-            background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)',
+            background: 'var(--sd-card)', border: '1px solid rgba(255,255,255,0.12)',
             borderRadius: 14, padding: '18px',
           }}>
             <div style={{ fontFamily: "'Creepster', cursive", fontSize: 20, color: 'var(--sd-cream)', marginBottom: 14 }}>
@@ -526,7 +526,7 @@ export default function Profile() {
           { label: 'Accuracy',     value: totalAnswered > 0 ? `${Math.round((totalCorrect / totalAnswered) * 100)}%` : '—' },
         ].map(({ label, value }) => (
           <div key={label} style={{
-            background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)',
+            background: 'var(--sd-card)', border: '1px solid rgba(255,255,255,0.1)',
             borderRadius: 12, padding: '16px 14px', textAlign: 'center',
           }}>
             <div style={{ fontFamily: "'Teko', sans-serif", fontSize: 36, color: 'var(--sd-cream)', lineHeight: 1 }}>{value}</div>
@@ -547,7 +547,7 @@ export default function Profile() {
           Settings
         </div>
         <div style={{
-          background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)',
+          background: 'var(--sd-card)', border: '1px solid rgba(255,255,255,0.1)',
           borderRadius: 14, overflow: 'hidden',
         }}>
           {[
@@ -558,7 +558,7 @@ export default function Profile() {
           ].map(({ label }, i, arr) => (
             <div key={label} style={{
               padding: '15px 18px',
-              borderBottom: i < arr.length - 1 ? '0.5px solid rgba(255,255,255,0.06)' : 'none',
+              borderBottom: i < arr.length - 1 ? '0.5px solid rgba(255,255,255,0.09)' : 'none',
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
               cursor: 'pointer',
             }}>
@@ -584,8 +584,8 @@ export default function Profile() {
             return (
               <div key={r.name} style={{
                 borderRadius: 10,
-                background: isCurrent ? `rgba(${r.color === '#c0152a' ? '192,21,42' : '255,255,255'},0.04)` : 'rgba(255,255,255,0.02)',
-                border: isCurrent ? `1px solid ${r.color}55` : '1px solid rgba(255,255,255,0.07)',
+                background: isCurrent ? `rgba(${r.color === '#c0152a' ? '192,21,42' : '255,255,255'},0.06)` : 'var(--sd-card)',
+                border: isCurrent ? `1px solid ${r.color}55` : '1px solid rgba(255,255,255,0.1)',
                 padding: '10px 14px', opacity: isUnlocked ? 1 : 0.3,
                 display: 'flex', alignItems: 'center', gap: 10,
               }}>

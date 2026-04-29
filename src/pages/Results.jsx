@@ -174,9 +174,9 @@ export default function Results() {
             const done = completedActs.includes(num)
             const full = earned >= max
             const partial = earned > 0 && !full
-            const accentColor = !done ? 'rgba(255,255,255,0.1)' : full ? '#2d6640' : partial ? '#7a5a1a' : 'rgba(192,21,42,0.3)'
+            const accentColor = !done ? 'rgba(255,255,255,0.15)' : full ? '#2d6640' : partial ? '#7a5a1a' : 'rgba(192,21,42,0.3)'
             const xpColor = !done ? 'var(--sd-muted)' : full ? '#7cc48a' : partial ? '#d4a04a' : 'var(--sd-muted)'
-            const borderColor = !done ? 'rgba(255,255,255,0.06)' : full ? 'rgba(45,102,64,0.25)' : partial ? 'rgba(180,120,20,0.25)' : 'rgba(192,21,42,0.15)'
+            const borderColor = !done ? 'rgba(255,255,255,0.1)' : full ? 'rgba(45,102,64,0.25)' : partial ? 'rgba(180,120,20,0.25)' : 'rgba(192,21,42,0.15)'
 
             return (
               <div key={num} style={{
@@ -185,7 +185,7 @@ export default function Results() {
                 borderRight: `1px solid ${borderColor}`,
                 borderBottom: `1px solid ${borderColor}`,
                 borderLeft: `3px solid ${accentColor}`,
-                background: full ? 'rgba(45,102,64,0.04)' : partial ? 'rgba(180,120,20,0.04)' : 'rgba(255,255,255,0.015)',
+                background: full ? 'rgba(45,102,64,0.07)' : partial ? 'rgba(180,120,20,0.07)' : 'var(--sd-card)',
                 padding: '12px 14px',
                 display: 'flex', alignItems: 'center', gap: 12,
               }}>
