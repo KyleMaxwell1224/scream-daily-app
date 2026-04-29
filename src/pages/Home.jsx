@@ -6,13 +6,7 @@ import useGameStore from '../store/useGameStore'
 import { supabase } from '../supabaseClient'
 import { getTodaysQuestions } from '../utils/questions'
 import { getRankForXP, getNextRank } from '../utils/ranks'
-
-const ACTS = [
-  { num: 1, numeral: 'I',   badge: 'ACT I',   name: 'Scene of the Crime', desc: 'Identify the film from a horror still.', xp: 25  },
-  { num: 2, numeral: 'II',  badge: 'ACT II',  name: 'The Inquisition',    desc: '5 multiple choice trivia questions.',   xp: 50  },
-  { num: 3, numeral: 'III', badge: 'ACT III', name: 'Speak of the Devil', desc: 'Name the film from a famous quote.',    xp: 35  },
-  { num: 4, numeral: 'IV',  badge: 'ACT IV',  name: 'Final Reckoning',    desc: 'Open answer — no multiple choice.',     xp: 100 },
-]
+import { ACTS } from '../utils/gameConfig'
 
 const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
@@ -192,7 +186,7 @@ function SectionLabel({ children }) {
 function ActList({ completedActs, navigate }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-      {ACTS.map(({ num, numeral, name, desc, xp }) => {
+      {ACTS.map(({ num, numeral, name, desc, maxXP: xp }) => {
         const done = completedActs.includes(num)
         return (
           <div

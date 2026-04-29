@@ -5,6 +5,7 @@ import ProgressBar from '../components/ProgressBar'
 import BottomNav from '../components/BottomNav'
 import useGameStore from '../store/useGameStore'
 import { getTodaysQuestions } from '../utils/questions'
+import { BASE_XP } from '../utils/gameConfig'
 
 const LETTERS = ['A', 'B', 'C', 'D']
 
@@ -40,7 +41,7 @@ export default function ActThree() {
       setRevealed(true)
       setActResult(3, { selected, revealed: true })
     } else {
-      const xp = selected === q.correct_answer ? 35 : 0
+      const xp = selected === q.correct_answer ? BASE_XP.act3 : 0
       completeAct(3, xp)
       navigate('/act/4')
     }
@@ -92,7 +93,7 @@ export default function ActThree() {
       <div className="sd-act-header">
         <span className="sd-act-badge">ACT III</span>
         <span className="sd-act-title">Speak of the devil</span>
-        <span className="sd-xp-pill">35 xp</span>
+        <span className="sd-xp-pill">{BASE_XP.act3} xp</span>
       </div>
 
       {/* Quote card */}
@@ -151,7 +152,7 @@ export default function ActThree() {
 
       {revealed && (
         <div className={`sd-feedback ${isCorrect ? 'correct' : 'wrong'}`}>
-          {isCorrect ? `+35 xp — ${q.explanation || 'Correct!'}` : q.explanation || 'Not this time.'}
+          {isCorrect ? `+${BASE_XP.act3} xp — ${q.explanation || 'Correct!'}` : q.explanation || 'Not this time.'}
         </div>
       )}
 

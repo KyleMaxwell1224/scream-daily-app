@@ -5,13 +5,7 @@ import BottomNav from '../components/BottomNav'
 import useGameStore from '../store/useGameStore'
 import { getRankForXP, getNextRank } from '../utils/ranks'
 import { getDayNumber } from '../utils/questions'
-
-const ACTS_META = [
-  { num: 1, badge: 'ACT I',   name: 'Scene of the Crime', key: 'act1', max: 25  },
-  { num: 2, badge: 'ACT II',  name: 'The Inquisition',    key: 'act2', max: 50  },
-  { num: 3, badge: 'ACT III', name: 'Speak of the Devil', key: 'act3', max: 35  },
-  { num: 4, badge: 'ACT IV',  name: 'Final Reckoning',    key: 'act4', max: 100 },
-]
+import { ACTS } from '../utils/gameConfig'
 
 export default function Results() {
   const navigate = useNavigate()
@@ -175,7 +169,7 @@ export default function Results() {
           Act breakdown
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
-          {ACTS_META.map(({ num, badge, name, key, max }) => {
+          {ACTS.map(({ num, badge, name, key, maxXP: max }) => {
             const earned = xpEarned[key] || 0
             const done = completedActs.includes(num)
             const full = earned >= max

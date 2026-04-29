@@ -9,23 +9,19 @@ import useGameStore from '../store/useGameStore'
 import { supabase } from '../supabaseClient'
 import { gradeAnswer } from '../utils/questions'
 import { logRitual, pushStats } from '../utils/syncStats'
+import { PAST_RITUAL_MULT, BASE_XP, ACT1_CLUES, ACTS } from '../utils/gameConfig'
 
 function getSaved(date) {
   return useGameStore.getState().pastRitualProgress[date] ?? null
 }
 
-const MULT = 0.5
 const XP = {
-  act1:    Math.floor(25  * MULT), // 12
-  act2perQ: Math.floor(10 * MULT), // 5
-  act3:    Math.floor(35  * MULT), // 17
-  act4:    Math.floor(100 * MULT), // 50
+  act1:    Math.floor(BASE_XP.act1    * PAST_RITUAL_MULT),
+  act2perQ: Math.floor(BASE_XP.act2perQ * PAST_RITUAL_MULT),
+  act3:    Math.floor(BASE_XP.act3    * PAST_RITUAL_MULT),
+  act4:    Math.floor(BASE_XP.act4    * PAST_RITUAL_MULT),
 }
-const CLUES = [
-  { key: 'year',     label: 'Year',      penalty: Math.floor(5 * MULT) },  // 2
-  { key: 'director', label: 'Director',  penalty: Math.floor(8 * MULT) },  // 4
-  { key: 'subgenre', label: 'Sub-genre', penalty: Math.floor(5 * MULT) },  // 2
-]
+const CLUES = ACT1_CLUES.map(c => ({ ...c, penalty: Math.floor(c.penalty * PAST_RITUAL_MULT) }))
 const LETTERS = ['A', 'B', 'C', 'D']
 
 function formatDate(dateStr) {
@@ -161,7 +157,7 @@ export default function PastRitual() {
   async function handleAct4Submit() {
     if (!questions?.act4 || act4Result) return
     const grade = gradeAnswer(act4Answer, questions.act4.correct_answer, questions.act4.accepted_variants || [])
-    const xp = Math.round(grade.xp * MULT)
+    const xp = Math.round(grade.xp * PAST_RITUAL_MULT)
     setAct4Result({ grade: grade.grade, xp })
   }
 
@@ -231,12 +227,11 @@ export default function PastRitual() {
 
   if (step === 'done') {
     const total = xpByAct.act1 + xpByAct.act2 + xpByAct.act3 + act4XP
-    const ACTS_META = [
-      { label: 'Scene of the Crime',  badge: 'ACT I',   xp: xpByAct.act1,  max: XP.act1 },
-      { label: 'The Inquisition',     badge: 'ACT II',  xp: xpByAct.act2,  max: XP.act2perQ * 5 },
-      { label: 'Speak of the Devil',  badge: 'ACT III', xp: xpByAct.act3,  max: XP.act3 },
-      ...(questions.act4 ? [{ label: 'Final Reckoning', badge: 'ACT IV', xp: act4XP, max: XP.act4 }] : []),
-    ]
+    const earnedByKey = { act1: xpByAct.act1, act2: xpByAct.act2, act3: xpByAct.act3, act4: act4XP }
+    const pastMax = { act1: XP.act1, act2: XP.act2perQ * 5, act3: XP.act3, act4: XP.act4 }
+    const ACTS_META = ACTS
+      .filter(a => a.key !== 'act4' || questions.act4)
+      .map(a => ({ label: a.name, badge: a.badge, xp: earnedByKey[a.key], max: pastMax[a.key] }))
     return (
       <div className="sd-wrap">
         <Header activePage="ritual" />

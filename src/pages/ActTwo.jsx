@@ -5,6 +5,7 @@ import ProgressBar from '../components/ProgressBar'
 import BottomNav from '../components/BottomNav'
 import useGameStore from '../store/useGameStore'
 import { getTodaysQuestions } from '../utils/questions'
+import { BASE_XP } from '../utils/gameConfig'
 
 const LETTERS = ['A', 'B', 'C', 'D']
 
@@ -62,7 +63,7 @@ export default function ActTwo() {
       setSelected(null)
       setRevealed(false)
       if (qIndex + 1 >= 5) {
-        const totalXP = useGameStore.getState().act2Answers.filter(Boolean).length * 10
+        const totalXP = useGameStore.getState().act2Answers.filter(Boolean).length * BASE_XP.act2perQ
         completeAct(2, totalXP)
         navigate('/act/3')
       } else {
@@ -125,7 +126,7 @@ export default function ActTwo() {
         <div className="sd-act-header">
           <span className="sd-act-badge">ACT II</span>
           <span className="sd-act-title">The Inquisition</span>
-          <span className="sd-xp-pill">50 xp</span>
+          <span className="sd-xp-pill">{BASE_XP.act2perQ * 5} xp</span>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 var(--sd-px) 12px' }}>
@@ -166,7 +167,7 @@ export default function ActTwo() {
 
         {revealed && (
           <div className={`sd-feedback ${isCorrect ? 'correct' : 'wrong'}`}>
-            {isCorrect ? `+10 xp — ${q.explanation || 'Correct!'}` : q.explanation || 'Not quite.'}
+            {isCorrect ? `+${BASE_XP.act2perQ} xp — ${q.explanation || 'Correct!'}` : q.explanation || 'Not quite.'}
           </div>
         )}
 

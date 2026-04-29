@@ -6,12 +6,7 @@ import BottomNav from '../components/BottomNav'
 import Act1GameView from '../components/Act1GameView'
 import useGameStore from '../store/useGameStore'
 import { getDayNumber, gradeAnswer } from '../utils/questions'
-
-const CLUES = [
-  { key: 'year',     label: 'Year',      penalty: 5  },
-  { key: 'director', label: 'Director',  penalty: 8  },
-  { key: 'subgenre', label: 'Sub-genre', penalty: 5  },
-]
+import { BASE_XP, ACT1_CLUES } from '../utils/gameConfig'
 
 export default function ActOne() {
   const navigate = useNavigate()
@@ -25,8 +20,8 @@ export default function ActOne() {
   const [usedClues, setUsedClues] = useState({})
   const [revealedClues, setRevealedClues] = useState({})
 
-  const penaltyTotal = CLUES.filter(c => usedClues[c.key]).reduce((s, c) => s + c.penalty, 0)
-  const maxXP = Math.max(0, 25 - penaltyTotal)
+  const penaltyTotal = ACT1_CLUES.filter(c => usedClues[c.key]).reduce((s, c) => s + c.penalty, 0)
+  const maxXP = Math.max(0, BASE_XP.act1 - penaltyTotal)
 
   function revealClue(key) {
     if (usedClues[key] || result) return
@@ -60,7 +55,7 @@ export default function ActOne() {
           maxXP={maxXP}
           onSubmit={handleSubmit}
           onContinue={() => navigate('/act/2')}
-          clues={CLUES}
+          clues={ACT1_CLUES}
           usedClues={usedClues}
           revealedClues={revealedClues}
           onRevealClue={revealClue}
