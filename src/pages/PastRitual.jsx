@@ -427,83 +427,73 @@ function Act1View({ q, answer, setAnswer, result, onSubmit, onContinue, maxXP })
         </div>
 
         {/* XP pill — top-right */}
-        <div style={{
-          position: 'absolute', top: 14, right: 16,
-          fontFamily: "'Special Elite', serif", fontSize: 10, color: 'var(--sd-cream-dim)',
-          border: '0.5px solid rgba(192,21,42,0.55)', borderRadius: 20,
-          padding: '3px 9px', background: 'rgba(0,0,0,0.55)',
-          backdropFilter: 'blur(6px)',
-        }}>
-          {maxXP} xp
-        </div>
-      </div>
-
-      {/* ── Question prompt ── */}
-      <div style={{ padding: '12px var(--sd-px) 10px', textAlign: 'center' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-          <div style={{ flex: 1, height: '0.5px', background: 'linear-gradient(to right, transparent, rgba(192,21,42,0.3))' }} />
-          <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'rgba(192,21,42,0.6)', boxShadow: '0 0 6px rgba(192,21,42,0.5)' }} />
-          <div style={{ flex: 1, height: '0.5px', background: 'linear-gradient(to left, transparent, rgba(192,21,42,0.3))' }} />
-        </div>
-        <div style={{ fontFamily: "'Special Elite', serif", fontSize: 13, color: 'var(--sd-muted)', letterSpacing: '0.05em', lineHeight: 1.7 }}>
-          What horror film is this scene from?
-        </div>
-      </div>
-
-      {/* ── Input ── */}
-      <input
-        ref={inputRef}
-        className="sd-input"
-        value={answer}
-        onChange={e => !result && setAnswer(e.target.value)}
-        onKeyDown={e => { if (e.key === 'Enter' && !result && answer.trim()) onSubmit() }}
-        placeholder="Name the film…"
-        disabled={!!result}
-        style={{
-          opacity: result ? 0.5 : 1,
-          fontSize: 20,
-          textAlign: 'center',
-          letterSpacing: '0.03em',
-          background: 'rgba(46,26,26,0.7)',
-        }}
-      />
-
-      {/* ── Result reveal ── */}
-      {result && (
-        <div className="sd-result-reveal" style={{
-          margin: '12px var(--sd-px) 4px',
-          borderRadius: 14, overflow: 'hidden', position: 'relative',
-          background: result.correct
-            ? 'linear-gradient(135deg, rgba(42,122,71,0.22) 0%, rgba(42,122,71,0.06) 100%)'
-            : 'linear-gradient(135deg, rgba(192,21,42,0.18) 0%, rgba(90,18,18,0.07) 100%)',
-          border: `1px solid ${result.correct ? 'rgba(42,122,71,0.5)' : 'rgba(192,21,42,0.38)'}`,
-          padding: '18px 18px 14px',
-        }}>
+        {!result && (
           <div style={{
-            position: 'absolute', top: -18, right: 8,
-            fontFamily: "'Creepster', cursive", fontSize: 110, lineHeight: 1,
-            color: result.correct ? 'rgba(74,171,106,0.07)' : 'rgba(192,21,42,0.07)',
-            userSelect: 'none', pointerEvents: 'none',
+            position: 'absolute', top: 14, right: 16,
+            fontFamily: "'Special Elite', serif", fontSize: 10, color: 'var(--sd-cream-dim)',
+            border: '0.5px solid rgba(192,21,42,0.55)', borderRadius: 20,
+            padding: '3px 9px', background: 'rgba(0,0,0,0.55)',
+            backdropFilter: 'blur(6px)',
           }}>
-            {result.correct ? '✓' : '✕'}
+            {maxXP} xp
           </div>
-          <div className="sd-stamp-in" style={{ fontFamily: "'Creepster', cursive", fontSize: 22, color: result.correct ? '#7cc48a' : '#e24b4a', lineHeight: 1 }}>
-            {result.correct ? 'Correct.' : 'Wrong.'}
-          </div>
-          <div style={{ fontFamily: "'Creepster', cursive", fontSize: 48, color: result.correct ? '#7cc48a' : '#e24b4a', lineHeight: 1, marginBottom: 10 }}>
-            +{result.xp} xp
-          </div>
-          <div style={{ borderTop: '0.5px solid rgba(255,255,255,0.09)', paddingTop: 10 }}>
-            <div style={{ fontFamily: "'Creepster', cursive", fontSize: 22, color: 'var(--sd-cream)', lineHeight: 1.2 }}>
-              {q.correct_answer}
+        )}
+
+        {/* ── Result overlay — stamped over the image ── */}
+        {result && (
+          <div className="sd-result-reveal" style={{
+            position: 'absolute', inset: 0,
+            background: result.correct ? 'rgba(8,28,16,0.92)' : 'rgba(28,6,6,0.92)',
+            display: 'flex', flexDirection: 'column',
+            alignItems: 'center', justifyContent: 'center',
+            padding: '16px 20px', textAlign: 'center',
+          }}>
+            <div className="sd-stamp-in" style={{ fontFamily: "'Creepster', cursive", fontSize: 26, color: result.correct ? '#7cc48a' : '#e24b4a', lineHeight: 1, marginBottom: 2 }}>
+              {result.correct ? 'Correct.' : 'Wrong.'}
             </div>
-            <div style={{ display: 'flex', gap: 14, marginTop: 4 }}>
-              {q.decade && <div style={{ fontFamily: "'Special Elite', serif", fontSize: 10, color: 'var(--sd-muted)' }}>{q.decade}</div>}
-              {q.authored_by && <div style={{ fontFamily: "'Special Elite', serif", fontSize: 10, color: 'var(--sd-muted)' }}>Dir. {q.authored_by}</div>}
+            <div style={{ fontFamily: "'Creepster', cursive", fontSize: 56, color: result.correct ? '#7cc48a' : '#e24b4a', lineHeight: 1, marginBottom: 10 }}>
+              +{result.xp} xp
             </div>
+            <div style={{ borderTop: '0.5px solid rgba(255,255,255,0.12)', paddingTop: 10, width: '100%' }}>
+              <div style={{ fontFamily: "'Creepster', cursive", fontSize: 22, color: 'var(--sd-cream)', lineHeight: 1.2 }}>
+                {q.correct_answer}
+              </div>
+              <div style={{ display: 'flex', gap: 14, marginTop: 4, justifyContent: 'center' }}>
+                {q.decade && <div style={{ fontFamily: "'Special Elite', serif", fontSize: 10, color: 'var(--sd-muted)' }}>{q.decade}</div>}
+                {q.authored_by && <div style={{ fontFamily: "'Special Elite', serif", fontSize: 10, color: 'var(--sd-muted)' }}>Dir. {q.authored_by}</div>}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── Question prompt — hidden after answer ── */}
+      {!result && (
+        <div style={{ padding: '12px var(--sd-px) 10px', textAlign: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+            <div style={{ flex: 1, height: '0.5px', background: 'linear-gradient(to right, transparent, rgba(192,21,42,0.3))' }} />
+            <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'rgba(192,21,42,0.6)', boxShadow: '0 0 6px rgba(192,21,42,0.5)' }} />
+            <div style={{ flex: 1, height: '0.5px', background: 'linear-gradient(to left, transparent, rgba(192,21,42,0.3))' }} />
+          </div>
+          <div style={{ fontFamily: "'Special Elite', serif", fontSize: 13, color: 'var(--sd-muted)', letterSpacing: '0.05em', lineHeight: 1.7 }}>
+            What horror film is this scene from?
           </div>
         </div>
       )}
+
+      {/* ── Input — hidden after answer ── */}
+      {!result && (
+        <input
+          ref={inputRef}
+          className="sd-input"
+          value={answer}
+          onChange={e => setAnswer(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter' && answer.trim()) onSubmit() }}
+          placeholder="Name the film…"
+          style={{ fontSize: 20, textAlign: 'center', letterSpacing: '0.03em', background: 'rgba(46,26,26,0.7)' }}
+        />
+      )}
+
 
       {/* ── CTA ── */}
       <div style={{ padding: '12px 0 6px' }}>
