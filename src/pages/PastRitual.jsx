@@ -467,32 +467,28 @@ function Act1View({ q, answer, setAnswer, result, onSubmit, onContinue, maxXP })
         )}
       </div>
 
-      {/* ── Question prompt — hidden after answer ── */}
-      {!result && (
-        <div style={{ padding: '12px var(--sd-px) 10px', textAlign: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-            <div style={{ flex: 1, height: '0.5px', background: 'linear-gradient(to right, transparent, rgba(192,21,42,0.3))' }} />
-            <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'rgba(192,21,42,0.6)', boxShadow: '0 0 6px rgba(192,21,42,0.5)' }} />
-            <div style={{ flex: 1, height: '0.5px', background: 'linear-gradient(to left, transparent, rgba(192,21,42,0.3))' }} />
-          </div>
-          <div style={{ fontFamily: "'Special Elite', serif", fontSize: 13, color: 'var(--sd-muted)', letterSpacing: '0.05em', lineHeight: 1.7 }}>
-            What horror film is this scene from?
-          </div>
+      {/* ── Question prompt — invisible after answer (keeps height) ── */}
+      <div style={{ padding: '12px var(--sd-px) 10px', textAlign: 'center', visibility: result ? 'hidden' : 'visible' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+          <div style={{ flex: 1, height: '0.5px', background: 'linear-gradient(to right, transparent, rgba(192,21,42,0.3))' }} />
+          <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'rgba(192,21,42,0.6)', boxShadow: '0 0 6px rgba(192,21,42,0.5)' }} />
+          <div style={{ flex: 1, height: '0.5px', background: 'linear-gradient(to left, transparent, rgba(192,21,42,0.3))' }} />
         </div>
-      )}
+        <div style={{ fontFamily: "'Special Elite', serif", fontSize: 13, color: 'var(--sd-muted)', letterSpacing: '0.05em', lineHeight: 1.7 }}>
+          What horror film is this scene from?
+        </div>
+      </div>
 
-      {/* ── Input — hidden after answer ── */}
-      {!result && (
-        <input
-          ref={inputRef}
-          className="sd-input"
-          value={answer}
-          onChange={e => setAnswer(e.target.value)}
-          onKeyDown={e => { if (e.key === 'Enter' && answer.trim()) onSubmit() }}
-          placeholder="Name the film…"
-          style={{ fontSize: 20, textAlign: 'center', letterSpacing: '0.03em', background: 'rgba(46,26,26,0.7)' }}
-        />
-      )}
+      {/* ── Input — invisible after answer (keeps height) ── */}
+      <input
+        ref={inputRef}
+        className="sd-input"
+        value={answer}
+        onChange={e => setAnswer(e.target.value)}
+        onKeyDown={e => { if (e.key === 'Enter' && answer.trim()) onSubmit() }}
+        placeholder="Name the film…"
+        style={{ fontSize: 20, textAlign: 'center', letterSpacing: '0.03em', background: 'rgba(46,26,26,0.7)', visibility: result ? 'hidden' : 'visible' }}
+      />
 
 
       {/* ── CTA ── */}

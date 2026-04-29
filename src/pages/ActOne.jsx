@@ -167,68 +167,62 @@ export default function ActOne() {
           )}
         </div>
 
-        {/* ── Clue row — hidden after answer ── */}
-        {!result && (
-          <div style={{ display: 'flex', gap: 6, padding: '8px var(--sd-px) 0' }}>
-            {CLUES.map(({ key, label, penalty }) => {
-              const used = usedClues[key]
-              return (
-                <button
-                  key={key}
-                  onClick={() => revealClue(key)}
-                  style={{
-                    flex: 1, textAlign: 'center',
-                    background: used ? 'rgba(255,255,255,0.02)' : 'rgba(192,21,42,0.06)',
-                    border: used ? '1px solid rgba(255,255,255,0.07)' : '1px dashed rgba(192,21,42,0.35)',
-                    borderRadius: 8, padding: '8px 4px',
-                    cursor: used ? 'default' : 'pointer',
-                    transition: 'border-color 0.15s, background 0.15s',
-                  }}
-                >
-                  <div style={{ fontFamily: "'Special Elite', serif", fontSize: 9, color: used ? 'var(--sd-muted)' : 'rgba(192,230,212,0.55)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-                    {label}
+        {/* ── Clue row — invisible after answer (keeps height) ── */}
+        <div style={{ display: 'flex', gap: 6, padding: '8px var(--sd-px) 0', visibility: result ? 'hidden' : 'visible' }}>
+          {CLUES.map(({ key, label, penalty }) => {
+            const used = usedClues[key]
+            return (
+              <button
+                key={key}
+                onClick={() => revealClue(key)}
+                style={{
+                  flex: 1, textAlign: 'center',
+                  background: used ? 'rgba(255,255,255,0.02)' : 'rgba(192,21,42,0.06)',
+                  border: used ? '1px solid rgba(255,255,255,0.07)' : '1px dashed rgba(192,21,42,0.35)',
+                  borderRadius: 8, padding: '8px 4px',
+                  cursor: used ? 'default' : 'pointer',
+                  transition: 'border-color 0.15s, background 0.15s',
+                }}
+              >
+                <div style={{ fontFamily: "'Special Elite', serif", fontSize: 9, color: used ? 'var(--sd-muted)' : 'rgba(192,230,212,0.55)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                  {label}
+                </div>
+                {used ? (
+                  <div style={{ fontFamily: "'Teko', sans-serif", fontSize: 14, color: 'var(--sd-cream)', marginTop: 2, lineHeight: 1.1 }}>
+                    {revealedClues[key]}
                   </div>
-                  {used ? (
-                    <div style={{ fontFamily: "'Teko', sans-serif", fontSize: 14, color: 'var(--sd-cream)', marginTop: 2, lineHeight: 1.1 }}>
-                      {revealedClues[key]}
-                    </div>
-                  ) : (
-                    <div style={{ fontFamily: "'Creepster', cursive", fontSize: 13, color: 'var(--sd-red)', marginTop: 2 }}>
-                      −{penalty} xp
-                    </div>
-                  )}
-                </button>
-              )
-            })}
-          </div>
-        )}
+                ) : (
+                  <div style={{ fontFamily: "'Creepster', cursive", fontSize: 13, color: 'var(--sd-red)', marginTop: 2 }}>
+                    −{penalty} xp
+                  </div>
+                )}
+              </button>
+            )
+          })}
+        </div>
 
-        {/* ── Question prompt — hidden after answer ── */}
-        {!result && (
-          <div style={{ padding: '12px var(--sd-px) 10px', textAlign: 'center' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-              <div style={{ flex: 1, height: '0.5px', background: 'linear-gradient(to right, transparent, rgba(192,21,42,0.3))' }} />
-              <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'rgba(192,21,42,0.6)', boxShadow: '0 0 6px rgba(192,21,42,0.5)' }} />
-              <div style={{ flex: 1, height: '0.5px', background: 'linear-gradient(to left, transparent, rgba(192,21,42,0.3))' }} />
-            </div>
-            <div style={{ fontFamily: "'Special Elite', serif", fontSize: 13, color: 'var(--sd-muted)', letterSpacing: '0.05em', lineHeight: 1.7 }}>
-              What horror film is this scene from?
-            </div>
+        {/* ── Question prompt — invisible after answer (keeps height) ── */}
+        <div style={{ padding: '12px var(--sd-px) 10px', textAlign: 'center', visibility: result ? 'hidden' : 'visible' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+            <div style={{ flex: 1, height: '0.5px', background: 'linear-gradient(to right, transparent, rgba(192,21,42,0.3))' }} />
+            <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'rgba(192,21,42,0.6)', boxShadow: '0 0 6px rgba(192,21,42,0.5)' }} />
+            <div style={{ flex: 1, height: '0.5px', background: 'linear-gradient(to left, transparent, rgba(192,21,42,0.3))' }} />
           </div>
-        )}
+          <div style={{ fontFamily: "'Special Elite', serif", fontSize: 13, color: 'var(--sd-muted)', letterSpacing: '0.05em', lineHeight: 1.7 }}>
+            What horror film is this scene from?
+          </div>
+        </div>
 
-        {/* ── Input — hidden after answer ── */}
-        {!result && (
-          <input
-            className="sd-input"
-            value={answer}
-            onChange={e => setAnswer(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter' && answer.trim()) handleSubmit() }}
-            placeholder="Name the film…"
-            autoFocus
-            style={{ fontSize: 20, textAlign: 'center', letterSpacing: '0.03em', background: 'rgba(46,26,26,0.7)' }}
-          />
-        )}
+        {/* ── Input — invisible after answer (keeps height) ── */}
+        <input
+          className="sd-input"
+          value={answer}
+          onChange={e => setAnswer(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter' && answer.trim()) handleSubmit() }}
+          placeholder="Name the film…"
+          autoFocus={!result}
+          style={{ fontSize: 20, textAlign: 'center', letterSpacing: '0.03em', background: 'rgba(46,26,26,0.7)', visibility: result ? 'hidden' : 'visible' }}
+        />
 
         {/* ── CTA ── */}
         <div style={{ padding: '12px 0 6px' }}>
