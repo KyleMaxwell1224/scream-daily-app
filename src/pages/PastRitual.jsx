@@ -439,57 +439,63 @@ function Act1View({ q, answer, setAnswer, result, onSubmit, onContinue, maxXP })
           </div>
         )}
 
-        {/* ── Result overlay — stamped over the image ── */}
+        {/* ── Result overlay — frosted, image bleeds through ── */}
         {result && (
           <div className="sd-result-reveal" style={{
             position: 'absolute', inset: 0,
-            background: result.correct ? 'rgba(8,28,16,0.92)' : 'rgba(28,6,6,0.92)',
+            background: result.correct ? 'rgba(4,18,10,0.72)' : 'rgba(20,4,4,0.72)',
+            backdropFilter: 'blur(6px)',
+            WebkitBackdropFilter: 'blur(6px)',
             display: 'flex', flexDirection: 'column',
             alignItems: 'center', justifyContent: 'center',
-            padding: '16px 20px', textAlign: 'center',
+            padding: '16px 24px', textAlign: 'center',
           }}>
-            <div className="sd-stamp-in" style={{ fontFamily: "'Creepster', cursive", fontSize: 26, color: result.correct ? '#7cc48a' : '#e24b4a', lineHeight: 1, marginBottom: 2 }}>
+            <div className="sd-stamp-in" style={{ fontFamily: "'Creepster', cursive", fontSize: 18, color: result.correct ? '#7cc48a' : '#e24b4a', letterSpacing: '0.12em', lineHeight: 1, marginBottom: 4 }}>
               {result.correct ? 'Correct.' : 'Wrong.'}
             </div>
-            <div style={{ fontFamily: "'Creepster', cursive", fontSize: 56, color: result.correct ? '#7cc48a' : '#e24b4a', lineHeight: 1, marginBottom: 10 }}>
+            <div style={{ fontFamily: "'Creepster', cursive", fontSize: 64, color: result.correct ? '#7cc48a' : '#e24b4a', lineHeight: 0.9, marginBottom: 14 }}>
               +{result.xp} xp
             </div>
-            <div style={{ borderTop: '0.5px solid rgba(255,255,255,0.12)', paddingTop: 10, width: '100%' }}>
-              <div style={{ fontFamily: "'Creepster', cursive", fontSize: 22, color: 'var(--sd-cream)', lineHeight: 1.2 }}>
+            <div style={{ borderTop: `0.5px solid ${result.correct ? 'rgba(74,171,106,0.3)' : 'rgba(192,21,42,0.3)'}`, paddingTop: 12, width: '100%' }}>
+              <div style={{ fontFamily: "'Creepster', cursive", fontSize: 26, color: 'var(--sd-cream)', lineHeight: 1.15 }}>
                 {q.correct_answer}
               </div>
-              <div style={{ display: 'flex', gap: 14, marginTop: 4, justifyContent: 'center' }}>
-                {q.decade && <div style={{ fontFamily: "'Special Elite', serif", fontSize: 10, color: 'var(--sd-muted)' }}>{q.decade}</div>}
-                {q.authored_by && <div style={{ fontFamily: "'Special Elite', serif", fontSize: 10, color: 'var(--sd-muted)' }}>Dir. {q.authored_by}</div>}
+              <div style={{ display: 'flex', gap: 14, marginTop: 5, justifyContent: 'center' }}>
+                {q.decade && <div style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-muted)' }}>{q.decade}</div>}
+                {q.authored_by && <div style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-muted)' }}>Dir. {q.authored_by}</div>}
               </div>
             </div>
           </div>
         )}
       </div>
 
-      {/* ── Question prompt — invisible after answer (keeps height) ── */}
-      <div style={{ padding: '12px var(--sd-px) 10px', textAlign: 'center', visibility: result ? 'hidden' : 'visible' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-          <div style={{ flex: 1, height: '0.5px', background: 'linear-gradient(to right, transparent, rgba(192,21,42,0.3))' }} />
-          <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'rgba(192,21,42,0.6)', boxShadow: '0 0 6px rgba(192,21,42,0.5)' }} />
-          <div style={{ flex: 1, height: '0.5px', background: 'linear-gradient(to left, transparent, rgba(192,21,42,0.3))' }} />
+      {/* ── Collapsing container — animates away after answer ── */}
+      <div style={{ maxHeight: result ? 0 : '400px', overflow: 'hidden', transition: 'max-height 0.35s ease' }}>
+
+        {/* Question prompt */}
+        <div style={{ padding: '12px var(--sd-px) 10px', textAlign: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+            <div style={{ flex: 1, height: '0.5px', background: 'linear-gradient(to right, transparent, rgba(192,21,42,0.3))' }} />
+            <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'rgba(192,21,42,0.6)', boxShadow: '0 0 6px rgba(192,21,42,0.5)' }} />
+            <div style={{ flex: 1, height: '0.5px', background: 'linear-gradient(to left, transparent, rgba(192,21,42,0.3))' }} />
+          </div>
+          <div style={{ fontFamily: "'Special Elite', serif", fontSize: 13, color: 'var(--sd-muted)', letterSpacing: '0.05em', lineHeight: 1.7 }}>
+            What horror film is this scene from?
+          </div>
         </div>
-        <div style={{ fontFamily: "'Special Elite', serif", fontSize: 13, color: 'var(--sd-muted)', letterSpacing: '0.05em', lineHeight: 1.7 }}>
-          What horror film is this scene from?
-        </div>
+
+        {/* Input */}
+        <input
+          ref={inputRef}
+          className="sd-input"
+          value={answer}
+          onChange={e => setAnswer(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter' && answer.trim()) onSubmit() }}
+          placeholder="Name the film…"
+          style={{ fontSize: 20, textAlign: 'center', letterSpacing: '0.03em', background: 'rgba(46,26,26,0.7)' }}
+        />
+
       </div>
-
-      {/* ── Input — invisible after answer (keeps height) ── */}
-      <input
-        ref={inputRef}
-        className="sd-input"
-        value={answer}
-        onChange={e => setAnswer(e.target.value)}
-        onKeyDown={e => { if (e.key === 'Enter' && answer.trim()) onSubmit() }}
-        placeholder="Name the film…"
-        style={{ fontSize: 20, textAlign: 'center', letterSpacing: '0.03em', background: 'rgba(46,26,26,0.7)', visibility: result ? 'hidden' : 'visible' }}
-      />
-
 
       {/* ── CTA ── */}
       <div style={{ padding: '12px 0 6px' }}>
