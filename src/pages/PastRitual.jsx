@@ -4,6 +4,7 @@ import Header from '../components/Header'
 import ProgressBar from '../components/ProgressBar'
 import BottomNav from '../components/BottomNav'
 import ActFourView from '../components/ActFourView'
+import Act1GameView from '../components/Act1GameView'
 import useGameStore from '../store/useGameStore'
 import { supabase } from '../supabaseClient'
 import { gradeAnswer } from '../utils/questions'
@@ -324,7 +325,7 @@ export default function PastRitual() {
 
       <div className="sd-game-content">
         {step === 'act1' && questions.act1 && (
-          <Act1View
+          <Act1GameView
             q={questions.act1}
             answer={act1Answer}
             setAnswer={setAct1Answer}
@@ -376,137 +377,6 @@ export default function PastRitual() {
 }
 
 // ── Sub-components ────────────────────────────────────────────────────────
-
-const PAGE_BG = '#1e1111'
-
-function Act1View({ q, answer, setAnswer, result, onSubmit, onContinue, maxXP }) {
-  const inputRef = useRef(null)
-
-  useEffect(() => {
-    if (!result) inputRef.current?.focus()
-  }, [result])
-
-  useEffect(() => {
-    if (!result) return
-    function onKey(e) {
-      if (e.target.tagName === 'INPUT') return
-      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onContinue() }
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [result])
-
-  return (
-    <>
-      {/* ── Cinematic image block ── */}
-      <div style={{ position: 'relative', width: '100%', paddingTop: '52%', overflow: 'hidden', background: '#1a0e0e' }}>
-
-        <div style={{ position: 'absolute', inset: 0 }}>
-          {q.image_url
-            ? <img src={q.image_url} alt="horror still" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-            : <div style={{ width: '100%', height: '100%', background: '#1a0e0e' }} />
-          }
-        </div>
-
-        {/* Vignette */}
-        <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at center, transparent 35%, rgba(0,0,0,0.6) 100%)', pointerEvents: 'none' }} />
-        {/* Top scrim */}
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(14,8,8,0.82) 0%, transparent 38%)', pointerEvents: 'none' }} />
-        {/* Bottom bleed */}
-        <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(to top, ${PAGE_BG} 0%, transparent 42%)`, pointerEvents: 'none' }} />
-
-        {/* ACT I — top-left */}
-        <div style={{ position: 'absolute', top: 14, left: 16 }}>
-          <div style={{ fontFamily: "'Creepster', cursive", fontSize: 11, color: 'var(--sd-red)', letterSpacing: '0.18em', lineHeight: 1, textShadow: '0 0 12px rgba(192,21,42,0.7)' }}>
-            ACT I
-          </div>
-          <div style={{ fontFamily: "'Special Elite', serif", fontSize: 15, color: 'var(--sd-cream)', letterSpacing: '0.03em', lineHeight: 1.15, marginTop: 3, textShadow: '0 2px 8px rgba(0,0,0,0.9)' }}>
-            Scene of the Crime
-          </div>
-        </div>
-
-        {/* XP pill — top-right */}
-        {!result && (
-          <div style={{
-            position: 'absolute', top: 14, right: 16,
-            fontFamily: "'Special Elite', serif", fontSize: 10, color: 'var(--sd-cream-dim)',
-            border: '0.5px solid rgba(192,21,42,0.55)', borderRadius: 20,
-            padding: '3px 9px', background: 'rgba(0,0,0,0.55)',
-            backdropFilter: 'blur(6px)',
-          }}>
-            {maxXP} xp
-          </div>
-        )}
-
-        {/* Question text — inside bottom gradient zone */}
-        {!result && (
-          <div style={{
-            position: 'absolute', bottom: 28, left: 0, right: 0,
-            textAlign: 'center',
-            fontFamily: "'Special Elite', serif", fontSize: 12,
-            color: 'rgba(242,230,212,0.75)', letterSpacing: '0.07em',
-            textShadow: '0 1px 6px rgba(0,0,0,0.9)',
-          }}>
-            What horror film is this scene from?
-          </div>
-        )}
-
-        {/* ── Result overlay — frosted, image bleeds through ── */}
-        {result && (
-          <div className="sd-result-reveal" style={{
-            position: 'absolute', inset: 0,
-            background: result.correct ? 'rgba(4,18,10,0.72)' : 'rgba(20,4,4,0.72)',
-            backdropFilter: 'blur(6px)',
-            WebkitBackdropFilter: 'blur(6px)',
-            display: 'flex', flexDirection: 'column',
-            alignItems: 'center', justifyContent: 'center',
-            padding: '16px 24px', textAlign: 'center',
-          }}>
-            <div className="sd-stamp-in" style={{ fontFamily: "'Creepster', cursive", fontSize: 18, color: result.correct ? '#7cc48a' : '#e24b4a', letterSpacing: '0.12em', lineHeight: 1, marginBottom: 4 }}>
-              {result.correct ? 'Correct.' : 'Wrong.'}
-            </div>
-            <div style={{ fontFamily: "'Creepster', cursive", fontSize: 64, color: result.correct ? '#7cc48a' : '#e24b4a', lineHeight: 0.9, marginBottom: 14 }}>
-              +{result.xp} xp
-            </div>
-            <div style={{ borderTop: `0.5px solid ${result.correct ? 'rgba(74,171,106,0.3)' : 'rgba(192,21,42,0.3)'}`, paddingTop: 12, width: '100%' }}>
-              <div style={{ fontFamily: "'Creepster', cursive", fontSize: 26, color: 'var(--sd-cream)', lineHeight: 1.15 }}>
-                {q.correct_answer}
-              </div>
-              <div style={{ display: 'flex', gap: 14, marginTop: 5, justifyContent: 'center' }}>
-                {q.decade && <div style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-muted)' }}>{q.decade}</div>}
-                {q.authored_by && <div style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-muted)' }}>Dir. {q.authored_by}</div>}
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* ── Collapsing container — animates away after answer ── */}
-      <div style={{ maxHeight: result ? 0 : '400px', overflow: 'hidden', transition: 'max-height 0.35s ease' }}>
-
-        {/* Input */}
-        <input
-          ref={inputRef}
-          className="sd-input"
-          value={answer}
-          onChange={e => setAnswer(e.target.value)}
-          onKeyDown={e => { if (e.key === 'Enter' && answer.trim()) onSubmit() }}
-          placeholder="Name the film…"
-          style={{ fontSize: 20, textAlign: 'center', letterSpacing: '0.03em', background: 'rgba(46,26,26,0.7)' }}
-        />
-
-      </div>
-
-      {/* ── CTA ── */}
-      <div style={{ padding: '8px 0 4px' }}>
-        <button className="sd-cta-btn" onClick={result ? onContinue : onSubmit} disabled={!result && !answer.trim()}>
-          {result ? 'Continue' : 'Lock it in'}
-        </button>
-      </div>
-    </>
-  )
-}
 
 function Act2View({ q, qIndex, selected, setSelected, revealed, onConfirm, isLast, xpPerQ }) {
   const containerRef = useRef(null)

@@ -1,0 +1,225 @@
+import { useEffect, useRef } from 'react'
+
+const PAGE_BG = '#1e1111'
+
+function HouseSVG() {
+  return (
+    <svg width="100%" height="100%" viewBox="0 0 340 191" preserveAspectRatio="xMidYMid slice">
+      <rect width="340" height="191" fill="#1a0e0e"/>
+      <rect x="0" y="100" width="340" height="91" fill="#150b0b"/>
+      <rect x="60" y="60" width="220" height="140" rx="2" fill="#221414"/>
+      <rect x="80" y="75" width="80" height="110" fill="#160e0e"/>
+      <rect x="180" y="75" width="80" height="110" fill="#160e0e"/>
+      <rect x="85" y="80" width="70" height="50" rx="1" fill="#261616"/>
+      <rect x="185" y="80" width="70" height="50" rx="1" fill="#261616"/>
+      <rect x="85" y="138" width="30" height="47" fill="#180f0f"/>
+      <rect x="123" y="150" width="20" height="35" fill="#180f0f"/>
+      <rect x="185" y="138" width="30" height="47" fill="#180f0f"/>
+      <rect x="223" y="150" width="20" height="35" fill="#180f0f"/>
+      <rect x="152" y="110" width="36" height="80" fill="#130c0c"/>
+      <ellipse cx="170" cy="108" rx="8" ry="14" fill="#2a1616"/>
+    </svg>
+  )
+}
+
+/**
+ * Shared Act I "Scene of the Crime" view.
+ *
+ * Required: q, answer, setAnswer, result, maxXP, onSubmit, onContinue
+ * Optional:
+ *   clues        – array of { key, label, penalty }; if provided, renders clue row
+ *   usedClues    – { [key]: bool }
+ *   revealedClues – { [key]: string }
+ *   onRevealClue – (key) => void
+ *   dayNum       – shows "Day #N" inside image when pre-answer
+ *   onSkip       – if provided, renders skip link
+ */
+export default function Act1GameView({
+  q,
+  answer,
+  setAnswer,
+  result,
+  maxXP,
+  onSubmit,
+  onContinue,
+  clues,
+  usedClues = {},
+  revealedClues = {},
+  onRevealClue,
+  dayNum,
+  onSkip,
+}) {
+  const inputRef = useRef(null)
+
+  useEffect(() => {
+    if (!result) inputRef.current?.focus()
+  }, [result])
+
+  useEffect(() => {
+    if (!result) return
+    function onKey(e) {
+      if (e.target.tagName === 'INPUT') return
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onContinue() }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [result, onContinue])
+
+  return (
+    <>
+      {/* ── Cinematic image block ── */}
+      <div style={{ position: 'relative', width: '100%', paddingTop: '52%', overflow: 'hidden', background: '#1a0e0e' }}>
+
+        <div style={{ position: 'absolute', inset: 0 }}>
+          {q?.image_url
+            ? <img src={q.image_url} alt="Identify this horror film" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+            : <HouseSVG />
+          }
+        </div>
+
+        {/* Vignette */}
+        <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at center, transparent 35%, rgba(0,0,0,0.6) 100%)', pointerEvents: 'none' }} />
+        {/* Top scrim */}
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(14,8,8,0.82) 0%, transparent 38%)', pointerEvents: 'none' }} />
+        {/* Bottom bleed */}
+        <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(to top, ${PAGE_BG} 0%, transparent 42%)`, pointerEvents: 'none' }} />
+
+        {/* ACT I — top-left */}
+        <div style={{ position: 'absolute', top: 14, left: 16 }}>
+          <div style={{ fontFamily: "'Creepster', cursive", fontSize: 11, color: 'var(--sd-red)', letterSpacing: '0.18em', lineHeight: 1, textShadow: '0 0 12px rgba(192,21,42,0.7)' }}>
+            ACT I
+          </div>
+          <div style={{ fontFamily: "'Special Elite', serif", fontSize: 15, color: 'var(--sd-cream)', letterSpacing: '0.03em', lineHeight: 1.15, marginTop: 3, textShadow: '0 2px 8px rgba(0,0,0,0.9)' }}>
+            Scene of the Crime
+          </div>
+        </div>
+
+        {/* XP pill — top-right */}
+        <div style={{
+          position: 'absolute', top: 14, right: 16,
+          fontFamily: "'Special Elite', serif", fontSize: 10, color: 'var(--sd-cream-dim)',
+          border: '0.5px solid rgba(192,21,42,0.55)', borderRadius: 20,
+          padding: '3px 9px', background: 'rgba(0,0,0,0.55)',
+          backdropFilter: 'blur(6px)',
+        }}>
+          {maxXP} xp
+        </div>
+
+        {/* Question text + optional day label — inside bottom gradient */}
+        {!result && (
+          <>
+            <div style={{
+              position: 'absolute', bottom: 28, left: 0, right: 0,
+              textAlign: 'center',
+              fontFamily: "'Special Elite', serif", fontSize: 12,
+              color: 'rgba(242,230,212,0.75)', letterSpacing: '0.07em',
+              textShadow: '0 1px 6px rgba(0,0,0,0.9)',
+            }}>
+              What horror film is this scene from?
+            </div>
+            {dayNum != null && (
+              <div style={{
+                position: 'absolute', bottom: 10, left: 16,
+                fontFamily: "'Special Elite', serif", fontSize: 9,
+                color: 'rgba(242,230,212,0.3)', letterSpacing: '0.06em',
+              }}>
+                Day #{dayNum}
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Result overlay — frosted, image bleeds through */}
+        {result && (
+          <div className="sd-result-reveal" style={{
+            position: 'absolute', inset: 0,
+            background: result.correct ? 'rgba(4,18,10,0.72)' : 'rgba(20,4,4,0.72)',
+            backdropFilter: 'blur(6px)',
+            WebkitBackdropFilter: 'blur(6px)',
+            display: 'flex', flexDirection: 'column',
+            alignItems: 'center', justifyContent: 'center',
+            padding: '16px 24px', textAlign: 'center',
+          }}>
+            <div className="sd-stamp-in" style={{ fontFamily: "'Creepster', cursive", fontSize: 18, color: result.correct ? '#7cc48a' : '#e24b4a', letterSpacing: '0.12em', lineHeight: 1, marginBottom: 4 }}>
+              {result.correct ? 'Correct.' : 'Wrong.'}
+            </div>
+            <div style={{ fontFamily: "'Creepster', cursive", fontSize: 64, color: result.correct ? '#7cc48a' : '#e24b4a', lineHeight: 0.9, marginBottom: 14 }}>
+              +{result.xp} xp
+            </div>
+            {q && (
+              <div style={{ borderTop: `0.5px solid ${result.correct ? 'rgba(74,171,106,0.3)' : 'rgba(192,21,42,0.3)'}`, paddingTop: 12, width: '100%' }}>
+                <div style={{ fontFamily: "'Creepster', cursive", fontSize: 26, color: 'var(--sd-cream)', lineHeight: 1.15 }}>
+                  {q.correct_answer}
+                </div>
+                <div style={{ display: 'flex', gap: 14, marginTop: 5, justifyContent: 'center' }}>
+                  {q.decade && <div style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-muted)' }}>{q.decade}</div>}
+                  {q.authored_by && <div style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-muted)' }}>Dir. {q.authored_by}</div>}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Collapsing container: optional clues + input */}
+      <div style={{ maxHeight: result ? 0 : '400px', overflow: 'hidden', transition: 'max-height 0.3s ease' }}>
+
+        {clues && (
+          <div style={{ display: 'flex', gap: 6, padding: '8px var(--sd-px) 6px' }}>
+            {clues.map(({ key, label, penalty }) => {
+              const used = usedClues[key]
+              return (
+                <button
+                  key={key}
+                  onClick={() => onRevealClue?.(key)}
+                  style={{
+                    flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
+                    background: used ? 'rgba(255,255,255,0.025)' : 'rgba(192,21,42,0.07)',
+                    border: used ? '1px solid rgba(255,255,255,0.07)' : '1px dashed rgba(192,21,42,0.4)',
+                    borderRadius: 8, padding: '7px 6px',
+                    cursor: used ? 'default' : 'pointer',
+                  }}
+                >
+                  <span style={{ fontFamily: "'Special Elite', serif", fontSize: 9, color: 'var(--sd-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                    {label}
+                  </span>
+                  <span style={{ fontFamily: used ? "'Teko', sans-serif" : "'Creepster', cursive", fontSize: used ? 13 : 11, color: used ? 'var(--sd-cream)' : 'var(--sd-red)', lineHeight: 1 }}>
+                    {used ? revealedClues[key] : `−${penalty}`}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+        )}
+
+        <input
+          ref={inputRef}
+          className="sd-input"
+          value={answer}
+          onChange={e => setAnswer(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter' && answer.trim()) onSubmit() }}
+          placeholder="Name the film…"
+          style={{ fontSize: 20, textAlign: 'center', letterSpacing: '0.03em', background: 'rgba(46,26,26,0.7)' }}
+        />
+
+      </div>
+
+      {/* CTA */}
+      <div style={{ padding: '8px 0 4px' }}>
+        <button
+          className="sd-cta-btn"
+          onClick={result ? onContinue : onSubmit}
+          disabled={!result && !answer.trim()}
+        >
+          {result ? 'Continue' : 'Lock it in'}
+        </button>
+      </div>
+
+      {!result && onSkip && (
+        <button className="sd-skip-link" onClick={onSkip}>
+          Skip — 0 xp
+        </button>
+      )}
+    </>
+  )
+}
