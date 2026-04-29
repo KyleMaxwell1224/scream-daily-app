@@ -109,7 +109,7 @@ export default function ActOne() {
           position: 'relative', width: '100%', paddingTop: '56.25%',
           borderRadius: 12, overflow: 'hidden',
           border: '1px solid var(--sd-border)',
-          background: '#120808',
+          background: '#1a0e0e',
         }}>
           <div style={{ position: 'absolute', inset: 0 }}>
             {q?.image_url ? (

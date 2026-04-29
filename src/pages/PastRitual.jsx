@@ -400,11 +400,11 @@ function Act1View({ q, answer, setAnswer, result, onSubmit, onContinue, maxXP })
         <span className="sd-xp-pill">{maxXP} xp</span>
       </div>
       <div style={{ padding: '0 var(--sd-px) 14px' }}>
-        <div style={{ position: 'relative', width: '100%', paddingTop: '56.25%', borderRadius: 12, overflow: 'hidden', border: '1px solid var(--sd-border)', background: '#120808' }}>
+        <div style={{ position: 'relative', width: '100%', paddingTop: '56.25%', borderRadius: 12, overflow: 'hidden', border: '1px solid var(--sd-border)', background: '#1a0e0e' }}>
           <div style={{ position: 'absolute', inset: 0 }}>
             {q.image_url
               ? <img src={q.image_url} alt="horror still" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              : <div style={{ width: '100%', height: '100%', background: '#120808' }} />
+              : <div style={{ width: '100%', height: '100%', background: '#1a0e0e' }} />
             }
           </div>
         </div>
