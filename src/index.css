@@ -1,16 +1,16 @@
 :root {
-  --sd-black:        #0b0707;
+  --sd-black:        #120909;
   --sd-red:          #c0152a;
   --sd-red-dark:     #8a0e1e;
   --sd-green:        #2a7a47;
   --sd-green-bright: #4aab6a;
   --sd-amber:        #b87820;
   --sd-cream:        #f2e6d4;
-  --sd-cream-dim:    #d8c8a8;
-  --sd-card:         #1e1212;
-  --sd-card2:        #271717;
-  --sd-border:       rgba(192, 21, 42, 0.28);
-  --sd-muted:        #a09080;
+  --sd-cream-dim:    #dccaaa;
+  --sd-card:         #2e1a1a;
+  --sd-card2:        #3a2020;
+  --sd-border:       rgba(192, 21, 42, 0.4);
+  --sd-muted:        #c0a890;
   --sd-px:           20px;
 }
 
@@ -55,7 +55,7 @@ body::after {
 }
 
 .sd-wrap {
-  background: var(--sd-black);
+  background: #1e1111;
   width: 100%;
   max-width: 480px;
   margin: 0 auto;
@@ -124,7 +124,7 @@ body::after {
 }
 
 .sd-progress-seg.upcoming {
-  background: rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.12);
 }
 
 /* ─── Bottom nav ───────────────────────────────────────────────────── */
@@ -136,12 +136,12 @@ body::after {
   transform: translateX(-50%);
   width: 100%;
   max-width: 480px;
-  background: rgba(13, 8, 8, 0.97);
+  background: rgba(26, 14, 14, 0.97);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
-  border-top: 0.5px solid rgba(192, 21, 42, 0.25);
-  border-left: 0.5px solid rgba(192, 21, 42, 0.1);
-  border-right: 0.5px solid rgba(192, 21, 42, 0.1);
+  border-top: 0.5px solid rgba(192, 21, 42, 0.35);
+  border-left: 0.5px solid rgba(192, 21, 42, 0.15);
+  border-right: 0.5px solid rgba(192, 21, 42, 0.15);
   display: flex;
   z-index: 100;
 }
@@ -197,7 +197,7 @@ body::after {
 }
 
 .sd-nav-tab:not(.active) svg {
-  stroke: #7a6a6a;
+  stroke: #9a8080;
 }
 
 .sd-nav-label {
@@ -353,7 +353,7 @@ body::after {
   align-items: center;
   gap: 12px;
   background: var(--sd-card);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.13);
   border-radius: 10px;
   padding: 13px 16px;
   cursor: pointer;
@@ -452,7 +452,7 @@ body::after {
   width: calc(100% - var(--sd-px) * 2);
   margin: 0 var(--sd-px);
   background: var(--sd-card);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 12px;
   padding: 14px 16px;
   font-family: 'Teko', sans-serif;
@@ -547,7 +547,7 @@ body::after {
 
   .sd-wrap {
     max-width: 960px;
-    background: transparent;
+    background: #1e1111;
     box-shadow:
       -1px 0 0 rgba(192, 21, 42, 0.12),
        1px 0 0 rgba(192, 21, 42, 0.12),
@@ -558,7 +558,7 @@ body::after {
   }
 
   .sd-header {
-    background: rgba(11, 7, 7, 0.78);
+    background: rgba(22, 12, 12, 0.92);
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
   }

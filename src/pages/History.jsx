@@ -151,8 +151,8 @@ export default function History() {
               onClick={() => !done && navigate(`/past/${dateStr}`)}
               style={{
                 background: done
-                  ? 'linear-gradient(135deg, rgba(45,102,64,0.12) 0%, rgba(30,18,18,0.92) 100%)'
-                  : 'linear-gradient(135deg, rgba(192,21,42,0.1) 0%, rgba(30,18,18,0.92) 100%)',
+                  ? 'linear-gradient(135deg, rgba(45,102,64,0.12) 0%, rgba(46,26,26,0.95) 100%)'
+                  : 'linear-gradient(135deg, rgba(192,21,42,0.1) 0%, rgba(46,26,26,0.95) 100%)',
                 border: `1px solid ${done ? 'rgba(45,102,64,0.32)' : 'rgba(192,21,42,0.35)'}`,
                 borderLeft: `4px solid ${done ? '#2d6640' : 'var(--sd-red)'}`,
                 borderRadius: 12, padding: '14px 16px 14px 14px',

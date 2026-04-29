@@ -204,8 +204,8 @@ function ActList({ completedActs, navigate }) {
               border: `1px solid ${done ? 'rgba(45,102,64,0.35)' : 'rgba(192,21,42,0.38)'}`,
               borderLeft: `4px solid ${done ? '#2d6640' : 'var(--sd-red)'}`,
               background: done
-                ? 'linear-gradient(135deg, rgba(45,102,64,0.14) 0%, rgba(30,18,18,0.92) 100%)'
-                : 'linear-gradient(135deg, rgba(192,21,42,0.13) 0%, rgba(30,18,18,0.92) 100%)',
+                ? 'linear-gradient(135deg, rgba(45,102,64,0.14) 0%, rgba(46,26,26,0.95) 100%)'
+                : 'linear-gradient(135deg, rgba(192,21,42,0.13) 0%, rgba(46,26,26,0.95) 100%)',
               boxShadow: done
                 ? '0 4px 20px rgba(0,0,0,0.55)'
                 : '0 4px 20px rgba(0,0,0,0.55), inset 0 1px 0 rgba(192,21,42,0.08)',
@@ -364,8 +364,8 @@ export default function Home() {
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12,
         padding: '13px var(--sd-px)',
-        borderBottom: '0.5px solid rgba(255,255,255,0.06)',
-        background: 'rgba(192,21,42,0.04)',
+        borderBottom: '0.5px solid rgba(192,21,42,0.25)',
+        background: 'rgba(192,21,42,0.08)',
       }}>
         <span style={{ fontFamily: "'Special Elite', serif", fontSize: 13, color: 'var(--sd-cream-dim)', letterSpacing: '0.03em' }}>
           {dateStr}
@@ -441,8 +441,8 @@ export default function Home() {
                         border: `1px solid ${done ? 'rgba(45,102,64,0.32)' : 'rgba(192,21,42,0.35)'}`,
                         borderLeft: `4px solid ${done ? '#2d6640' : 'var(--sd-red)'}`,
                         background: done
-                          ? 'linear-gradient(135deg, rgba(45,102,64,0.12) 0%, rgba(30,18,18,0.92) 100%)'
-                          : 'linear-gradient(135deg, rgba(192,21,42,0.11) 0%, rgba(30,18,18,0.92) 100%)',
+                          ? 'linear-gradient(135deg, rgba(45,102,64,0.12) 0%, rgba(46,26,26,0.95) 100%)'
+                          : 'linear-gradient(135deg, rgba(192,21,42,0.11) 0%, rgba(46,26,26,0.95) 100%)',
                         boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
                         padding: '13px 16px 13px 14px',
                         display: 'flex', alignItems: 'center', gap: 14,

@@ -73,8 +73,8 @@ export default function Leaderboard() {
                 border: `1px solid ${isMe ? 'rgba(192,21,42,0.55)' : p.border}`,
                 borderLeft: `4px solid ${isMe ? 'var(--sd-red)' : p.color}`,
                 background: isMe
-                  ? 'linear-gradient(135deg, rgba(192,21,42,0.18) 0%, rgba(30,18,18,0.95) 100%)'
-                  : `linear-gradient(135deg, ${p.bg} 0%, rgba(30,18,18,0.95) 100%)`,
+                  ? 'linear-gradient(135deg, rgba(192,21,42,0.18) 0%, rgba(46,26,26,0.96) 100%)'
+                  : `linear-gradient(135deg, ${p.bg} 0%, rgba(46,26,26,0.96) 100%)`,
                 boxShadow: `0 4px 24px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.04)`,
                 padding: '16px 16px 16px 14px',
                 display: 'flex', alignItems: 'center', gap: 14,
@@ -155,8 +155,8 @@ export default function Leaderboard() {
                     border: `1px solid ${isMe ? 'rgba(192,21,42,0.45)' : 'rgba(192,21,42,0.2)'}`,
                     borderLeft: `4px solid ${isMe ? 'var(--sd-red)' : 'rgba(192,21,42,0.35)'}`,
                     background: isMe
-                      ? 'linear-gradient(135deg, rgba(192,21,42,0.12) 0%, rgba(30,18,18,0.92) 100%)'
-                      : 'linear-gradient(135deg, rgba(192,21,42,0.05) 0%, rgba(30,18,18,0.92) 100%)',
+                      ? 'linear-gradient(135deg, rgba(192,21,42,0.12) 0%, rgba(46,26,26,0.95) 100%)'
+                      : 'linear-gradient(135deg, rgba(192,21,42,0.05) 0%, rgba(46,26,26,0.95) 100%)',
                     boxShadow: '0 3px 16px rgba(0,0,0,0.5)',
                     padding: '13px 16px 13px 14px',
                     display: 'flex', alignItems: 'center', gap: 14,
