@@ -314,7 +314,7 @@ export default function PastRitual() {
         borderRadius: 8, padding: '6px 12px',
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
       }}>
-        <span style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-muted)' }}>
+        <span style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-cream-dim)' }}>
           {formatDate(date)} · 50% XP
         </span>
         <span style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-red)' }}>
@@ -400,7 +400,7 @@ function Act1View({ q, answer, setAnswer, result, onSubmit, onContinue, maxXP })
   return (
     <>
       {/* ── Cinematic image block ── */}
-      <div style={{ position: 'relative', width: '100%', paddingTop: '62%', overflow: 'hidden', background: '#1a0e0e' }}>
+      <div style={{ position: 'relative', width: '100%', paddingTop: '52%', overflow: 'hidden', background: '#1a0e0e' }}>
 
         <div style={{ position: 'absolute', inset: 0 }}>
           {q.image_url
@@ -439,8 +439,8 @@ function Act1View({ q, answer, setAnswer, result, onSubmit, onContinue, maxXP })
       </div>
 
       {/* ── Question prompt ── */}
-      <div style={{ padding: '20px var(--sd-px) 16px', textAlign: 'center' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+      <div style={{ padding: '12px var(--sd-px) 10px', textAlign: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
           <div style={{ flex: 1, height: '0.5px', background: 'linear-gradient(to right, transparent, rgba(192,21,42,0.3))' }} />
           <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'rgba(192,21,42,0.6)', boxShadow: '0 0 6px rgba(192,21,42,0.5)' }} />
           <div style={{ flex: 1, height: '0.5px', background: 'linear-gradient(to left, transparent, rgba(192,21,42,0.3))' }} />

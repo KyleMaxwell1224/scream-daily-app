@@ -86,7 +86,7 @@ export default function ActOne() {
       <div className="sd-game-content">
 
         {/* ── Cinematic image block ── */}
-        <div style={{ position: 'relative', width: '100%', paddingTop: '62%', overflow: 'hidden', background: '#1a0e0e' }}>
+        <div style={{ position: 'relative', width: '100%', paddingTop: '52%', overflow: 'hidden', background: '#1a0e0e' }}>
 
           {/* The film still */}
           <div style={{ position: 'absolute', inset: 0 }}>
@@ -137,7 +137,7 @@ export default function ActOne() {
         </div>
 
         {/* ── Clue row ── */}
-        <div style={{ display: 'flex', gap: 6, padding: '10px var(--sd-px) 0' }}>
+        <div style={{ display: 'flex', gap: 6, padding: '8px var(--sd-px) 0' }}>
           {CLUES.map(({ key, label, penalty }) => {
             const used = usedClues[key]
             return (
@@ -171,8 +171,8 @@ export default function ActOne() {
         </div>
 
         {/* ── Question prompt ── */}
-        <div style={{ padding: '20px var(--sd-px) 16px', textAlign: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+        <div style={{ padding: '12px var(--sd-px) 10px', textAlign: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
             <div style={{ flex: 1, height: '0.5px', background: 'linear-gradient(to right, transparent, rgba(192,21,42,0.3))' }} />
             <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'rgba(192,21,42,0.6)', boxShadow: '0 0 6px rgba(192,21,42,0.5)' }} />
             <div style={{ flex: 1, height: '0.5px', background: 'linear-gradient(to left, transparent, rgba(192,21,42,0.3))' }} />
