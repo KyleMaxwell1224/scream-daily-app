@@ -1,13 +1,20 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import Header from '../components/Header'
+import { motion, AnimatePresence } from 'motion/react'
 import ProgressBar from '../components/ProgressBar'
-import BottomNav from '../components/BottomNav'
+import Spinner from '../components/Spinner'
 import useGameStore from '../store/useGameStore'
 import { getTodaysQuestions } from '../utils/questions'
-import { BASE_XP } from '../utils/gameConfig'
+import { BASE_XP, LETTERS } from '../utils/gameConfig'
 
-const LETTERS = ['A', 'B', 'C', 'D']
+const optionStagger = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.06, delayChildren: 0.1 } },
+}
+const optionItem = {
+  hidden:  { opacity: 0, x: -14 },
+  visible: { opacity: 1, x: 0, transition: { duration: 0.35, ease: [0.22, 1, 0.36, 1] } },
+}
 
 export default function ActTwo() {
   const navigate = useNavigate()
@@ -99,10 +106,7 @@ export default function ActTwo() {
   if (loading || !q) {
     return (
       <div className="sd-wrap">
-        <Header activePage="ritual" />
-        <div style={{ fontFamily: "'Special Elite', serif", fontSize: 12, color: 'var(--sd-muted)', textAlign: 'center', marginTop: 80 }}>
-          Loading questions…
-        </div>
+        <Spinner size={48} label="Preparing the inquisition" />
       </div>
     )
   }
@@ -119,51 +123,86 @@ export default function ActTwo() {
 
   return (
     <div className="sd-wrap">
-      <Header activePage="ritual" />
       <ProgressBar currentAct={2} />
       <div ref={containerRef} tabIndex={-1} style={{ outline: 'none' }} className="sd-game-content">
 
-        <div className="sd-act-header">
+        <motion.div
+          className="sd-act-header"
+          initial={{ opacity: 0, y: -6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+        >
           <span className="sd-act-badge">ACT II</span>
           <span className="sd-act-title">The Inquisition</span>
           <span className="sd-xp-pill">{BASE_XP.act2perQ * 5} xp</span>
-        </div>
+        </motion.div>
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 var(--sd-px) 12px' }}>
-          <span style={{ fontFamily: "'Special Elite', serif", fontSize: 10, color: 'var(--sd-muted)' }}>
+          <span style={{ fontFamily: "'Special Elite', serif", fontSize: 10, color: 'var(--sd-muted)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
             Question {qIndex + 1} of 5
           </span>
           <div style={{ display: 'flex', gap: 6 }}>
             {[0, 1, 2, 3, 4].map(i => {
-              let bg = 'rgba(255,255,255,0.08)'
-              if (i < qIndex || (i === qIndex && revealed)) bg = '#2d6640'
-              else if (i === qIndex) bg = 'var(--sd-red)'
-              return <div key={i} style={{ width: 7, height: 7, borderRadius: '50%', background: bg }} />
+              const isDone = i < qIndex || (i === qIndex && revealed)
+              const isActive = i === qIndex && !revealed
+              const bg = isDone ? '#2d6640' : isActive ? 'var(--sd-red)' : 'rgba(255,255,255,0.08)'
+              return (
+                <motion.div
+                  key={i}
+                  animate={{
+                    scale: isActive ? 1.15 : 1,
+                    boxShadow: isActive ? '0 0 8px rgba(232, 53, 80, 0.65)' : '0 0 0 rgba(0,0,0,0)',
+                  }}
+                  transition={{ type: 'spring', stiffness: 380, damping: 22 }}
+                  style={{ width: 7, height: 7, borderRadius: '50%', background: bg }}
+                />
+              )
             })}
           </div>
         </div>
 
-        <div style={{
-          margin: '0 var(--sd-px) 14px', background: 'var(--sd-card)',
-          borderRadius: 12, padding: '16px',
-          border: '1px solid var(--sd-border)',
-          minHeight: 90,
-        }}>
-          <div style={{ fontFamily: "'Special Elite', serif", fontSize: 14, color: 'var(--sd-cream)', lineHeight: 1.6 }}>
-            {q.question}
-          </div>
-        </div>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={qIndex}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+            style={{
+              margin: '0 var(--sd-px) 14px', background: 'var(--sd-card)',
+              borderRadius: 12, padding: '16px',
+              border: '1px solid var(--sd-border)',
+              minHeight: 90,
+            }}
+          >
+            <div style={{ fontFamily: "'Special Elite', serif", fontSize: 14, color: 'var(--sd-cream)', lineHeight: 1.6 }}>
+              {q.question}
+            </div>
+          </motion.div>
+        </AnimatePresence>
 
-        <div className="sd-options">
+        <motion.div
+          key={qIndex}
+          className="sd-options"
+          variants={optionStagger}
+          initial="hidden"
+          animate="visible"
+        >
           {options.map((opt, i) => (
-            <button key={i} className={getOptionClass(opt)} onClick={() => handleSelect(opt)}>
+            <motion.button
+              key={i}
+              variants={optionItem}
+              whileTap={!revealed ? { scale: 0.98 } : undefined}
+              className={getOptionClass(opt)}
+              onClick={() => handleSelect(opt)}
+            >
               <span className="sd-option-letter">{LETTERS[i]}</span>
               <span className="sd-option-text">{opt}</span>
               {revealed && opt === q.correct_answer && <span className="sd-option-icon">✓</span>}
               {revealed && opt === selected && opt !== q.correct_answer && <span className="sd-option-icon">✕</span>}
-            </button>
+            </motion.button>
           ))}
-        </div>
+        </motion.div>
 
         {revealed && (
           <div className={`sd-feedback ${isCorrect ? 'correct' : 'wrong'}`}>
@@ -171,14 +210,19 @@ export default function ActTwo() {
           </div>
         )}
 
-        <div style={{ padding: '14px var(--sd-px) 0' }}>
+        <motion.div
+          style={{ padding: '14px var(--sd-px) 0' }}
+          className="sd-cta-wrap"
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35, delay: 0.25 }}
+        >
           <button className="sd-cta-btn" onClick={handleConfirm} disabled={!selected && !revealed}>
             {!revealed ? 'Confirm' : isLast ? 'See Act III' : 'Next question'}
           </button>
-        </div>
+        </motion.div>
 
       </div>
-      <BottomNav activePage="ritual" />
     </div>
   )
 }

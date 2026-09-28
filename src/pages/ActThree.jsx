@@ -1,13 +1,20 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import Header from '../components/Header'
+import { motion } from 'motion/react'
 import ProgressBar from '../components/ProgressBar'
-import BottomNav from '../components/BottomNav'
+import Spinner from '../components/Spinner'
 import useGameStore from '../store/useGameStore'
 import { getTodaysQuestions } from '../utils/questions'
-import { BASE_XP } from '../utils/gameConfig'
+import { BASE_XP, LETTERS } from '../utils/gameConfig'
 
-const LETTERS = ['A', 'B', 'C', 'D']
+const optionStagger = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.06, delayChildren: 0.35 } },
+}
+const optionItem = {
+  hidden:  { opacity: 0, x: -14 },
+  visible: { opacity: 1, x: 0, transition: { duration: 0.35, ease: [0.22, 1, 0.36, 1] } },
+}
 
 export default function ActThree() {
   const navigate = useNavigate()
@@ -67,10 +74,7 @@ export default function ActThree() {
   if (loading || !q) {
     return (
       <div className="sd-wrap">
-        <Header activePage="ritual" />
-        <div style={{ fontFamily: "'Special Elite', serif", fontSize: 12, color: 'var(--sd-muted)', textAlign: 'center', marginTop: 80 }}>
-          Loading…
-        </div>
+        <Spinner size={48} label="Listening for a voice" />
       </div>
     )
   }
@@ -86,69 +90,101 @@ export default function ActThree() {
 
   return (
     <div className="sd-wrap">
-      <Header activePage="ritual" />
       <ProgressBar currentAct={3} />
       <div ref={containerRef} tabIndex={-1} style={{ outline: 'none' }} className="sd-game-content">
 
-      <div className="sd-act-header">
+      <motion.div
+        className="sd-act-header"
+        initial={{ opacity: 0, y: -6 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+      >
         <span className="sd-act-badge">ACT III</span>
         <span className="sd-act-title">Speak of the devil</span>
         <span className="sd-xp-pill">{BASE_XP.act3} xp</span>
-      </div>
+      </motion.div>
 
       {/* Quote card */}
-      <div style={{
-        margin: '4px var(--sd-px) 14px',
-        background: 'var(--sd-card)',
-        borderRadius: 14,
-        border: '1px solid var(--sd-border)',
-        borderLeft: '3px solid var(--sd-red)',
-        padding: '20px 18px 16px',
-        position: 'relative',
-        overflow: 'hidden',
-      }}>
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.05, ease: [0.22, 1, 0.36, 1] }}
+        style={{
+          margin: '4px var(--sd-px) 14px',
+          background: 'var(--sd-card)',
+          borderRadius: 14,
+          border: '1px solid var(--sd-border)',
+          borderLeft: '3px solid var(--sd-red)',
+          padding: '20px 18px 16px',
+          position: 'relative',
+          overflow: 'hidden',
+          boxShadow: '0 6px 22px rgba(0,0,0,0.4)',
+        }}
+      >
         <div style={{
-          position: 'absolute', top: -10, left: 8,
-          fontFamily: "'Creepster', cursive", fontSize: 80,
-          color: 'rgba(192, 21, 42, 0.15)', lineHeight: 1,
+          position: 'absolute', top: -14, left: 6,
+          fontFamily: "'Creepster', cursive", fontSize: 90,
+          color: 'rgba(192, 21, 42, 0.18)', lineHeight: 1,
           userSelect: 'none', pointerEvents: 'none',
         }}>"</div>
-        <div style={{
+        <div className="sd-quote-reveal" style={{
           fontFamily: "'Special Elite', serif", fontSize: 15,
           color: 'var(--sd-cream)', fontStyle: 'italic', lineHeight: 1.75,
           position: 'relative', zIndex: 1,
+          animationDelay: '0.15s',
         }}>
           {q.quote || q.question}
         </div>
         {q.attribution && (
-          <div style={{
-            fontFamily: "'Special Elite', serif", fontSize: 10,
-            color: 'var(--sd-muted)', marginTop: 12,
-          }}>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1.0, duration: 0.4 }}
+            style={{
+              fontFamily: "'Special Elite', serif", fontSize: 10,
+              color: 'var(--sd-muted)', marginTop: 12,
+            }}
+          >
             — {q.attribution}
-          </div>
+          </motion.div>
         )}
-      </div>
+      </motion.div>
 
-      <div style={{
-        fontFamily: "'Special Elite', serif", fontSize: 11,
-        color: 'var(--sd-muted)', textAlign: 'center',
-        textTransform: 'uppercase', letterSpacing: '0.08em',
-        padding: '0 var(--sd-px) 14px',
-      }}>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.25, duration: 0.35 }}
+        style={{
+          fontFamily: "'Special Elite', serif", fontSize: 11,
+          color: 'var(--sd-muted)', textAlign: 'center',
+          textTransform: 'uppercase', letterSpacing: '0.14em',
+          padding: '0 var(--sd-px) 14px',
+        }}
+      >
         Which horror film is this quote from?
-      </div>
+      </motion.div>
 
-      <div className="sd-options">
+      <motion.div
+        className="sd-options"
+        variants={optionStagger}
+        initial="hidden"
+        animate="visible"
+      >
         {options.map((opt, i) => (
-          <button key={i} className={getOptionClass(opt)} onClick={() => !revealed && setSelected(opt)}>
+          <motion.button
+            key={i}
+            variants={optionItem}
+            whileTap={!revealed ? { scale: 0.98 } : undefined}
+            className={getOptionClass(opt)}
+            onClick={() => !revealed && setSelected(opt)}
+          >
             <span className="sd-option-letter">{LETTERS[i]}</span>
             <span className="sd-option-text">{opt}</span>
             {revealed && opt === q.correct_answer && <span className="sd-option-icon">✓</span>}
             {revealed && opt === selected && opt !== q.correct_answer && <span className="sd-option-icon">✕</span>}
-          </button>
+          </motion.button>
         ))}
-      </div>
+      </motion.div>
 
       {revealed && (
         <div className={`sd-feedback ${isCorrect ? 'correct' : 'wrong'}`}>
@@ -156,18 +192,23 @@ export default function ActThree() {
         </div>
       )}
 
-      <div style={{ padding: '14px var(--sd-px) 0' }}>
+      <motion.div
+        className="sd-cta-wrap"
+        style={{ padding: '14px var(--sd-px) 0' }}
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.65, duration: 0.35 }}
+      >
         <button className="sd-cta-btn" onClick={handleConfirm} disabled={!selected && !revealed}>
           {!revealed ? 'Confirm' : 'Next: Final Reckoning'}
         </button>
-      </div>
+      </motion.div>
 
       <button className="sd-skip-link" onClick={() => { completeAct(3, 0); navigate('/act/4') }}>
         Skip — 0 xp
       </button>
 
       </div>
-      <BottomNav activePage="ritual" />
     </div>
   )
 }

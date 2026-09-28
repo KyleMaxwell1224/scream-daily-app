@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import Header from '../components/Header'
 import ProgressBar from '../components/ProgressBar'
-import BottomNav from '../components/BottomNav'
 import ActFourView from '../components/ActFourView'
+import Spinner from '../components/Spinner'
 import useGameStore from '../store/useGameStore'
 import { gradeAnswer, getTodaysQuestions } from '../utils/questions'
 
@@ -39,17 +38,13 @@ export default function ActFour() {
   if (loading || !q) {
     return (
       <div className="sd-wrap">
-        <Header activePage="ritual" />
-        <div style={{ fontFamily: "'Special Elite', serif", fontSize: 12, color: 'var(--sd-muted)', textAlign: 'center', marginTop: 80 }}>
-          Loading…
-        </div>
+        <Spinner size={48} label="Sharpening the blade" />
       </div>
     )
   }
 
   return (
     <div className="sd-wrap">
-      <Header activePage="ritual" />
       <ProgressBar currentAct={4} />
       <div className="sd-game-content">
         <ActFourView
@@ -62,7 +57,6 @@ export default function ActFour() {
           onSkip={() => { completeAct(4, 0); navigate('/results') }}
         />
       </div>
-      <BottomNav activePage="ritual" />
     </div>
   )
 }

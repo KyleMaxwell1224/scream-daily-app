@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
+import { motion } from 'motion/react'
 
-const PAGE_BG = '#1e1111'
+const PAGE_BG = '#1a0e0e'
 
 function HouseSVG() {
   return (
@@ -68,7 +69,12 @@ export default function Act1GameView({
   return (
     <>
       {/* ── Cinematic image block ── */}
-      <div style={{ position: 'relative', width: '100%', paddingTop: '52%', overflow: 'hidden', background: '#1a0e0e' }}>
+      <motion.div
+        initial={{ opacity: 0, scale: 1.03 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+        style={{ position: 'relative', width: '100%', paddingTop: '52%', overflow: 'hidden', background: '#1a0e0e' }}
+      >
 
         <div style={{ position: 'absolute', inset: 0 }}>
           {q?.image_url
@@ -159,40 +165,51 @@ export default function Act1GameView({
             )}
           </div>
         )}
-      </div>
+      </motion.div>
 
       {/* Collapsing container: optional clues + input */}
       <div style={{ maxHeight: result ? 0 : '400px', overflow: 'hidden', transition: 'max-height 0.3s ease' }}>
 
         {clues && (
-          <div style={{ display: 'flex', gap: 6, padding: '8px var(--sd-px) 6px' }}>
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={{ visible: { transition: { staggerChildren: 0.06, delayChildren: 0.35 } } }}
+            style={{ display: 'flex', gap: 6, padding: '10px var(--sd-px) 6px' }}
+          >
             {clues.map(({ key, label, penalty }) => {
               const used = usedClues[key]
               return (
-                <button
+                <motion.button
                   key={key}
+                  variants={{ hidden: { opacity: 0, y: 6 }, visible: { opacity: 1, y: 0, transition: { duration: 0.3 } } }}
+                  whileTap={!used ? { scale: 0.96 } : undefined}
                   onClick={() => onRevealClue?.(key)}
                   style={{
                     flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
-                    background: used ? 'rgba(255,255,255,0.025)' : 'rgba(192,21,42,0.07)',
-                    border: used ? '1px solid rgba(255,255,255,0.07)' : '1px dashed rgba(192,21,42,0.4)',
-                    borderRadius: 8, padding: '7px 6px',
+                    background: used ? 'rgba(255,255,255,0.03)' : 'rgba(192,21,42,0.09)',
+                    border: used ? '1px solid rgba(255,255,255,0.1)' : '1px dashed rgba(192,21,42,0.5)',
+                    borderRadius: 8, padding: '8px 6px',
                     cursor: used ? 'default' : 'pointer',
+                    transition: 'background 0.15s, border-color 0.15s',
                   }}
                 >
-                  <span style={{ fontFamily: "'Special Elite', serif", fontSize: 9, color: 'var(--sd-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                  <span style={{ fontFamily: "'Special Elite', serif", fontSize: 9, color: 'var(--sd-muted)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
                     {label}
                   </span>
-                  <span style={{ fontFamily: used ? "'Teko', sans-serif" : "'Creepster', cursive", fontSize: used ? 13 : 11, color: used ? 'var(--sd-cream)' : 'var(--sd-red)', lineHeight: 1 }}>
+                  <span style={{ fontFamily: used ? "'Teko', sans-serif" : "'Creepster', cursive", fontSize: used ? 13 : 11, color: used ? 'var(--sd-cream)' : 'var(--sd-red-bright)', lineHeight: 1 }}>
                     {used ? revealedClues[key] : `−${penalty}`}
                   </span>
-                </button>
+                </motion.button>
               )
             })}
-          </div>
+          </motion.div>
         )}
 
-        <input
+        <motion.input
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: clues ? 0.5 : 0.3, duration: 0.35 }}
           ref={inputRef}
           className="sd-input"
           value={answer}
@@ -205,7 +222,13 @@ export default function Act1GameView({
       </div>
 
       {/* CTA */}
-      <div style={{ padding: '8px 0 4px' }}>
+      <motion.div
+        className="sd-cta-wrap"
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.6, duration: 0.35 }}
+        style={{ padding: '8px 0 4px' }}
+      >
         <button
           className="sd-cta-btn"
           onClick={result ? onContinue : onSubmit}
@@ -213,7 +236,7 @@ export default function Act1GameView({
         >
           {result ? 'Continue' : 'Lock it in'}
         </button>
-      </div>
+      </motion.div>
 
       {!result && onSkip && (
         <button className="sd-skip-link" onClick={onSkip}>

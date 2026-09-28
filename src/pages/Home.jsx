@@ -1,14 +1,25 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import Header from '../components/Header'
-import BottomNav from '../components/BottomNav'
+import { motion } from 'motion/react'
+import RankSigil from '../components/RankSigil'
+import CountUp from '../components/CountUp'
 import useGameStore from '../store/useGameStore'
 import { supabase } from '../supabaseClient'
 import { getTodaysQuestions } from '../utils/questions'
 import { getRankForXP, getNextRank } from '../utils/ranks'
 import { ACTS } from '../utils/gameConfig'
 
-const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+const fadeUp = {
+  hidden:  { opacity: 0, y: 14 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } },
+}
+
+const stagger = {
+  hidden:  {},
+  visible: { transition: { staggerChildren: 0.08, delayChildren: 0.05 } },
+}
+
+const DAY_LABELS = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
 
 function getWeekDays() {
   const today = new Date()
@@ -23,228 +34,184 @@ function getWeekDays() {
 
 function CheckIcon() {
   return (
-    <span style={{
-      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-      width: 24, height: 24, borderRadius: '50%',
-      background: '#1a3d22', border: '1.5px solid #2d6640', flexShrink: 0,
-    }}>
-      <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-        <path d="M2 6l3 3 5-5" stroke="#3d8f55" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    <span className="sd-act-check">
+      <svg width="14" height="14" viewBox="0 0 12 12" fill="none">
+        <path d="M2 6l3 3 5-5" stroke="#5db87a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     </span>
   )
 }
 
-function ProfilePanel({ username, rank, displayXP, nextRank, xpBarFill, streak, daysPlayed, weekDays, today, weekCompletions = new Set() }) {
-  const displayName = username || 'Survivor'
-  const initials = displayName.slice(0, 2).toUpperCase()
-
+function FeatureCard({ dayNum, dateStr, username, rank, displayXP, nextRank, xpBarFill }) {
+  const initials = (username || 'SD').slice(0, 2).toUpperCase()
   return (
-    <div style={{
-      borderRadius: 16,
-      border: `1px solid ${rank.color}30`,
-      background: 'linear-gradient(160deg, rgba(255,255,255,0.02) 0%, rgba(192,21,42,0.04) 100%)',
-      overflow: 'hidden',
-    }}>
-      {/* Identity */}
-      <div style={{
-        padding: '18px 20px 16px',
-        borderBottom: '0.5px solid rgba(255,255,255,0.07)',
-        display: 'flex', alignItems: 'center', gap: 13,
-      }}>
-        <div style={{
-          width: 46, height: 46, borderRadius: '50%', flexShrink: 0,
-          background: 'rgba(192,21,42,0.1)',
-          border: `1.5px solid ${rank.color}55`,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}>
-          <span style={{ fontFamily: "'Creepster', cursive", fontSize: 19, color: rank.color }}>{initials}</span>
+    <motion.div
+      className="sd-feature"
+      initial={{ opacity: 0, scale: 0.97 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+    >
+      <div className="sd-feature-marquee sd-marquee-flicker">Tonight's Feature</div>
+
+      <div className="sd-feature-body">
+        {dayNum !== null && (
+          <div className="sd-feature-day">
+            DAY <span className="n">#{dayNum}</span>
+          </div>
+        )}
+        <div className="sd-feature-date">{dateStr}</div>
+      </div>
+
+      <div className="sd-feature-hr" />
+
+      <div className="sd-feature-identity">
+        <div
+          className="sd-feature-avatar"
+          style={{
+            border: `1.5px solid ${rank.color}80`,
+            color: rank.color,
+            boxShadow: `0 0 18px ${rank.color}22, inset 0 1px 0 rgba(255,255,255,0.06)`,
+          }}
+        >
+          {initials}
         </div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{
-            fontFamily: "'Creepster', cursive", fontSize: 20, color: 'var(--sd-cream)',
-            lineHeight: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-          }}>
-            {displayName}
+        <div className="sd-feature-who">
+          <div className="sd-feature-name">{username || 'Survivor'}</div>
+          <div className="sd-feature-rank" style={{ color: rank.color, display: 'flex', alignItems: 'center', gap: 7 }}>
+            <RankSigil name={rank.name} size={15} strokeWidth={1.3} />
+            <span>{rank.name}</span>
           </div>
-          <div style={{ fontFamily: "'Creepster', cursive", fontSize: 13, color: rank.color, marginTop: 3 }}>
-            {rank.name}
-          </div>
+        </div>
+        <div className="sd-feature-xp">
+          <CountUp value={displayXP} duration={1100} className="sd-feature-xp-val" />
+          <div className="sd-feature-xp-lbl">xp</div>
         </div>
       </div>
 
-      {/* XP + progress */}
-      <div style={{ padding: '14px 20px', borderBottom: '0.5px solid rgba(255,255,255,0.07)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 9 }}>
-          <span style={{ fontFamily: "'Special Elite', serif", fontSize: 10, color: 'var(--sd-muted)', fontStyle: 'italic', flex: 1, marginRight: 10, lineHeight: 1.4 }}>
-            {rank.flavor}
-          </span>
-          <span style={{ fontFamily: "'Teko', sans-serif", fontSize: 20, color: 'var(--sd-cream)', lineHeight: 1, flexShrink: 0 }}>
-            {displayXP}<span style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-muted)', marginLeft: 3 }}>xp</span>
-          </span>
+      <div className="sd-feature-progress">
+        <div className="sd-feature-progress-track">
+          <motion.div
+            className="sd-feature-progress-fill"
+            initial={{ width: 0 }}
+            animate={{ width: `${Math.max(2, xpBarFill)}%` }}
+            transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1], delay: 0.4 }}
+            style={{ background: rank.color, color: rank.color }}
+          />
         </div>
-        <div style={{ height: 4, background: 'rgba(255,255,255,0.07)', borderRadius: 2, overflow: 'hidden', marginBottom: 6 }}>
-          <div style={{ width: `${xpBarFill}%`, height: '100%', background: rank.color, borderRadius: 2 }} />
-        </div>
-        <div style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-muted)' }}>
-          {nextRank ? `${nextRank.minXP - displayXP} XP to ${nextRank.name}` : 'Max rank achieved'}
+        <div className="sd-feature-progress-label">
+          {nextRank ? `${(nextRank.minXP - displayXP).toLocaleString()} XP to ${nextRank.name}` : 'Max rank achieved'}
         </div>
       </div>
+    </motion.div>
+  )
+}
 
-      {/* Stats inline */}
-      <div style={{
-        display: 'grid', gridTemplateColumns: '1fr 1fr',
-        borderBottom: '0.5px solid rgba(255,255,255,0.07)',
-      }}>
-        {[{ label: 'Day streak', value: streak }, { label: 'Days played', value: daysPlayed }].map(({ label, value }, i) => (
-          <div key={label} style={{
-            padding: '14px 20px', textAlign: 'center',
-            borderRight: i === 0 ? '0.5px solid rgba(255,255,255,0.07)' : 'none',
-          }}>
-            <div style={{ fontFamily: "'Teko', sans-serif", fontSize: 34, color: 'var(--sd-cream)', lineHeight: 1 }}>{value}</div>
-            <div style={{
-              fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-muted)',
-              textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: 4,
-            }}>{label}</div>
-          </div>
-        ))}
-      </div>
+function ActList({ completedActs, navigate }) {
+  return (
+    <motion.div
+      className="sd-act-list"
+      variants={stagger}
+      initial="hidden"
+      animate="visible"
+    >
+      {ACTS.map(({ num, numeral, name, desc, maxXP: xp }) => {
+        const done = completedActs.includes(num)
+        return (
+          <motion.div
+            key={num}
+            variants={fadeUp}
+            whileTap={done ? undefined : { scale: 0.985 }}
+            onClick={() => !done && navigate(`/act/${num}`)}
+            className={`sd-act-card${done ? ' done' : ''}`}
+          >
+            <div className="sd-act-numeral">
+              <div className="sd-act-numeral-r">{numeral}</div>
+              <div className="sd-act-numeral-lbl">ACT</div>
+            </div>
+            <div className="sd-act-body">
+              <div className="sd-act-name">{name}</div>
+              <div className="sd-act-desc">{desc}</div>
+            </div>
+            {done ? <CheckIcon /> : (
+              <div className="sd-act-xp">
+                <span className="sd-act-xp-plus">+{xp}</span>
+                <span className="sd-act-xp-lbl">xp</span>
+              </div>
+            )}
+          </motion.div>
+        )
+      })}
+    </motion.div>
+  )
+}
 
-      {/* Week calendar */}
-      <div style={{ padding: '14px 20px 18px' }}>
-        <div style={{
-          fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-muted)',
-          textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 10,
-        }}>
-          This week
+function StatsCard({ streak, daysPlayed, weekDays, today, weekCompletions, rank }) {
+  return (
+    <div className="sd-stats-card">
+      <div className="sd-stats-row">
+        <div className="sd-stats-cell">
+          <div className="sd-stats-value streak">{streak}</div>
+          <div className="sd-stats-label">Day streak</div>
         </div>
-        <div style={{ display: 'flex', gap: 4 }}>
+        <div className="sd-stats-cell">
+          <div className="sd-stats-value">{daysPlayed}</div>
+          <div className="sd-stats-label">Days played</div>
+        </div>
+      </div>
+      <div className="sd-week">
+        <div className="sd-week-title">This week</div>
+        <div className="sd-week-row">
           {weekDays.map((d, i) => {
             const dateKey = d.toISOString().slice(0, 10)
             const isToday = d.toDateString() === today.toDateString()
             const isPast = d < today && !isToday
             const isFuture = d > today && !isToday
             const done = weekCompletions.has(dateKey)
-            const dotColor = done ? '#3d8f55' : isToday ? rank.color : isPast ? 'rgba(255,255,255,0.1)' : 'transparent'
-            const borderColor = done
-              ? 'rgba(45,102,64,0.5)'
+
+            const style = done
+              ? {
+                  background: 'rgba(45, 102, 64, 0.16)',
+                  border: '1px solid rgba(93, 184, 122, 0.4)',
+                }
               : isToday
-              ? rank.color
+              ? {
+                  background: `${rank.color}20`,
+                  border: `1px solid ${rank.color}80`,
+                  boxShadow: `0 0 10px ${rank.color}22`,
+                }
               : isPast
-              ? 'rgba(255,255,255,0.07)'
-              : 'rgba(255,255,255,0.04)'
-            const bg = done
-              ? 'rgba(45,102,64,0.12)'
-              : isToday
-              ? `${rank.color}18`
-              : 'transparent'
+              ? {
+                  background: 'rgba(255, 255, 255, 0.02)',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                }
+              : {
+                  background: 'transparent',
+                  border: '1px dashed rgba(255, 255, 255, 0.08)',
+                }
+
             const labelColor = done
-              ? '#3d8f55'
+              ? '#7cc48a'
               : isToday
               ? rank.color
               : isFuture
               ? 'var(--sd-muted)'
               : 'var(--sd-cream-dim)'
+
+            const dotColor = done
+              ? '#5db87a'
+              : isToday
+              ? rank.color
+              : 'transparent'
+
             return (
-              <div key={i} style={{
-                flex: 1, textAlign: 'center', padding: '8px 2px 7px', borderRadius: 8,
-                border: `1px solid ${borderColor}`,
-                background: bg,
-              }}>
-                <div style={{
-                  fontFamily: "'Special Elite', serif", fontSize: 11,
-                  textTransform: 'uppercase', color: labelColor,
-                }}>
-                  {DAY_LABELS[i]}
-                </div>
-                <div style={{
-                  width: 4, height: 4, borderRadius: '50%', margin: '5px auto 0',
-                  background: dotColor,
-                }} />
+              <div key={i} className="sd-week-cell" style={style}>
+                <div className="lbl" style={{ color: labelColor }}>{DAY_LABELS[i]}</div>
+                <div className="dot" style={{ background: dotColor }} />
               </div>
             )
           })}
         </div>
       </div>
-    </div>
-  )
-}
-
-function SectionLabel({ children }) {
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
-      <div style={{ flex: 1, height: '0.5px', background: 'rgba(192,21,42,0.25)' }} />
-      <span style={{
-        fontFamily: "'Creepster', cursive", fontSize: 13, color: 'rgba(192,21,42,0.8)',
-        textTransform: 'uppercase', letterSpacing: '0.18em', whiteSpace: 'nowrap',
-      }}>{children}</span>
-      <div style={{ flex: 1, height: '0.5px', background: 'rgba(192,21,42,0.25)' }} />
-    </div>
-  )
-}
-
-function ActList({ completedActs, navigate }) {
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-      {ACTS.map(({ num, numeral, name, desc, maxXP: xp }) => {
-        const done = completedActs.includes(num)
-        return (
-          <div
-            key={num}
-            onClick={() => !done && navigate(`/act/${num}`)}
-            className="sd-act-row"
-            style={{
-              borderRadius: 12,
-              border: `1px solid ${done ? 'rgba(45,102,64,0.35)' : 'rgba(192,21,42,0.38)'}`,
-              borderLeft: `4px solid ${done ? '#2d6640' : 'var(--sd-red)'}`,
-              background: done
-                ? 'linear-gradient(135deg, rgba(45,102,64,0.14) 0%, rgba(46,26,26,0.95) 100%)'
-                : 'linear-gradient(135deg, rgba(192,21,42,0.13) 0%, rgba(46,26,26,0.95) 100%)',
-              boxShadow: done
-                ? '0 4px 20px rgba(0,0,0,0.55)'
-                : '0 4px 20px rgba(0,0,0,0.55), inset 0 1px 0 rgba(192,21,42,0.08)',
-              padding: '16px 16px 16px 14px',
-              display: 'flex', alignItems: 'center', gap: 14,
-              cursor: done ? 'default' : 'pointer',
-              opacity: done ? 0.6 : 1,
-            }}
-          >
-            {/* Roman numeral badge */}
-            <div style={{
-              width: 40, height: 40, borderRadius: 8, flexShrink: 0,
-              background: done ? 'rgba(45,102,64,0.25)' : 'rgba(192,21,42,0.2)',
-              border: `1.5px solid ${done ? 'rgba(45,102,64,0.5)' : 'rgba(192,21,42,0.55)'}`,
-              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-              boxShadow: done ? 'none' : '0 0 10px rgba(192,21,42,0.12)',
-            }}>
-              <div style={{
-                fontFamily: "'Creepster', cursive",
-                fontSize: numeral.length > 2 ? 15 : 20,
-                color: done ? '#5db87a' : '#e83550',
-                lineHeight: 1,
-              }}>{numeral}</div>
-              <div style={{
-                fontFamily: "'Special Elite', serif", fontSize: 10,
-                color: done ? 'rgba(93,184,122,0.7)' : 'rgba(232,53,80,0.7)',
-                letterSpacing: '0.06em', marginTop: 2,
-              }}>ACT</div>
-            </div>
-
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontFamily: "'Teko', sans-serif", fontSize: 22, color: done ? 'var(--sd-cream-dim)' : 'var(--sd-cream)', lineHeight: 1.1 }}>{name}</div>
-              <div style={{ fontFamily: "'Special Elite', serif", fontSize: 12, color: done ? 'var(--sd-muted)' : 'var(--sd-cream-dim)', marginTop: 4 }}>{desc}</div>
-            </div>
-
-            {done ? <CheckIcon /> : (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-                <span style={{ fontFamily: "'Creepster', cursive", fontSize: 17, color: '#e83550', lineHeight: 1 }}>+{xp}</span>
-                <span style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-muted)' }}>xp</span>
-                <span style={{ color: 'rgba(232,53,80,0.7)', fontSize: 20, lineHeight: 1 }}>›</span>
-              </div>
-            )}
-          </div>
-        )
-      })}
     </div>
   )
 }
@@ -284,29 +251,41 @@ export default function Home() {
   }, [])
 
   useEffect(() => {
-    async function loadPast() {
-      // Fetch all used_on dates (just the date field — small payload) for day count + preview
-      const { data: allRows } = await supabase
-        .from('questions').select('used_on')
-        .lte('used_on', todayStr).not('used_on', 'is', null)
+    let alive = true
+    ;(async () => {
+      try {
+        const query = supabase
+          .from('questions').select('used_on')
+          .lte('used_on', todayStr).not('used_on', 'is', null)
+        const timeout = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('past query timed out')), 10000)
+        )
+        const { data: allRows, error } = await Promise.race([query, timeout])
 
-      const allDates = [...new Set((allRows || []).map(r => r.used_on))].sort((a, b) => b.localeCompare(a))
-      const pastDates = allDates.filter(d => d < todayStr)
+        if (!alive) return
+        if (error) { console.warn('past query failed', error); return }
 
-      setPastAvail(pastDates.slice(0, 3))
-      setDayNum(allDates.length)
+        const allDates = [...new Set((allRows || []).map(r => r.used_on))].sort((a, b) => b.localeCompare(a))
+        const pastDates = allDates.filter(d => d < todayStr)
 
-      if (session?.user && pastDates.length) {
-        const { data: logRows } = await supabase
-          .from('ritual_log')
-          .select('date, xp_earned')
-          .eq('user_id', session.user.id)
-          .in('date', pastDates.slice(0, 3))
-        const byDate = Object.fromEntries((logRows || []).map(r => [r.date, r]))
-        setPastLog(byDate)
+        setPastAvail(pastDates.slice(0, 3))
+        setDayNum(allDates.length)
+
+        if (session?.user && pastDates.length) {
+          const { data: logRows } = await supabase
+            .from('ritual_log')
+            .select('date, xp_earned')
+            .eq('user_id', session.user.id)
+            .in('date', pastDates.slice(0, 3))
+          if (!alive) return
+          const byDate = Object.fromEntries((logRows || []).map(r => [r.date, r]))
+          setPastLog(byDate)
+        }
+      } catch (err) {
+        console.warn('loadPast error', err)
       }
-    }
-    loadPast()
+    })()
+    return () => { alive = false }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session?.user?.id])
 
@@ -316,15 +295,12 @@ export default function Home() {
       const dateStrs = days.map(d => d.toISOString().slice(0, 10))
       const completed = new Set()
 
-      // Today: check local state first
       if (ritualBanked) completed.add(todayStr)
 
-      // Local backfills
       for (const d of dateStrs) {
         if (completedBackfills[d] != null) completed.add(d)
       }
 
-      // Supabase ritual_log for the rest
       if (session?.user) {
         const weekStart = dateStrs[0]
         const { data } = await supabase
@@ -348,81 +324,63 @@ export default function Home() {
 
   const weekDays = getWeekDays()
 
+  const featureProps = { dayNum, dateStr, username, rank, displayXP, nextRank, xpBarFill }
+  const statsProps = { streak, daysPlayed, weekDays, today, weekCompletions, rank }
+
   return (
     <div className="sd-wrap" style={{
-      background: 'radial-gradient(ellipse 100% 340px at 50% 0px, rgba(192,21,42,0.22) 0%, transparent 100%), var(--sd-black)',
+      background: 'radial-gradient(ellipse 100% 380px at 50% -20px, rgba(192,21,42,0.24) 0%, transparent 100%), #1a0e0e',
     }}>
-      <Header activePage="ritual" />
-
-      {/* Date bar */}
-      <div style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12,
-        padding: '13px var(--sd-px)',
-        borderBottom: '0.5px solid rgba(192,21,42,0.25)',
-        background: 'rgba(192,21,42,0.08)',
-      }}>
-        <span style={{ fontFamily: "'Special Elite', serif", fontSize: 13, color: 'var(--sd-cream-dim)', letterSpacing: '0.03em' }}>
-          {dateStr}
-        </span>
-        <span style={{ width: 3, height: 3, borderRadius: '50%', background: 'rgba(192,21,42,0.55)', display: 'inline-block', flexShrink: 0 }} />
-        {dayNum !== null && (
-          <span style={{ fontFamily: "'Creepster', cursive", fontSize: 18, color: 'var(--sd-red)', letterSpacing: 1 }}>
-            Day #{dayNum}
-          </span>
-        )}
-      </div>
 
       <div className="sd-home-content">
 
-        {/* Left: act list + CTA */}
         <div className="sd-home-left">
-          <div className="sd-mobile-only" style={{ paddingTop: 'var(--sd-px)' }}>
-            <ProfilePanel
-              username={username}
-              rank={rank}
-              displayXP={displayXP}
-              nextRank={nextRank}
-              xpBarFill={xpBarFill}
-              streak={streak}
-              daysPlayed={daysPlayed}
-              weekDays={weekDays}
-              today={today}
-              weekCompletions={weekCompletions}
-            />
+          <div className="sd-mobile-only">
+            <FeatureCard {...featureProps} />
           </div>
 
-          <div style={{ paddingTop: 22, paddingBottom: 10 }}>
-            <SectionLabel>Today's ritual</SectionLabel>
-            <ActList completedActs={completedActs} navigate={navigate} />
-          </div>
+          <motion.div
+            className="sd-divider"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.15 }}
+          >
+            <div className="sd-divider-line" />
+            <div className="sd-divider-label">Tonight's Ritual</div>
+            <div className="sd-divider-line right" />
+          </motion.div>
+          <ActList completedActs={completedActs} navigate={navigate} />
 
-          <div style={{ paddingBottom: 22 }}>
+          <motion.div
+            className="sd-cta-wrap"
+            style={{ padding: '20px var(--sd-px) 4px' }}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.55, delay: 0.45, ease: [0.22, 1, 0.36, 1] }}
+          >
             <button
               className="sd-cta-btn"
               onClick={() => nextAct && navigate(`/act/${nextAct}`)}
               disabled={!nextAct}
+              style={{ margin: 0, width: '100%' }}
             >
               {completedActs.length === 0 ? 'Begin the ritual' : nextAct ? 'Continue the ritual' : 'Ritual complete'}
             </button>
+          </motion.div>
+
+          <div className="sd-mobile-only" style={{ marginTop: 22 }}>
+            <StatsCard {...statsProps} />
           </div>
 
           {pastAvail.length > 0 && (
-            <div style={{ paddingBottom: 22 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
-                <div style={{ flex: 1, height: '0.5px', background: 'rgba(255,255,255,0.07)' }} />
-                <span style={{
-                  fontFamily: "'Creepster', cursive", fontSize: 13, color: 'var(--sd-muted)',
-                  textTransform: 'uppercase', letterSpacing: '0.18em', whiteSpace: 'nowrap',
-                }}>Past Rituals</span>
-                <div style={{ flex: 1, height: '0.5px', background: 'rgba(255,255,255,0.07)' }} />
-                <span
-                  onClick={() => navigate('/history')}
-                  style={{ fontFamily: "'Special Elite', serif", fontSize: 10, color: 'var(--sd-red)', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}
-                >
-                  See all →
-                </span>
+            <>
+              <div className="sd-divider">
+                <div className="sd-divider-line" />
+                <div className="sd-divider-label">Previously</div>
+                <div className="sd-divider-line right" />
+                <div className="sd-divider-link" onClick={() => navigate('/history')}>See all →</div>
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div className="sd-past-list">
                 {pastAvail.map(dateStr => {
                   const entry = pastLog[dateStr] ?? (completedBackfills[dateStr] != null ? { xp_earned: completedBackfills[dateStr] } : null)
                   const done = !!entry
@@ -430,26 +388,21 @@ export default function Home() {
                     <div
                       key={dateStr}
                       onClick={() => !done && navigate(`/past/${dateStr}`)}
-                      style={{
-                        borderRadius: 12,
-                        border: `1px solid ${done ? 'rgba(45,102,64,0.32)' : 'rgba(192,21,42,0.35)'}`,
-                        borderLeft: `4px solid ${done ? '#2d6640' : 'var(--sd-red)'}`,
-                        background: done
-                          ? 'linear-gradient(135deg, rgba(45,102,64,0.12) 0%, rgba(46,26,26,0.95) 100%)'
-                          : 'linear-gradient(135deg, rgba(192,21,42,0.11) 0%, rgba(46,26,26,0.95) 100%)',
-                        boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
-                        padding: '13px 16px 13px 14px',
-                        display: 'flex', alignItems: 'center', gap: 14,
-                        cursor: done ? 'default' : 'pointer',
-                        opacity: done ? 0.6 : 1,
-                      }}
+                      className={`sd-past-card${done ? ' done' : ''}`}
                     >
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontFamily: "'Teko', sans-serif", fontSize: 20, color: done ? 'var(--sd-cream-dim)' : 'var(--sd-cream)', lineHeight: 1.1 }}>
+                        <div style={{
+                          fontFamily: "'Teko', sans-serif", fontSize: 20,
+                          color: done ? 'var(--sd-cream-dim)' : 'var(--sd-cream)',
+                          lineHeight: 1.1, letterSpacing: '0.5px',
+                        }}>
                           {formatPastDate(dateStr)}
                         </div>
-                        <div style={{ fontFamily: "'Special Elite', serif", fontSize: 12, color: 'var(--sd-cream-dim)', marginTop: 5 }}>
-                          {done ? 'Past ritual · 50% XP' : 'Available to play'}
+                        <div style={{
+                          fontFamily: "'Special Elite', serif", fontSize: 11,
+                          color: 'var(--sd-cream-dim)', marginTop: 5,
+                        }}>
+                          {done ? 'Ritual complete · 50% XP' : 'Available to play'}
                         </div>
                       </div>
                       {done ? (
@@ -466,42 +419,33 @@ export default function Home() {
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
                           <span style={{
                             fontFamily: "'Special Elite', serif", fontSize: 10, color: 'var(--sd-cream-dim)',
-                            border: '0.5px solid rgba(192,21,42,0.25)', borderRadius: 20,
-                            padding: '3px 10px', background: 'rgba(192,21,42,0.05)',
+                            border: '0.5px solid rgba(192,21,42,0.3)', borderRadius: 20,
+                            padding: '3px 10px', background: 'rgba(192,21,42,0.06)',
                           }}>
                             +50% xp
                           </span>
-                          <span style={{ color: 'var(--sd-muted)', fontSize: 16 }}>›</span>
+                          <span style={{ color: 'var(--sd-red-bright)', fontSize: 18 }}>›</span>
                         </div>
                       )}
                     </div>
                   )
                 })}
               </div>
-            </div>
+            </>
           )}
 
+          <div style={{ height: 24 }} />
         </div>
 
-        {/* Right sidebar — desktop only */}
-        <div className="sd-home-right sd-desktop-only" style={{ paddingTop: 22 }}>
-          <ProfilePanel
-            username={username}
-            rank={rank}
-            displayXP={displayXP}
-            nextRank={nextRank}
-            xpBarFill={xpBarFill}
-            streak={streak}
-            daysPlayed={daysPlayed}
-            weekDays={weekDays}
-            today={today}
-            weekCompletions={weekCompletions}
-          />
+        <div className="sd-home-right sd-desktop-only" style={{
+          display: 'flex', flexDirection: 'column', gap: 22, paddingTop: 4,
+        }}>
+          <FeatureCard {...featureProps} />
+          <StatsCard {...statsProps} />
         </div>
 
       </div>
 
-      <BottomNav activePage="ritual" />
     </div>
   )
 }

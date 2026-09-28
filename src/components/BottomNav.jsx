@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom'
+import { motion } from 'motion/react'
 
 function HomeIcon() {
   return (
@@ -51,19 +52,29 @@ export default function BottomNav({ activePage }) {
 
   return (
     <nav className="sd-bottom-nav">
-      {tabs.map(({ id, label, Icon, path, disabled }) => (
-        <button
-          key={id}
-          className={`sd-nav-tab${activePage === id ? ' active' : ''}${disabled ? ' disabled' : ''}`}
-          onClick={() => !disabled && path && navigate(path)}
-          disabled={disabled}
-          aria-label={label}
-        >
-          <Icon />
-          <span className="sd-nav-label">{label}</span>
-          {disabled && <span className="sd-nav-soon">soon</span>}
-        </button>
-      ))}
+      {tabs.map(({ id, label, Icon, path, disabled }) => {
+        const active = activePage === id
+        return (
+          <button
+            key={id}
+            className={`sd-nav-tab${active ? ' active' : ''}${disabled ? ' disabled' : ''}`}
+            onClick={() => !disabled && path && navigate(path)}
+            disabled={disabled}
+            aria-label={label}
+          >
+            {active && (
+              <motion.span
+                layoutId="sd-nav-marker"
+                className="sd-nav-marker"
+                transition={{ type: 'spring', stiffness: 380, damping: 32 }}
+              />
+            )}
+            <Icon />
+            <span className="sd-nav-label">{label}</span>
+            {disabled && <span className="sd-nav-soon">soon</span>}
+          </button>
+        )
+      })}
     </nav>
   )
 }

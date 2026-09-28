@@ -1,5 +1,7 @@
 // Single source of truth for XP values, act metadata, and clue config.
 
+export const LETTERS = ['A', 'B', 'C', 'D']
+
 export const PAST_RITUAL_MULT = 0.5
 
 export const BASE_XP = {

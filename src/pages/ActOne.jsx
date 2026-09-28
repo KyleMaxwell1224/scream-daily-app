@@ -1,8 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import Header from '../components/Header'
 import ProgressBar from '../components/ProgressBar'
-import BottomNav from '../components/BottomNav'
 import Act1GameView from '../components/Act1GameView'
 import useGameStore from '../store/useGameStore'
 import { getDayNumber, gradeAnswer } from '../utils/questions'
@@ -44,7 +42,6 @@ export default function ActOne() {
 
   return (
     <div className="sd-wrap">
-      <Header activePage="ritual" />
       <ProgressBar currentAct={1} />
       <div className="sd-game-content">
         <Act1GameView
@@ -63,7 +60,6 @@ export default function ActOne() {
           onSkip={() => { completeAct(1, 0); navigate('/act/2') }}
         />
       </div>
-      <BottomNav activePage="ritual" />
     </div>
   )
 }

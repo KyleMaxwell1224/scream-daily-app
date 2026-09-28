@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import Header from '../components/Header'
-import BottomNav from '../components/BottomNav'
+import RankSigil from '../components/RankSigil'
+import Spinner from '../components/Spinner'
 import useGameStore from '../store/useGameStore'
 import { supabase } from '../supabaseClient'
 import { getRankForXP } from '../utils/ranks'
@@ -15,20 +15,35 @@ export default function Leaderboard() {
   const { session, userXP, xpEarned } = useGameStore()
   const [rows, setRows] = useState([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
   const displayXP = userXP + Object.values(xpEarned).reduce((s, v) => s + v, 0)
   const myId = session?.user?.id
 
   useEffect(() => {
-    supabase
-      .from('user_stats')
-      .select('user_id, username, user_xp, streak, favorite_slasher')
-      .order('user_xp', { ascending: false })
-      .limit(20)
-      .then(({ data }) => {
+    let alive = true
+    ;(async () => {
+      try {
+        const query = supabase
+          .from('user_stats')
+          .select('user_id, username, user_xp, streak, favorite_slasher')
+          .order('user_xp', { ascending: false })
+          .limit(20)
+        // 10s timeout — if supabase hangs (e.g. stuck token refresh), fail loudly
+        const timeout = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Query timed out after 10s')), 10000)
+        )
+        const { data, error: qErr } = await Promise.race([query, timeout])
+        if (!alive) return
+        if (qErr) setError(qErr.message)
         setRows(data || [])
-        setLoading(false)
-      })
+      } catch (err) {
+        if (alive) setError(err?.message || 'Failed to load leaderboard')
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => { alive = false }
   }, [])
 
   const top3 = rows.slice(0, 3)
@@ -38,7 +53,6 @@ export default function Leaderboard() {
     <div className="sd-wrap" style={{
       background: 'radial-gradient(ellipse 100% 340px at 50% 0px, rgba(192,21,42,0.22) 0%, transparent 100%), var(--sd-black)',
     }}>
-      <Header activePage="leaderboard" />
 
       <div style={{ padding: '20px var(--sd-px) 16px' }}>
         <div style={{ fontFamily: "'Creepster', cursive", fontSize: 30, color: 'var(--sd-cream)', letterSpacing: 1 }}>
@@ -50,8 +64,10 @@ export default function Leaderboard() {
       </div>
 
       {loading ? (
-        <div style={{ fontFamily: "'Special Elite', serif", fontSize: 12, color: 'var(--sd-muted)', textAlign: 'center', marginTop: 60 }}>
-          Summoning the rankings…
+        <Spinner size={48} label="Summoning the rankings" />
+      ) : error ? (
+        <div style={{ fontFamily: "'Special Elite', serif", fontSize: 12, color: 'var(--sd-red)', textAlign: 'center', marginTop: 60, padding: '0 var(--sd-px)' }}>
+          The dead won't speak. ({error})
         </div>
       ) : rows.length === 0 ? (
         <div style={{ fontFamily: "'Special Elite', serif", fontSize: 12, color: 'var(--sd-muted)', textAlign: 'center', marginTop: 60 }}>
@@ -111,15 +127,18 @@ export default function Leaderboard() {
                       textTransform: 'uppercase', verticalAlign: 'middle',
                     }}>you</span>}
                   </div>
-                  <div style={{ fontFamily: "'Special Elite', serif", fontSize: 12, color: 'var(--sd-muted)', marginTop: 4 }}>
-                    {row.favorite_slasher || rank.name}
+                  <div style={{ fontFamily: "'Special Elite', serif", fontSize: 12, color: 'var(--sd-muted)', marginTop: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ color: rank.color, display: 'inline-flex' }}>
+                      <RankSigil name={rank.name} size={12} strokeWidth={1.2} />
+                    </span>
+                    <span>{row.favorite_slasher || rank.name}</span>
                   </div>
                 </div>
 
                 {/* XP + streak */}
                 <div style={{ textAlign: 'right', flexShrink: 0 }}>
                   <div style={{ fontFamily: "'Teko', sans-serif", fontSize: 22, color: p.color, lineHeight: 1 }}>
-                    {row.user_xp.toLocaleString()}
+                    {(row.user_xp ?? 0).toLocaleString()}
                     <span style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-muted)', marginLeft: 3 }}>xp</span>
                   </div>
                   {row.streak > 1 && (
@@ -186,15 +205,18 @@ export default function Leaderboard() {
                           textTransform: 'uppercase', verticalAlign: 'middle',
                         }}>you</span>}
                       </div>
-                      <div style={{ fontFamily: "'Special Elite', serif", fontSize: 12, color: 'var(--sd-muted)', marginTop: 4 }}>
-                        {row.favorite_slasher || rank.name}
+                      <div style={{ fontFamily: "'Special Elite', serif", fontSize: 12, color: 'var(--sd-muted)', marginTop: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span style={{ color: rank.color, display: 'inline-flex' }}>
+                          <RankSigil name={rank.name} size={11} strokeWidth={1.2} />
+                        </span>
+                        <span>{row.favorite_slasher || rank.name}</span>
                       </div>
                     </div>
 
                     {/* XP + streak */}
                     <div style={{ textAlign: 'right', flexShrink: 0 }}>
                       <div style={{ fontFamily: "'Teko', sans-serif", fontSize: 19, color: isMe ? 'var(--sd-cream)' : 'var(--sd-cream-dim)', lineHeight: 1 }}>
-                        {row.user_xp.toLocaleString()}
+                        {(row.user_xp ?? 0).toLocaleString()}
                         <span style={{ fontFamily: "'Special Elite', serif", fontSize: 11, color: 'var(--sd-muted)', marginLeft: 3 }}>xp</span>
                       </div>
                       {row.streak > 1 && (
@@ -241,7 +263,6 @@ export default function Leaderboard() {
         </div>
       )}
 
-      <BottomNav activePage="leaderboard" />
     </div>
   )
 }

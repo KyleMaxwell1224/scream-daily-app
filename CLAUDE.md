@@ -11,8 +11,12 @@ npm run lint       # ESLint
 npm run preview    # serve the dist/ build locally
 npm test           # run test suite (Vitest, single pass)
 npm run test:watch # Vitest in watch mode
-node scripts/seedQuestions.js   # seed Act 1 + Act 4 questions into Supabase
+node scripts/seedQuestions.js               # seed Act 1 + Act 4 questions into Supabase
+node scripts/backfillPastDates.js           # fill missing past dates with diverse rituals (default 60d back; --dry-run to preview)
+node scripts/backfillMissingActs.js         # patch dates where some acts are stamped but others aren't
 ```
+
+The daily-questions RPC lives in `scripts/sql/get_todays_questions.sql`. Paste into Supabase SQL Editor to install/update.
 
 Tests live in `src/test/`. Pure utility and store logic tests only — no Supabase required. CI runs lint → test → build on every push/PR via `.github/workflows/ci.yml`.
 
